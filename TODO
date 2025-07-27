@@ -1,0 +1,15 @@
+- Admin dashboard:
+
+1.  Analytics - Users
+2.  View individual results and Update (name only)
+3.  Can add, update, delete questions.
+
+- Client Side :
+
+1. Implement zustand global state management
+2. Create child components : ex: ArraybasedQuestion.tsx
+3. Code Cleanup - Remove unused variables and functions.
+
+Back End:
+
+- All admin endpoints

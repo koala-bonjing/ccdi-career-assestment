@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import {
   useWelcomeScreen,
   useShowInputs,
@@ -8,7 +9,8 @@ import Assess from "../../assets/assess.png";
 import DotGrid from "../ActiveBackground";
 
 function WelcomeScreenComponent() {
-  const { setName, hideWelcome } = useWelcomeScreen();
+  const { setName } = useEvaluationStore();
+  const { hideWelcome } = useWelcomeScreen();
   const { showInputs, toggleInputs } = useShowInputs();
   const [localName, setLocalName] = useState("");
 

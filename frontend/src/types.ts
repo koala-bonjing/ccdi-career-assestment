@@ -15,6 +15,13 @@ export interface Evaluation {
 
 export type ProgramType = "BSCS" | "BSIT" | "BSIS" | "teElectrical";
 
+export const ProgramLabels: Record<ProgramType, string> = {
+  BSCS: "BSCS",
+  BSIT: "BSIT",
+  BSIS: "BSIS",
+  teElectrical: "Technology Engineering (Electrical)",
+};
+
 export interface AssessmentAnswers {
   academicAptitude: {
     [question: string]: number;

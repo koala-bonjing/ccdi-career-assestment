@@ -60,22 +60,22 @@ const questions = {
   careerInterest: [
     // Realistic - The Doers
     "Realistic: Hands-on work with tools, machines, or hardware (e.g., building PCs, repairing devices, working with engineering equipment).",
-    
+
     // Investigative - The Problem-Solvers
     "Investigative: Analyzing data, researching solutions, and solving complex puzzles (e.g., investigating software bugs, researching new technologies, data analysis).",
-    
+
     // Artistic - The Creators
     "Artistic: Designing creative solutions and working on visual or multimedia projects (e.g., UI/UX design, game development, video editing, digital graphics).",
-    
+
     // Social - The Helpers & Collaborators
     "Social: Teaching, helping, and collaborating with others (e.g., tech support, training users, leading team projects, managing client relationships).",
-    
+
     // Enterprising - The Leaders
     "Enterprising: Leading teams, managing projects, or starting new ventures (e.g., project management, tech entrepreneurship, IT sales and marketing).",
-    
+
     // Conventional - The Organizers
     "Conventional: Organizing information, working with data, and maintaining structured systems (e.g., database management, network administration, technical documentation).",
-    
+
     // Added: A specifically modern and relevant IT angle
     "I am curious about the 'behind-the-scenes' of how the internet and digital services work.",
     "I enjoy playing strategy games or thinking about systems and how to optimize them.",
@@ -151,12 +151,29 @@ const sectionFormBgColors: Record<keyof AssessmentAnswers, string> = {
   learningStyle: "bg-pink-400/20",
 };
 
-export const sectionDotColors: Record<string, { base: string; active: string }> = {
+export const sectionDotColors: Record<
+  string,
+  { base: string; active: string }
+> = {
   academicAptitude: { base: "#1E3A8A", active: "#3B82F6" }, // Blue shades
   technicalSkills: { base: "#92400E", active: "#F97316" }, // Orange shades
   careerInterest: { base: "#581C87", active: "#A855F7" }, // Purple shades
   learningStyle: { base: "#831843", active: "#EC4899" }, // Pink shades
 };
 
+// src/constants/programs.ts
+export const ProgramLabels: Record<string, string> = {
+  BSCS: "Bachelor of Science in Computer Science",
+  BSIT: "Bachelor of Science in Information Technology",
+  BSIS: "Bachelor of Science in Information Systems",
+  TechEng: "Technology Engineering (Electrical)", // <- matches your store key
+};
 
-export { BASE_URL, questions, categoryTitles,sectionBgColors, sectionHoverColors, sectionFormBgColors };
+export {
+  BASE_URL,
+  questions,
+  categoryTitles,
+  sectionBgColors,
+  sectionHoverColors,
+  sectionFormBgColors,
+};

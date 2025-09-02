@@ -1,3 +1,46 @@
-.pointer-label {
-  cursor: pointer;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-bg-color: #ffff;
+  --secondary-bg-color: #f7f7f7;
+
+  --primary-text-color: #fff;
+  --secondary-text-color: #f7f7f7;
+
+  --primary-border-color: #4b4c53;
+
+  --button-solid-background-color: #f7f7f7;
+  --button-solid-text-color: #000;
+
+  --button-outlined-bg-color: #f7f7f7;
+  --button-outlined-text-color: #000;
+
+  --gradient-primary: linear-gradient(135deg, #213555, #000000);
+
+  --gradient-secondary: linear-gradient(
+    135deg,
+    rgba(33, 53, 85, 0.6),
+    rgba(0, 0, 0, 0.6)
+  );
 }
+
+.transparent-modal .modal-content {
+  background: rgba(255, 255, 255, 0.1); /* 10% white */
+  backdrop-filter: blur(12px); /* frosted glass effect */
+  border-radius: 1rem;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.transparent-modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.9;
+}
+
+.transparent-modal .btn-close:hover {
+  opacity: 1;
+}
+
+

@@ -26,7 +26,7 @@ type EvaluationState = {
   prevSection: () => void;
 };
 
-export const useEvaluationStore = create<EvaluationState>((set) => ({
+export const useResultPageStore = create<EvaluationState>((set) => ({
   name: "",
   setName: (name) => set({ name }),
 

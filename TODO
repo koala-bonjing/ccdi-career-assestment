@@ -6,10 +6,27 @@
 
 - Client Side :
 
-1. Implement zustand global state management
-2. Create child components : ex: ArraybasedQuestion.tsx
+1. Implement zustand global state management /
+2. Create child components : ex: ArraybasedQuestion.tsx /
 3. Code Cleanup - Remove unused variables and functions.
 
 Back End:
 
 - All admin endpoints
+
+
+{
+          position: "top-right",
+          autoClose: 3000,
+          style: {
+            backgroundColor: "rgba(33, 150, 243, 0.3)", // semi-transparent blue
+            backdropFilter: "blur(6px)", // blur effect
+            border: "2px solid #2196F3",
+            color: "#fff",
+            fontWeight: "bold",
+            fontSize: "14px",
+            borderRadius: "8px",
+            fontFamily: "Poppins",
+          },
+          transition: Bounce,
+        }

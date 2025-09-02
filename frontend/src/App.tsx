@@ -1,43 +1,50 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import WelcomeScreenComponent from "./components/WelcomeScreen";
+import type { EvaluationResult } from "./config/types";
+import { BASE_URL, categoryTitles } from "./config/constants";
 import { useEvaluationStore } from "../store/useEvaluationStore";
 import { useWelcomeScreen } from "../store/useWelcomeScreenStore";
+import { notifySectionWarning } from "./utils/toastService";
+import {useUserStore} from "../store/useUserStore"
+import { ToastContainer } from "react-toastify";
 import AssessmentForm from "./components/AssestmentForm";
-import { useUserStore } from "../store/useUserStore";
-import type { Evaluation } from "../src/types";
-import { BASE_URL } from "./config/constants";
+import ResultsPage from "./components/ResultPage";
+import WelcomeScreenComponent from "./components/WelcomeScreen/index";
+import type { AssessmentResult, ProgramType } from "./types";
 
-// Initialize Gemini AI (move API key to environment variables in production)
-const genAI = new GoogleGenerativeAI(
-  import.meta.env.VITE_GEMINI_API_KEY || "your-api-key"
-);
+import axios from "axios";
+import { parse } from "dotenv";
+
+const genAI = new GoogleGenerativeAI("AIzaSyAnzBdIYWGwBR4p7V1_tTrHQkUZDiYFXZw");
 
 const EvaluationForm = () => {
-  const navigate = useNavigate();
+
   const { showWelcome } = useWelcomeScreen();
-  const { currentUser, setCurrentUser } = useUserStore();
   const {
     name,
     answers,
     result,
-    setResult,
-    loading,
-    setLoading,
-    error,
+    nextSection,
+    prevSection,
+    currentSectionIndex,
+    sectionKeys,
     setError,
+    setLoading,
+    setResult,
+    setAnswers, // Make sure this is available in your store
   } = useEvaluationStore();
 
-  const formatAnswers = (
-    answers: Record<string, boolean | number | string>
-  ): string => {
+  const { currentUser } = useUserStore.getState();
+
+  if (showWelcome) {
+    return <WelcomeScreenComponent />;
+  }
+  const currentSectionKey = sectionKeys[currentSectionIndex];
+
+  // Transform the answers format for AI processing
+  const formatAnswers = () => {
     return Object.entries(answers)
       .map(([question, value]) => {
-        if (typeof value === "boolean") {
-          return value ? `- ${question}` : null;
-        } else if (typeof value === "number") {
+        if (typeof value === "number") {
           return `- ${question}: ${value}/5`;
         }
         return `- ${question}: ${value}`;
@@ -46,70 +53,107 @@ const EvaluationForm = () => {
       .join("\n");
   };
 
-  const generateEvaluation = async (): Promise<Evaluation> => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = `
-You are a career/course evaluation assistant. Evaluate the following student's preferences and provide:
-1) A summary of strengths/interests
-2) Recommended course (BSIT, BSCS, BSIS, or Technology Engineering Electrical)
-3) Explanation for recommendation
+  const validateSection = (index: number) => {
+    const sectionKey = sectionKeys[index];
+    const sectionAnswers = Object.entries(answers)
+      .filter(([q]) => q.startsWith(sectionKey))
+      .map(([, value]) => value);
 
-STUDENT NAME: ${name}
-
-QUESTIONS AND ANSWERS:
-${formatAnswers(answers)}
-
-Respond ONLY with valid JSON in this format:
-{
-  "result": "<summary>",
-  "recommendation": "<explanation>",
-  "recommendedProgram": "<course>",
-  "percent": {
-    "BSIT": <0-100>,
-    "BSCS": <0-100>,
-    "BSIS": <0-100>,
-    "teElectrical": <0-100>
-  }
-}
-`;
-
-    try {
-      const aiResponse = await model.generateContent(prompt);
-      const raw = aiResponse.response.text();
-      const cleaned = raw.replace(/```json\s*([\s\S]*?)```/, "$1").trim();
-      return JSON.parse(cleaned);
-    } catch (err) {
-      console.error("AI generation error:", err);
-      throw new Error("Failed to generate evaluation");
+    if (sectionAnswers.length === 0) {
+      notifySectionWarning(sectionKey);
+      return false;
     }
+
+    const hasAnyAnswer = sectionAnswers.some(
+      (value) => value !== undefined && value !== "" && value !== false
+    );
+
+    if (!hasAnyAnswer) {
+      notifySectionWarning(sectionKey);
+      return false;
+    }
+
+    return true;
   };
 
-  const handleSubmitEvaluation = async (answers: Record<string, any>) => {
+  const handleNextSection = () => {
+    const currentKey = sectionKeys[currentSectionIndex];
+
+    // Check if section has at least one answered question
+    const sectionAnswers = Object.entries(answers).filter(([q]) =>
+      q.startsWith(currentKey)
+    );
+
+    const hasAnswer = sectionAnswers.some(
+      ([, value]) => value !== "" && value !== null && value !== false
+    );
+
+    if (!hasAnswer) {
+      notifySectionWarning(currentKey); // 🚀 show toast with section name + color
+      return; // stop navigation
+    }
+
+    nextSection();
+  };
+  const handlePrevSection = () => {
+    setError(null);
+    prevSection();
+  };
+
+  const handleSubmitAnswers = async (answers: Record<string, any>) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Generate AI evaluation
-      const aiEvaluation = await generateEvaluation();
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      // Save to backend
-      await axios.post(`${BASE_URL}/api/save-evaluation`, {
-        userId: currentUser?._id,
-        name,
-        ...aiEvaluation,
-        answers,
-      });
+      const prompt = `
+      You are a career/course evaluation assistant. 
+      Evaluate the following student's preferences and provide:
+      1) A brief summary of their strengths and interests,
+      2) A recommended course (choose from BSIT, BSCS, BSIS, or Technology Engineering Electrical), and
+      3) A clear, friendly explanation for your recommendation.
 
-      // Set results and navigate
-      setResult({
-        ...aiEvaluation,
-        date: new Date(),
-        answers,
-      });
-      navigate("/results");
+      STUDENT NAME: ${name}
+
+      QUESTIONS AND ANSWERS:
+      ${formatAnswers()}
+
+      Respond ONLY with valid JSON in this format:
+      {
+        "result": "${name} <summary>",
+        "recommendation": "<recommendation>",
+        "recommendedCourse": "<course>",
+        "percent": {
+          "BSIT": <0-100>,
+          "BSCS": <0-100>,
+          "BSIS": <0-100>,
+          "teElectrical": <0-100>
+        }
+      }
+      `;
+
+      const aiResponse = await model.generateContent(prompt);
+      const raw = aiResponse.response.text();
+      const parsed: EvaluationResult = JSON.parse(
+        raw.replace(/```json|```/g, "")
+      );
+
+      // 🔄 Transform EvaluationResult → AssessmentResult
+      const transformed: AssessmentResult = {
+        success: true,
+        evaluation: parsed.result,
+        recommendations: parsed.recommendation,
+        recommendedProgram: parsed.recommendedCourse as ProgramType,
+        user: currentUser ??   { name, _id: "temp-id" },
+        percent: parsed.percent,
+      };
+
+      setResult(transformed);
+      await axios.post(`${BASE_URL}/api/save-evaluation`, { name, ...transformed });
     } catch (err) {
       console.error("Evaluation error:", err);
-      setError(err instanceof Error ? err.message : "Evaluation failed");
+      setError("Failed to generate evaluation. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -117,17 +161,19 @@ Respond ONLY with valid JSON in this format:
 
   return (
     <div className="evaluation-form">
-      {showWelcome ? (
-        <WelcomeScreenComponent />
-      ) : (
+      <ToastContainer />
+      {!result ? (
         <AssessmentForm
-          currentUser={currentUser}
-          setCurrentUser={setCurrentUser}
-          setEvaluationResult={(result) => {
-            setResult(result); // from store
-            navigate("/results");
-          }}
+          currentUser={{ name, _id: "temp-id" }}
+          setCurrentUser={() => {}}
+          onSubmit={handleSubmitAnswers}
+          onNextSection={handleNextSection}
+          onPrevSection={handlePrevSection}
+          currentSectionIndex={currentSectionIndex}
+          totalSections={sectionKeys.length}
         />
+      ) : (
+        <ResultsPage result={result} currentUser={{ name, _id: "temp-id" }} />
       )}
     </div>
   );

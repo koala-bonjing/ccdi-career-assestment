@@ -10,9 +10,11 @@ import AssessmentForm from "./components/AssestmentForm";
 import ResultsPage from "./components/ResultPage";
 import WelcomeScreenComponent from "./components/WelcomeScreen/index";
 import type { AssessmentResult, ProgramType } from "./types";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 import axios from "axios";
 import { parse } from "dotenv";
+import { ProgressBar } from "react-bootstrap";
 
 const genAI = new GoogleGenerativeAI("AIzaSyAnzBdIYWGwBR4p7V1_tTrHQkUZDiYFXZw");
 
@@ -29,6 +31,7 @@ const EvaluationForm = () => {
     setError,
     setLoading,
     setResult,
+    loading,
     setAnswers, // Make sure this is available in your store
   } = useEvaluationStore();
 
@@ -193,7 +196,10 @@ For your response, provide:
   return (
     <div className="evaluation-form">
       <ToastContainer />
-      {!result ? (
+      
+      {loading ? (
+        <LoadingSpinner />
+      ) : !result ? (
         <AssessmentForm
           currentUser={{ name, _id: "temp-id" }}
           setCurrentUser={() => {}}
@@ -202,6 +208,7 @@ For your response, provide:
           onPrevSection={handlePrevSection}
           currentSectionIndex={currentSectionIndex}
           totalSections={sectionKeys.length}
+          loading={loading}
         />
       ) : (
         <ResultsPage result={result} currentUser={{ name, _id: "temp-id" }} />

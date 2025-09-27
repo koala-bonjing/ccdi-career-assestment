@@ -6,11 +6,25 @@ const Evaluation = require("../models/Evaluation");
 // Save evaluation
 router.post("/save-evaluation", async (req, res) => {
   try {
-    const { name, result, recommendation, recommendedCourse, percent } =
-      req.body;
+    const { 
+      name, 
+      // Handle both frontend and backend field names
+      evaluation = req.body.result,
+      recommendations = req.body.recommendation,
+      recommendedProgram = req.body.recommendedCourse,
+      percent 
+    } = req.body;
 
-    if (!name || !result || !recommendation || !recommendedCourse || !percent) {
-      return res.status(400).json({ message: "Missing required fields" });
+    // Check which fields we actually received
+    const finalEvaluation = evaluation || req.body.result;
+    const finalRecommendations = recommendations || req.body.recommendation;
+    const finalRecommendedProgram = recommendedProgram || req.body.recommendedCourse;
+
+    if (!name || !finalEvaluation || !finalRecommendations || !finalRecommendedProgram || !percent) {
+      return res.status(400).json({ 
+        message: "Missing required fields",
+        received: req.body 
+      });
     }
 
     // Check if user exists
@@ -20,15 +34,15 @@ router.post("/save-evaluation", async (req, res) => {
     }
 
     // Save evaluation
-    const evaluation = await Evaluation.create({
+    const evaluationDoc = await Evaluation.create({
       userId: user._id,
-      result,
-      recommendation,
-      recommendedCourse,
+      result: finalEvaluation,
+      recommendation: finalRecommendations,
+      recommendedCourse: finalRecommendedProgram,
       percent,
     });
 
-    res.status(200).json({ success: true, user, evaluation });
+    res.status(200).json({ success: true, user, evaluation: evaluationDoc });
   } catch (error) {
     console.error("Save error:", error);
     res.status(500).json({ message: "Error saving evaluation" });

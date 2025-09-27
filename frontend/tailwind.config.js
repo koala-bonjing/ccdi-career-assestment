@@ -29,4 +29,9 @@ export default {
     },
   },
   plugins: [require("tailwind-scrollbar")],
+  variants: {
+    extend: {
+      backdropBlur: ["responsive"],
+    },
+  },
 };

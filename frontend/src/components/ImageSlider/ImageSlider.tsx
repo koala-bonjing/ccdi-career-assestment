@@ -22,9 +22,9 @@ function ImageSlider() {
   };
 
   return (
-    <div className="relative w-full max-w-xl mt-8 rounded-lg shadow-lg">
+    <div className="relative w-full max-w-xl mt-8 rounded-2xl shadow-lg">
       {/* inner container keeps images clipped */}
-      <div className="relative h-64 overflow-hidden rounded-lg">
+      <div className="relative h-64 overflow-hidden rounded-2xl">
         {images.map((img, index) => (
           <div
             key={index}
@@ -39,7 +39,7 @@ function ImageSlider() {
             <img
               src={img}
               alt={`Slide ${index}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-2xl"
             />
           </div>
         ))}

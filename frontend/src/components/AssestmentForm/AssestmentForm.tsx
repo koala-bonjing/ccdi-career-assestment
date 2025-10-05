@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import type { User, AssessmentAnswers } from "../types";
-import DotGrid from "../components/ActiveBackground/index";
+import "./AssestmentForm.css"; // Import the separated CSS
+import type { User, AssessmentAnswers } from "../../types";
+import DotGrid from "../ActiveBackground/DotGrid.css";
 import {
   Info,
   BookOpen,
@@ -21,10 +22,10 @@ import {
   sectionFormBgColors,
   sectionHoverColors,
   sectionDotColors,
-} from "../config/constants";
-import TooltipButton from "./TootltipButton/TooltipButton";
-import NavigationBar from "./NavigationBarComponents/NavigationBar";
-import ProgressSideBar from "./ProgressSideBar/ProgressSideBar";
+} from "../../config/constants";
+import TooltipButton from "../TootltipButton/TooltipButton";
+import NavigationBar from "../NavigationBarComponents/NavigationBar";
+import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
 
 interface AssessmentFormProps {
   currentUser: User | null;
@@ -57,6 +58,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const [currentSection, setCurrentSection] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showReview, setShowReview] = useState(false);
+  const [completedSections, setCompletedSections] = useState<number[]>([]);
 
   const sections: (keyof AssessmentAnswers)[] = [
     "academicAptitude",
@@ -91,7 +93,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         ...prev,
         [section]: {},
       }));
-      // Reset question index for academic section
       if (section === "academicAptitude") {
         setCurrentQuestionIndex(0);
       }
@@ -112,7 +113,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setShowResetModal(true);
   };
 
-  // New function to save answers locally
   const saveAnswersLocally = () => {
     try {
       const timestamp = new Date().toISOString();
@@ -122,20 +122,19 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         section: categoryTitles[sections[currentSection]],
         currentSection: currentSection,
       };
-      
-      // Create a blob and download link
-      const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { 
-        type: 'application/json' 
+
+      const blob = new Blob([JSON.stringify(dataToSave, null, 2)], {
+        type: "application/json",
       });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `assessment-answers-${timestamp.split('T')[0]}.json`;
+      a.download = `assessment-answers-${timestamp.split("T")[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       toast.success("Answers saved successfully!", {
         position: "top-right",
         autoClose: 3000,
@@ -240,7 +239,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           transition: Bounce,
         });
 
-        // Navigate to the first unanswered question for Career Interest
         setCurrentQuestionIndex(firstUnansweredIndex);
         return false;
       }
@@ -280,6 +278,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const handleNext = () => {
     if (validateSection()) {
+      setCompletedSections((prev) => [...prev, currentSection]);
+
       if (currentSection < sections.length - 1) {
         setCurrentSection((prev) => prev + 1);
         setCurrentQuestionIndex(0);
@@ -336,35 +336,30 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     return value?.toString() || "Not answered";
   };
 
-  // Render the review/summary section
   const renderReviewSection = () => {
     return (
-      <div className="review-section bg-gray-800 p-6 rounded-xl text-white flex flex-col max-h-[calc(100vh-8rem)]">
-        {/* Header */}
-        <h2 className="text-2xl font-bold mb-6 text-center flex items-center justify-center gap-2 shrink-0">
+      <div className="review-section">
+        <h2 className="review-header">
           <Eye size={24} /> Review Your Answers
         </h2>
 
-        {/* Scrollable Review Content */}
-        <div className="flex-1 overflow-y-auto pr-2 
-                        scrollbar-thin scrollbar-thumb-blue-400/40 
-                        scrollbar-track-transparent space-y-8">
+        <div className="review-content scrollbar-thin-blue">
           {sections.map((sectionKey, sectionIndex) => (
-            <div key={sectionKey}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">
+            <div key={sectionKey} className="review-section-item">
+              <div className="review-section-header">
+                <h3 className="review-section-title">
                   {categoryTitles[sectionKey]}
                 </h3>
                 <button
                   type="button"
                   onClick={() => navigateToSection(sectionIndex)}
-                  className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                  className="review-edit-button"
                 >
                   <Edit size={16} /> Edit
                 </button>
               </div>
 
-              <div className="bg-gray-700 p-4 rounded-lg">
+              <div className="review-answers-container">
                 {sectionKey === "technicalSkills" ? (
                   <div>
                     <h4 className="font-medium mb-2">Selected Skills:</h4>
@@ -413,11 +408,20 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     );
   };
 
+  const getSectionColorClass = (section: string) => {
+    const colorMap: { [key: string]: string } = {
+      academicAptitude: "academic-bg academic-hover",
+      technicalSkills: "technical-bg technical-hover", 
+      careerInterest: "career-bg career-hover",
+      learningStyle: "learning-bg learning-hover"
+    };
+    return colorMap[section] || "bg-blue-500 hover:bg-blue-600";
+  };
+
   return (
-    <div className="relative w-full min-h-screen flex bg-gray-900 overflow-hidden">
-      {/* Fullscreen DotGrid background */}
-      <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-black">
+    <div className="assessment-container">
+      <div className="background-overlay">
+        <div className="background-full">
           <DotGrid
             dotSize={5}
             gap={15}
@@ -435,18 +439,15 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
       <ToastContainer />
       <NavigationBar />
-      <ProgressSideBar />
+      <ProgressSideBar
+        currentSection={currentSection}
+        onSectionChange={setCurrentSection}
+      />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex items-center justify-center pt-16 pb-8 pr-96 pl-4 z-10">
+      <div className="main-content">
         <form
           onSubmit={handleSubmit}
-          className={`
-            relative w-full max-w-4xl p-8
-            ${sectionFormBgColors[sections[currentSection]]} 
-            border border-white rounded-xl shadow-lg
-            max-h-[calc(100vh-8rem)] overflow-hidden flex flex-col
-          `}
+          className={`assessment-form ${sectionFormBgColors[sections[currentSection]]}`}
         >
           {showReview ? (
             renderReviewSection()
@@ -454,16 +455,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             <>
               {/* Academic Aptitude Section */}
               {currentSection === 0 && (
-                <div className="form-section flex flex-col h-full">
-                  {/* Progress Section */}
-                  <div className="flex justify-between items-center mb-4 shrink-0">
-                    <span className="text-lg font-semibold text-blue-400">
+                <div className="form-section">
+                  <div className="progress-info">
+                    <span className="text-blue-400">
                       Question {currentQuestionIndex + 1} of{" "}
                       {questions.academicAptitude.length}
                     </span>
 
-                    <div className="flex items-center space-x-3">
-                      {/* Previous Question Button */}
+                    <div className="progress-controls">
                       <button
                         type="button"
                         onClick={() =>
@@ -472,23 +471,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           )
                         }
                         disabled={currentQuestionIndex === 0}
-                        className={`p-2 rounded-full transition-all duration-300 ${
+                        className={`navigation-button ${
                           currentQuestionIndex === 0
-                            ? "bg-gray-400 cursor-not-allowed opacity-50"
+                            ? "bg-gray-400"
                             : "bg-blue-500 hover:bg-blue-600 text-white"
                         }`}
                       >
                         <ChevronLeft size={20} />
                       </button>
 
-                      {/* Progress Dots */}
-                      <div className="flex space-x-2">
+                      <div className="progress-dots">
                         {questions.academicAptitude.map((_, index) => (
                           <button
                             key={index}
                             type="button"
                             onClick={() => setCurrentQuestionIndex(index)}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            className={`progress-dot ${
                               index === currentQuestionIndex
                                 ? "bg-blue-500 scale-125"
                                 : formData.academicAptitude[
@@ -501,7 +499,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         ))}
                       </div>
 
-                      {/* Next Question Button */}
                       <button
                         type="button"
                         onClick={() => {
@@ -516,10 +513,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           currentQuestionIndex ===
                           questions.academicAptitude.length - 1
                         }
-                        className={`p-2 rounded-full transition-all duration-300 ${
+                        className={`navigation-button ${
                           currentQuestionIndex ===
                           questions.academicAptitude.length - 1
-                            ? "bg-gray-400 cursor-not-allowed opacity-50"
+                            ? "bg-gray-400"
                             : "bg-blue-500 hover:bg-blue-600 text-white"
                         }`}
                       >
@@ -528,10 +525,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-6 shrink-0">
+                  <div className="progress-bar-container">
                     <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-in-out"
+                      className="progress-bar bg-blue-600"
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
@@ -542,29 +538,25 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
-                  {/* Scrollable Question Content */}
-                  <div className="flex-1 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-blue-500/40 scrollbar-track-transparent">
-                    <div className="text-center">
-                      <h4 className="text-2xl font-bold text-text-primary font-poppins mb-8">
+                  <div className="scrollable-content scrollbar-thin-blue">
+                    <div className="question-container">
+                      <h4 className="question-text">
                         {questions.academicAptitude[currentQuestionIndex]}
                       </h4>
 
-                      {/* Choices */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                      <div className="choices-grid">
                         {[1, 2, 3, 4, 5].map((val) => (
                           <label
                             key={val}
-                            className={`flex items-center justify-center gap-3 cursor-pointer 
-                              p-4 rounded-lg border-2 transition-all duration-300 ease-in-out
-                              ${
-                                formData.academicAptitude[
-                                  questions.academicAptitude[
-                                    currentQuestionIndex
-                                  ]
-                                ] === val
-                                  ? "border-blue-500 bg-blue-500/20 scale-105"
-                                  : "border-gray-300 hover:border-blue-400 hover:bg-blue-500/10"
-                              }`}
+                            className={`choice-label ${
+                              formData.academicAptitude[
+                                questions.academicAptitude[
+                                  currentQuestionIndex
+                                ]
+                              ] === val
+                                ? "border-blue-500 bg-blue-500/20 scale-105"
+                                : "border-gray-300 hover:border-blue-400 hover:bg-blue-500/10"
+                            }`}
                           >
                             <input
                               type="radio"
@@ -586,9 +578,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                   val
                                 )
                               }
-                              className="accent-blue-500 w-5 h-5"
+                              className="choice-input"
                             />
-                            <span className="text-lg font-poppins font-medium text-text-primary">
+                            <span className="choice-text">
                               {
                                 [
                                   "Strongly Disagree",
@@ -607,11 +599,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 </div>
               )}
 
+              {/* Technical Skills Section */}
               {currentSection === 1 && (
-                <div className="form-section flex flex-col h-screen">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-6 shrink-0">
-                    <h3 className="text-3xl font-bold text-orange-500 py-2">
+                <div className="form-section">
+                  <div className="section-header">
+                    <h3 className="section-title text-orange-500">
                       Technical Skills
                     </h3>
                     <TooltipButton
@@ -622,61 +614,46 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
-                  {/* Scrollable List */}
-                  <div className="flex-1 min-h-0">
-                    <div
-                      className="h-full overflow-y-auto pr-4 
-        scrollbar-thin scrollbar-thumb-orange-500/40 scrollbar-track-transparent 
-        hover:scrollbar-thumb-orange-500/60"
-                    >
-                      <div className="space-y-4 pb-4">
-                        {questions.technicalSkills.map((skill, index) => (
-                          <label
-                            key={skill}
-                            className={`
-                flex items-center gap-3 cursor-pointer font-poppins p-3 
-                rounded-lg border border-transparent 
-                hover:border-orange-400 hover:bg-orange-500/10 
-                transition-all duration-300 ease-in-out transform
-                hover:scale-[1.02] hover:shadow-md
-                text-text-primary text-lg
-                animate-fadeInUp
-              `}
-                            style={{
-                              animationDelay: `${index * 100}ms`, // stagger effect
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={!!formData.technicalSkills[skill]}
-                              onChange={(e) =>
-                                handleChange(
-                                  "technicalSkills",
-                                  skill,
-                                  e.target.checked
-                                )
-                              }
-                              className="accent-orange-500 w-5 h-5"
-                            />
-                            <span className="font-medium">{skill}</span>
-                          </label>
-                        ))}
-                      </div>
+                  <div className="skills-container">
+                    <div className="skills-list scrollbar-thin-orange">
+                      {questions.technicalSkills.map((skill, index) => (
+                        <label
+                          key={skill}
+                          className="skill-label fade-in-up hover:border-orange-400 hover:bg-orange-500/10"
+                          style={{
+                            animationDelay: `${index * 100}ms`,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!formData.technicalSkills[skill]}
+                            onChange={(e) =>
+                              handleChange(
+                                "technicalSkills",
+                                skill,
+                                e.target.checked
+                              )
+                            }
+                            className="skill-checkbox"
+                          />
+                          <span className="font-medium">{skill}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* Career Interest Section */}
               {currentSection === 2 && (
-                <div className="form-section flex flex-col h-full">
-                  {/* Progress Section */}
-                  <div className="flex justify-between items-center mb-4 shrink-0">
-                    <span className="text-lg font-semibold text-purple-400">
+                <div className="form-section">
+                  <div className="progress-info">
+                    <span className="text-purple-400">
                       Question {currentQuestionIndex + 1} of{" "}
                       {questions?.careerInterest?.length ?? 0}
                     </span>
 
-                    <div className="flex items-center space-x-3">
-                      {/* Previous Question Button */}
+                    <div className="progress-controls">
                       <button
                         type="button"
                         onClick={() =>
@@ -685,23 +662,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           )
                         }
                         disabled={currentQuestionIndex === 0}
-                        className={`p-2 rounded-full transition-all duration-300 ${
+                        className={`navigation-button ${
                           currentQuestionIndex === 0
-                            ? "bg-gray-400 cursor-not-allowed opacity-50"
+                            ? "bg-gray-400"
                             : "bg-purple-500 hover:bg-purple-600 text-white"
                         }`}
                       >
                         <ChevronLeft size={20} />
                       </button>
 
-                      {/* Progress Dots */}
-                      <div className="flex space-x-2">
+                      <div className="progress-dots">
                         {(questions?.careerInterest ?? []).map((_, index) => (
                           <button
                             key={index}
                             type="button"
                             onClick={() => setCurrentQuestionIndex(index)}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            className={`progress-dot ${
                               index === currentQuestionIndex
                                 ? "bg-purple-500 scale-125"
                                 : formData.careerInterest[
@@ -714,7 +690,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         ))}
                       </div>
 
-                      {/* Next Question Button */}
                       <button
                         type="button"
                         onClick={() => {
@@ -729,10 +704,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           currentQuestionIndex ===
                           questions.careerInterest.length - 1
                         }
-                        className={`p-2 rounded-full transition-all duration-300 ${
+                        className={`navigation-button ${
                           currentQuestionIndex ===
                           questions.careerInterest.length - 1
-                            ? "bg-gray-400 cursor-not-allowed opacity-50"
+                            ? "bg-gray-400"
                             : "bg-purple-500 hover:bg-purple-600 text-white"
                         }`}
                       >
@@ -741,10 +716,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-6 shrink-0">
+                  <div className="progress-bar-container">
                     <div
-                      className="bg-purple-600 h-2 rounded-full transition-all duration-500 ease-in-out"
+                      className="progress-bar bg-purple-600"
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
@@ -755,27 +729,23 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
-                  {/* Scrollable Question Content */}
-                  <div className="flex-1 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-purple-500/40 scrollbar-track-transparent">
-                    <div className="text-center">
-                      <h4 className="text-2xl font-bold text-text-primary font-poppins mb-8">
+                  <div className="scrollable-content scrollbar-thin-purple">
+                    <div className="question-container">
+                      <h4 className="question-text">
                         {questions.careerInterest[currentQuestionIndex]}
                       </h4>
 
-                      {/* Choices 1–5 */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                      <div className="choices-grid">
                         {[1, 2, 3, 4, 5].map((val) => (
                           <label
                             key={val}
-                            className={`flex items-center justify-center gap-3 cursor-pointer 
-                p-4 rounded-lg border-2 transition-all duration-300 ease-in-out
-                ${
-                  formData.careerInterest[
-                    questions.careerInterest[currentQuestionIndex]
-                  ] === val
-                    ? "border-purple-500 bg-purple-500/20 scale-105"
-                    : "border-gray-300 hover:border-purple-400 hover:bg-purple-500/10"
-                }`}
+                            className={`choice-label ${
+                              formData.careerInterest[
+                                questions.careerInterest[currentQuestionIndex]
+                              ] === val
+                                ? "border-purple-500 bg-purple-500/20 scale-105"
+                                : "border-gray-300 hover:border-purple-400 hover:bg-purple-500/10"
+                            }`}
                           >
                             <input
                               type="radio"
@@ -797,9 +767,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               }
                               className="accent-purple-500 w-5 h-5"
                             />
-                            <span className="text-lg font-poppins font-medium text-text-primary">
-                              {val}
-                            </span>
+                            <span className="choice-text">{val}</span>
                           </label>
                         ))}
                       </div>
@@ -807,11 +775,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Learning Style Section */}
               {currentSection === 3 && (
-                <div className="form-section flex flex-col h-full">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-4 shrink-0">
-                    <h3 className="text-3xl font-bold font-poppins text-pink-600 py-2">
+                <div className="form-section">
+                  <div className="section-header">
+                    <h3 className="section-title text-pink-600 font-poppins">
                       Learning Style
                     </h3>
                     <TooltipButton
@@ -821,15 +790,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
-                  {/* Progress Section */}
-                  <div className="flex justify-between items-center mb-4 shrink-0">
-                    <span className="text-lg font-semibold text-pink-500">
+                  <div className="progress-info">
+                    <span className="text-pink-500">
                       Question {currentQuestionIndex + 1} of{" "}
                       {questions.learningStyle.length}
                     </span>
 
-                    <div className="flex items-center space-x-3">
-                      {/* Previous Button */}
+                    <div className="progress-controls">
                       <button
                         type="button"
                         onClick={() =>
@@ -838,23 +805,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           )
                         }
                         disabled={currentQuestionIndex === 0}
-                        className={`p-2 rounded-full transition-all duration-300 ${
+                        className={`navigation-button ${
                           currentQuestionIndex === 0
-                            ? "bg-gray-400 cursor-not-allowed opacity-50"
+                            ? "bg-gray-400"
                             : "bg-pink-500 hover:bg-pink-600 text-white"
                         }`}
                       >
                         <ChevronLeft size={20} />
                       </button>
 
-                      {/* Progress Dots */}
-                      <div className="flex space-x-2">
+                      <div className="progress-dots">
                         {questions.learningStyle.map((_, index) => (
                           <button
                             key={index}
                             type="button"
                             onClick={() => setCurrentQuestionIndex(index)}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            className={`progress-dot ${
                               index === currentQuestionIndex
                                 ? "bg-pink-500 scale-125"
                                 : formData.learningStyle[
@@ -867,7 +833,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         ))}
                       </div>
 
-                      {/* Next Button */}
                       <button
                         type="button"
                         onClick={() => {
@@ -882,10 +847,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           currentQuestionIndex ===
                           questions.learningStyle.length - 1
                         }
-                        className={`p-2 rounded-full transition-all duration-300 ${
+                        className={`navigation-button ${
                           currentQuestionIndex ===
                           questions.learningStyle.length - 1
-                            ? "bg-gray-400 cursor-not-allowed opacity-50"
+                            ? "bg-gray-400"
                             : "bg-pink-500 hover:bg-pink-600 text-white"
                         }`}
                       >
@@ -894,10 +859,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-6 shrink-0">
+                  <div className="progress-bar-container">
                     <div
-                      className="bg-pink-500 h-2 rounded-full transition-all duration-500 ease-in-out"
+                      className="progress-bar bg-pink-500"
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
@@ -908,32 +872,29 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
-                  {/* Question Display */}
                   <div className="flex-1 pr-4">
-                    <div className="text-center">
-                      <h4 className="text-2xl font-bold text-text-primary font-poppins mb-6">
+                    <div className="question-container">
+                      <h4 className="question-text">
                         {
                           questions.learningStyle[currentQuestionIndex]
                             ?.question
                         }
                       </h4>
 
-                      {/* Scrollable Choices */}
-                      <div className="max-w-3xl mx-auto space-y-4 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-pink-500/40 scrollbar-track-transparent">
+                      <div className="learning-options scrollbar-thin-pink">
                         {questions.learningStyle[
                           currentQuestionIndex
                         ]?.options.map((opt) => (
                           <label
                             key={opt}
-                            className={`flex items-center justify-center gap-3 cursor-pointer 
-                p-4 rounded-lg border-2 transition-all duration-300 ease-in-out w-full
-                ${
-                  formData.learningStyle[
-                    questions.learningStyle[currentQuestionIndex].question
-                  ] === opt
-                    ? "border-pink-500 bg-pink-500/20 scale-105"
-                    : "border-gray-300 hover:border-pink-400 hover:bg-pink-500/10"
-                }`}
+                            className={`choice-label ${
+                              formData.learningStyle[
+                                questions.learningStyle[currentQuestionIndex]
+                                  .question
+                              ] === opt
+                                ? "border-pink-500 bg-pink-500/20 scale-105"
+                                : "border-gray-300 hover:border-pink-400 hover:bg-pink-500/10"
+                            }`}
                           >
                             <input
                               type="radio"
@@ -955,9 +916,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               }
                               className="accent-pink-500 w-5 h-5"
                             />
-                            <span className="text-lg font-poppins font-medium text-text-primary">
-                              {opt}
-                            </span>
+                            <span className="choice-text">{opt}</span>
                           </label>
                         ))}
                       </div>
@@ -971,19 +930,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
         {/* Section Navigation Buttons */}
         {!showReview && (
-          <div className="absolute bottom-8 right-96 z-20">
-            <div className="flex gap-4">
+          <div className="nav-buttons-container">
+            <div className="nav-buttons-group">
               {currentSection > 0 && (
                 <button
                   type="button"
                   onClick={handlePrevious}
-                  className={`
-                    ${sectionBgColors[sections[currentSection - 1]]} 
-                    text-white p-3 font-inter rounded-lg font-medium px-6 border-2
-                    ${sectionHoverColors[sections[currentSection - 1]]} 
-                    transition-all duration-300 ease-in-out active:scale-95
-                    shadow-lg hover:shadow-xl
-                  `}
+                  className={`nav-button ${getSectionColorClass(sections[currentSection - 1])}`}
                 >
                   Previous Section
                 </button>
@@ -993,13 +946,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 <button
                   type="button"
                   onClick={handleNext}
-                  className={`
-                    ${sectionBgColors[sections[currentSection]]} 
-                    text-white p-3 font-inter rounded-lg font-medium px-2 border-2
-                    ${sectionHoverColors[sections[currentSection]]} 
-                    transition-all duration-300 ease-in-out active:scale-95
-                    shadow-lg hover:shadow-xl
-                  `}
+                  className={`nav-button ${getSectionColorClass(sections[currentSection])}`}
                 >
                   Next Section
                 </button>
@@ -1007,9 +954,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="px-6 py-3 text-white font-inter font-medium border-2 transition-all duration-300 ease-in-out active:scale-95
-                    bg-green-600 hover:bg-green-500 hover:scale-105
-                    shadow-lg hover:shadow-xl rounded-lg"
+                  className="nav-button bg-green-600 hover:bg-green-500 border-green-500"
                 >
                   Review Answers
                 </button>
@@ -1018,44 +963,35 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </div>
         )}
 
-        {/* Review Section Buttons - MOVED OUTSIDE THE FORM CONTAINER */}
+        {/* Review Section Buttons */}
         {showReview && (
-          <div className="absolute bottom-8 right-96 z-20 flex gap-4">
+          <div className="review-buttons-container">
             <button
               type="button"
               onClick={() => setShowReview(false)}
-              className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 
-                         transition-all duration-300 ease-in-out active:scale-95
-                         shadow-lg hover:shadow-xl border-2 border-gray-500
-                         font-inter font-medium"
+              className="review-button bg-gray-600 hover:bg-gray-500 border-gray-500"
             >
               Back to Form
             </button>
-            
-            {/* New Save Answers Locally Button */}
+
             <button
               type="button"
               onClick={saveAnswersLocally}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 
-                         transition-all duration-300 ease-in-out active:scale-95
-                         shadow-lg hover:shadow-xl border-2 border-blue-500
-                         font-inter font-medium flex items-center gap-2"
+              className="review-button bg-blue-600 hover:bg-blue-500 border-blue-500 flex items-center gap-2"
             >
               <Download size={18} />
               Save Answers Locally
             </button>
-            
+
             <button
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className={`px-6 py-3 rounded-lg transition-all duration-300 ease-in-out active:scale-95
-                         shadow-lg hover:shadow-xl border-2 font-inter font-medium
-                ${
-                  loading
-                    ? "bg-gray-500 cursor-not-allowed border-gray-400"
-                    : "bg-green-600 hover:bg-green-500 border-green-500 text-white"
-                }`}
+              className={`review-button ${
+                loading
+                  ? "bg-gray-500 cursor-not-allowed border-gray-400"
+                  : "bg-green-600 hover:bg-green-500 border-green-500"
+              }`}
             >
               {loading ? "Submitting..." : "Submit Assessment"}
             </button>
@@ -1068,32 +1004,29 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         onHide={() => setShowResetModal(false)}
         centered
         dialogClassName="transparent-modal"
-        contentClassName="bg-white/20 backdrop-blur-md text-white border border-white/30"
+        contentClassName="modal-content-custom"
       >
-        <Modal.Header
-          closeButton
-          className="border-b border-white/30 text-white"
-        >
-          <Modal.Title className="font-semibold text-lg">
+        <Modal.Header closeButton className="modal-header-custom">
+          <Modal.Title className="modal-title-custom">
             Confirm Reset
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="text-white/90">
+        <Modal.Body className="modal-body-custom">
           {sectionToReset
             ? `Are you sure you want to reset the ${categoryTitles[sectionToReset]} section?`
             : "Are you sure you want to reset ALL sections?"}
         </Modal.Body>
-        <Modal.Footer className="flex justify-end gap-3">
+        <Modal.Footer className="modal-footer-custom">
           <button
             type="button"
-            className="bg-gray-600 text-white p-2 font-inter rounded-sm font-medium px-3 border-2 border-gray-500 hover:bg-gray-500 transition-all duration-300"
+            className="modal-button modal-button-cancel"
             onClick={() => setShowResetModal(false)}
           >
             Cancel
           </button>
           <button
             type="button"
-            className="bg-red-600 text-white p-2 font-inter rounded-sm font-medium px-4 border-2 border-red-500 hover:bg-red-500 transition-all duration-300"
+            className="modal-button modal-button-confirm"
             onClick={() => handleReset(sectionToReset)}
           >
             Yes, Reset

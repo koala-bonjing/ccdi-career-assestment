@@ -12,6 +12,7 @@ function WelcomeScreenComponent() {
   const { hideWelcome } = useWelcomeScreen();
   const [localName, setLocalName] = useState("");
   const [showInput, setShowInput] = useState(false);
+  const [currentSection, setCurrentSection] = useState(0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +40,12 @@ function WelcomeScreenComponent() {
       </div>
 
       <NavigationBar />
-      <ProgressSideBar currentStep={1} />
+      <ProgressSideBar isWelcomePage={true} />
 
       {/* Center Content */}
       <div className="relative z-10 mr-96">
         <div className="flex flex-col items-center justify-center bg-white/10 rounded-xl p-12 shadow-lg">
-          <h1 className="text-3xl font-bold text-white mb-4">
+          <h1 className="text-3xl font-semibold font-poppins text-white mb-4">
             Welcome to CCDI Career Assessment Test
           </h1>
 

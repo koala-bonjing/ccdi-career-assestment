@@ -37,16 +37,17 @@ export interface AssessmentAnswers {
   };
 }
 
+// In your types.ts file
 export interface AssessmentResult {
   success: boolean;
   evaluation: string;
   recommendations: string;
   recommendedProgram: ProgramType;
-  percent?: {
-    BSCS: number;
+  user: User; 
+  percent: {
     BSIT: number;
+    BSCS: number;
     BSIS: number;
     teElectrical: number;
   };
-  user: User;
 }

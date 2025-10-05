@@ -2,29 +2,90 @@ import React from "react";
 import { useEvaluationStore } from "../../store/useEvaluationStore";
 import { ProgramLabels } from "../types";
 import { getProgramTextColor } from "../utils/colorUtils";
+import type { AssessmentResult } from "../types";
+import ProgressSideBar from "./ProgressSideBar/ProgressSideBar";
 
 const ResultsPage: React.FC = () => {
-  const { result, name } = useEvaluationStore();
+  const { result, name, loading, error } = useEvaluationStore();
 
-  console.log("DEBUG - Name in ResultsPage:", name);
-  console.log("DEBUG - Result in ResultsPage:", result);
+  console.log("🔍 RESULTS PAGE DEBUG:");
+  console.log("🔍 Name:", name);
+  console.log("🔍 Result:", result);
+  console.log("🔍 Loading:", loading);
+  console.log("🔍 Error:", error);
+  console.log("🔍 Result type:", typeof result);
+  console.log("🔍 Result keys:", result ? Object.keys(result) : "No result");
+
+  if (result) {
+    console.log("🔍 Result properties:");
+    console.log("  - evaluation:", result.evaluation);
+    console.log("  - recommendations:", result.recommendations);
+    console.log("  - recommendedProgram:", result.recommendedProgram);
+    console.log("  - percent:", result.percent);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-xl text-gray-600">Loading results...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-xl text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
 
   if (!result) {
-    return <p>No results yet. Please complete the assessment.</p>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <p className="text-xl text-gray-600 mb-4">No results yet.</p>
+          <p className="text-gray-500">
+            Please complete the assessment to see your results.
+          </p>
+        </div>
+      </div>
+    );
   }
+
+  // Additional safety checks
+  if (
+    !result.recommendedProgram ||
+    !result.evaluation ||
+    !result.recommendations
+  ) {
+    console.error("❌ Invalid result data:", result);
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <p className="text-xl text-red-600 mb-4">Invalid result data</p>
+          <p className="text-gray-500">Please try the assessment again.</p>
+        </div>
+      </div>
+    );
+  }
+
   const nameColorClass = getProgramTextColor(result.recommendedProgram);
 
-  // Create reverse mapping from label to program type
-  const programTypeFromLabel = Object.entries(ProgramLabels).reduce(
-    (acc, [key, value]) => {
-      acc[value] = key as keyof typeof ProgramLabels;
-      return acc;
-    },
-    {} as Record<string, keyof typeof ProgramLabels>
-  );
+  // Helper function to get color classes for progress bars
+  const getColorClass = (programType: string) => {
+    const colorMap: Record<string, string> = {
+      BSCS: "bg-blue-500",
+      BSIT: "bg-orange-500",
+      BSIS: "bg-purple-500",
+      teElectrical: "bg-pink-500",
+    };
+    return colorMap[programType] || "bg-gray-500";
+  };
 
   return (
     <div className="results-page max-w-4xl mx-auto p-6 font-poppins">
+      <ProgressSideBar recommendedProgram={result.recommendedProgram} />
       {/* Heading */}
       <h2 className="text-4xl font-bold text-center mb-6 text-gray-800">
         Results for <span className={nameColorClass}>{name}</span>
@@ -89,17 +150,6 @@ const ResultsPage: React.FC = () => {
       )}
     </div>
   );
-};
-
-// Helper function to get color classes
-const getColorClass = (programType: string) => {
-  const colorMap: Record<string, string> = {
-    BSCS: "bg-blue-500",
-    BSIT: "bg-orange-500",
-    BSIS: "bg-purple-500",
-    teElectrical: "bg-pink-500",
-  };
-  return colorMap[programType] || "bg-gray-500";
 };
 
 export default ResultsPage;

@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { EvaluationResult } from "./config/types";
+import type { EvaluationResult } from "./types";
 import { BASE_URL } from "./config/constants";
 import { useEvaluationStore } from "../store/useEvaluationStore";
 import { useWelcomeScreen } from "../store/useWelcomeScreenStore";
@@ -8,7 +8,7 @@ import { useUserStore } from "../store/useUserStore";
 import { ToastContainer } from "react-toastify";
 import AssessmentForm from "./components/AssestmentForm/AssestmentForm";
 import ResultsPage from "./components/ResultPage";
-import WelcomeScreenComponent from "./components/WelcomeScreen/index";
+import WelcomeScreenComponent from "./components/WelcomeScreen/WelcomePage";
 import type { AssessmentResult, ProgramType } from "./types";
 import LoadingSpinner from "./components/LoadingSpinner";
 import axios from "axios";

@@ -43,7 +43,19 @@ export interface AssessmentResult {
   evaluation: string;
   recommendations: string;
   recommendedProgram: ProgramType;
-  user: User; 
+  user: User;
+  percent: {
+    BSIT: number;
+    BSCS: number;
+    BSIS: number;
+    teElectrical: number;
+  };
+}
+
+export interface EvaluationResult {
+  result: string;
+  recommendation: string;
+  recommendedCourse: ProgramType;
   percent: {
     BSIT: number;
     BSCS: number;

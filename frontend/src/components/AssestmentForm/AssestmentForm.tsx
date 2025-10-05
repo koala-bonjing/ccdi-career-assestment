@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./AssestmentForm.css"; // Import the separated CSS
+import "./AssestmentForm.css";
 import type { User, AssessmentAnswers } from "../../types";
-import DotGrid from "../ActiveBackground/DotGrid.css";
+import DotGrid from "../ActiveBackground/index";
 import {
   Info,
   BookOpen,
@@ -71,6 +71,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const { base, active } = sectionDotColors[section] || {
     base: "#000",
     active: "#000",
+  };
+
+  // Add this function to check if all learning style questions are answered
+  const isLearningStyleComplete = () => {
+    const learningAnswers = formData.learningStyle;
+    return questions.learningStyle.every(
+      (ls) => learningAnswers[ls.question] !== undefined && learningAnswers[ls.question] !== ""
+    );
   };
 
   const handleChange = (
@@ -246,29 +254,28 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
     if (section === "learningStyle") {
       const firstUnansweredIndex = questions.learningStyle.findIndex(
-        (ls) =>
-          answers[ls.question] === undefined || answers[ls.question] === ""
+        (ls) => answers[ls.question] === undefined || answers[ls.question] === ""
       );
 
       if (firstUnansweredIndex !== -1) {
-        toast.warning(
-          "Please select an option for all Learning Style questions.",
-          {
-            position: "top-right",
-            autoClose: 3000,
-            style: {
-              backgroundColor: "rgba(236, 72, 153, 0.3)",
-              backdropFilter: "blur(6px)",
-              border: "2px solid #EC4899",
-              color: "#fff",
-              fontWeight: "bold",
-              fontSize: "14px",
-              borderRadius: "8px",
-              fontFamily: "Poppins",
-            },
-            transition: Bounce,
-          }
-        );
+        // Scroll to the unanswered question
+        setCurrentQuestionIndex(firstUnansweredIndex);
+        
+        toast.warning("Please select an option for all Learning Style questions.", {
+          position: "top-right",
+          autoClose: 3000,
+          style: {
+            backgroundColor: "rgba(236, 72, 153, 0.3)",
+            backdropFilter: "blur(6px)",
+            border: "2px solid #EC4899",
+            color: "#fff",
+            fontWeight: "bold",
+            fontSize: "14px",
+            borderRadius: "8px",
+            fontFamily: "Poppins",
+          },
+          transition: Bounce,
+        });
         return false;
       }
     }
@@ -278,6 +285,26 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const handleNext = () => {
     if (validateSection()) {
+      // Special validation for learning style section before moving to review
+      if (currentSection === 3 && !isLearningStyleComplete()) {
+        toast.warning("Please answer all Learning Style questions before proceeding.", {
+          position: "top-right",
+          autoClose: 3000,
+          style: {
+            backgroundColor: "rgba(236, 72, 153, 0.3)",
+            backdropFilter: "blur(6px)",
+            border: "2px solid #EC4899",
+            color: "#fff",
+            fontWeight: "bold",
+            fontSize: "14px",
+            borderRadius: "8px",
+            fontFamily: "Poppins",
+          },
+          transition: Bounce,
+        });
+        return;
+      }
+
       setCompletedSections((prev) => [...prev, currentSection]);
 
       if (currentSection < sections.length - 1) {
@@ -411,9 +438,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const getSectionColorClass = (section: string) => {
     const colorMap: { [key: string]: string } = {
       academicAptitude: "academic-bg academic-hover",
-      technicalSkills: "technical-bg technical-hover", 
+      technicalSkills: "technical-bg technical-hover",
       careerInterest: "career-bg career-hover",
-      learningStyle: "learning-bg learning-hover"
+      learningStyle: "learning-bg learning-hover",
     };
     return colorMap[section] || "bg-blue-500 hover:bg-blue-600";
   };
@@ -447,7 +474,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       <div className="main-content">
         <form
           onSubmit={handleSubmit}
-          className={`assessment-form ${sectionFormBgColors[sections[currentSection]]}`}
+          className={`assessment-form ${
+            sectionFormBgColors[sections[currentSection]]
+          }`}
         >
           {showReview ? (
             renderReviewSection()
@@ -456,8 +485,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               {/* Academic Aptitude Section */}
               {currentSection === 0 && (
                 <div className="form-section">
+                  {/* Progress Section */}
                   <div className="progress-info">
-                    <span className="text-blue-400">
+                    <span className="progress-text academic">
                       Question {currentQuestionIndex + 1} of{" "}
                       {questions.academicAptitude.length}
                     </span>
@@ -471,11 +501,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           )
                         }
                         disabled={currentQuestionIndex === 0}
-                        className={`navigation-button ${
-                          currentQuestionIndex === 0
-                            ? "bg-gray-400"
-                            : "bg-blue-500 hover:bg-blue-600 text-white"
-                        }`}
+                        className={`navigation-button academic ${
+                          currentQuestionIndex === 0 ? "bg-gray-400" : ""
+                        } transition-all duration-300 hover:scale-110`}
                       >
                         <ChevronLeft size={20} />
                       </button>
@@ -488,13 +516,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                             onClick={() => setCurrentQuestionIndex(index)}
                             className={`progress-dot ${
                               index === currentQuestionIndex
-                                ? "bg-blue-500 scale-125"
+                                ? "bg-blue-500 scale-125 active"
                                 : formData.academicAptitude[
                                     questions.academicAptitude[index]
                                   ]
                                 ? "bg-green-500 hover:bg-green-400"
                                 : "bg-gray-400 hover:bg-gray-300"
-                            }`}
+                            } transition-all duration-300 hover:scale-125`}
                           />
                         ))}
                       </div>
@@ -513,21 +541,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           currentQuestionIndex ===
                           questions.academicAptitude.length - 1
                         }
-                        className={`navigation-button ${
+                        className={`navigation-button academic ${
                           currentQuestionIndex ===
                           questions.academicAptitude.length - 1
                             ? "bg-gray-400"
-                            : "bg-blue-500 hover:bg-blue-600 text-white"
-                        }`}
+                            : ""
+                        } transition-all duration-300 hover:scale-110`}
                       >
                         <ChevronRight size={20} />
                       </button>
                     </div>
                   </div>
 
+                  {/* Progress Bar */}
                   <div className="progress-bar-container">
                     <div
-                      className="progress-bar bg-blue-600"
+                      className="progress-bar academic"
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
@@ -538,25 +567,29 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
+                  {/* Animated Question Content */}
                   <div className="scrollable-content scrollbar-thin-blue">
-                    <div className="question-container">
-                      <h4 className="question-text">
+                    <div
+                      key={currentQuestionIndex}
+                      className="question-container question-transition-enter-active"
+                    >
+                      <h4 className="question-text animate-fade-in-up">
                         {questions.academicAptitude[currentQuestionIndex]}
                       </h4>
 
                       <div className="choices-grid">
-                        {[1, 2, 3, 4, 5].map((val) => (
+                        {[1, 2, 3, 4, 5].map((val, index) => (
                           <label
                             key={val}
-                            className={`choice-label ${
+                            className={`choice-label choice-animate choice-animate-delay-${
+                              index + 1
+                            } ${
                               formData.academicAptitude[
-                                questions.academicAptitude[
-                                  currentQuestionIndex
-                                ]
+                                questions.academicAptitude[currentQuestionIndex]
                               ] === val
-                                ? "border-blue-500 bg-blue-500/20 scale-105"
-                                : "border-gray-300 hover:border-blue-400 hover:bg-blue-500/10"
-                            }`}
+                                ? "border-blue-500 bg-blue-500/20 scale-105 choice-selected"
+                                : "border-gray-300 hover:border-blue-400 hover:bg-blue-500/10 hover:scale-105"
+                            } transition-all duration-300`}
                           >
                             <input
                               type="radio"
@@ -578,9 +611,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                   val
                                 )
                               }
-                              className="choice-input"
+                              className="choice-input transition-all duration-300 hover:scale-110"
                             />
-                            <span className="choice-text">
+                            <span className="choice-text transition-all duration-300">
                               {
                                 [
                                   "Strongly Disagree",
@@ -647,8 +680,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               {/* Career Interest Section */}
               {currentSection === 2 && (
                 <div className="form-section">
+                  {/* Progress Section */}
                   <div className="progress-info">
-                    <span className="text-purple-400">
+                    <span className="progress-text career">
                       Question {currentQuestionIndex + 1} of{" "}
                       {questions?.careerInterest?.length ?? 0}
                     </span>
@@ -662,10 +696,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           )
                         }
                         disabled={currentQuestionIndex === 0}
-                        className={`navigation-button ${
-                          currentQuestionIndex === 0
-                            ? "bg-gray-400"
-                            : "bg-purple-500 hover:bg-purple-600 text-white"
+                        className={`navigation-button career ${
+                          currentQuestionIndex === 0 ? "bg-gray-400" : ""
                         }`}
                       >
                         <ChevronLeft size={20} />
@@ -679,13 +711,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                             onClick={() => setCurrentQuestionIndex(index)}
                             className={`progress-dot ${
                               index === currentQuestionIndex
-                                ? "bg-purple-500 scale-125"
+                                ? "bg-purple-500 scale-125 career-active"
                                 : formData.careerInterest[
                                     questions.careerInterest[index]
                                   ]
                                 ? "bg-green-500 hover:bg-green-400"
                                 : "bg-gray-400 hover:bg-gray-300"
-                            }`}
+                            } transition-all duration-300 hover:scale-125`}
                           />
                         ))}
                       </div>
@@ -704,11 +736,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           currentQuestionIndex ===
                           questions.careerInterest.length - 1
                         }
-                        className={`navigation-button ${
+                        className={`navigation-button career ${
                           currentQuestionIndex ===
                           questions.careerInterest.length - 1
                             ? "bg-gray-400"
-                            : "bg-purple-500 hover:bg-purple-600 text-white"
+                            : ""
                         }`}
                       >
                         <ChevronRight size={20} />
@@ -716,9 +748,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     </div>
                   </div>
 
+                  {/* Progress Bar */}
                   <div className="progress-bar-container">
                     <div
-                      className="progress-bar bg-purple-600"
+                      className="progress-bar career"
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
@@ -729,47 +762,77 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
+                  {/* Animated Question Content */}
                   <div className="scrollable-content scrollbar-thin-purple">
-                    <div className="question-container">
-                      <h4 className="question-text">
+                    <div
+                      key={currentQuestionIndex}
+                      className="question-container"
+                    >
+                      <h4 className="question-text animate-fade-in-up">
                         {questions.careerInterest[currentQuestionIndex]}
                       </h4>
 
                       <div className="choices-grid">
-                        {[1, 2, 3, 4, 5].map((val) => (
-                          <label
-                            key={val}
-                            className={`choice-label ${
-                              formData.careerInterest[
-                                questions.careerInterest[currentQuestionIndex]
-                              ] === val
-                                ? "border-purple-500 bg-purple-500/20 scale-105"
-                                : "border-gray-300 hover:border-purple-400 hover:bg-purple-500/10"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={`career-question-${currentQuestionIndex}`}
-                              value={val}
-                              checked={
-                                formData.careerInterest[
-                                  questions.careerInterest[currentQuestionIndex]
-                                ] === val
-                              }
-                              onChange={() =>
-                                handleChange(
-                                  "careerInterest",
-                                  questions.careerInterest[
-                                    currentQuestionIndex
-                                  ],
-                                  val
-                                )
-                              }
-                              className="accent-purple-500 w-5 h-5"
-                            />
-                            <span className="choice-text">{val}</span>
-                          </label>
-                        ))}
+                        {[1, 2, 3, 4, 5].map((val, index) => {
+                          const isSelected =
+                            formData.careerInterest[
+                              questions.careerInterest[currentQuestionIndex]
+                            ] === val;
+
+                          return (
+                            <label
+                              key={val}
+                              className={`career-choice-label career-choice-animate career-choice-animate-delay-${
+                                index + 1
+                              } ${
+                                isSelected
+                                  ? "border-purple-500 bg-purple-500/20 scale-105"
+                                  : "border-gray-300"
+                              } transition-all duration-300`}
+                              onAnimationEnd={(e) => {
+                                // Remove the pulse animation after it completes
+                                if (e.animationName === "careerPulse") {
+                                  e.currentTarget.classList.remove(
+                                    "career-choice-selected"
+                                  );
+                                }
+                              }}
+                            >
+                              <input
+                                type="radio"
+                                name={`career-question-${currentQuestionIndex}`}
+                                value={val}
+                                checked={isSelected}
+                                onChange={() => {
+                                  handleChange(
+                                    "careerInterest",
+                                    questions.careerInterest[
+                                      currentQuestionIndex
+                                    ],
+                                    val
+                                  );
+                                  // Add pulse animation when selected
+                                  setTimeout(() => {
+                                    const element = document
+                                      .querySelector(
+                                        `input[name="career-question-${currentQuestionIndex}"][value="${val}"]`
+                                      )
+                                      ?.closest("label");
+                                    if (element) {
+                                      element.classList.add(
+                                        "career-choice-selected"
+                                      );
+                                    }
+                                  }, 10);
+                                }}
+                                className="career-choice-input"
+                              />
+                              <span className="career-choice-text">
+                                {val}
+                              </span>
+                            </label>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -790,8 +853,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     />
                   </div>
 
+                  {/* Progress Section */}
                   <div className="progress-info">
-                    <span className="text-pink-500">
+                    <span className="progress-text learning">
                       Question {currentQuestionIndex + 1} of{" "}
                       {questions.learningStyle.length}
                     </span>
@@ -800,16 +864,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       <button
                         type="button"
                         onClick={() =>
-                          setCurrentQuestionIndex((prev) =>
-                            Math.max(0, prev - 1)
-                          )
+                          setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
                         }
                         disabled={currentQuestionIndex === 0}
-                        className={`navigation-button ${
-                          currentQuestionIndex === 0
-                            ? "bg-gray-400"
-                            : "bg-pink-500 hover:bg-pink-600 text-white"
-                        }`}
+                        className={`navigation-button learning ${
+                          currentQuestionIndex === 0 ? "bg-gray-400" : ""
+                        } transition-all duration-300 hover:scale-110`}
                       >
                         <ChevronLeft size={20} />
                       </button>
@@ -822,13 +882,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                             onClick={() => setCurrentQuestionIndex(index)}
                             className={`progress-dot ${
                               index === currentQuestionIndex
-                                ? "bg-pink-500 scale-125"
+                                ? "bg-pink-500 scale-125 learning-active"
                                 : formData.learningStyle[
                                     questions.learningStyle[index].question
                                   ]
                                 ? "bg-green-500 hover:bg-green-400"
                                 : "bg-gray-400 hover:bg-gray-300"
-                            }`}
+                            } transition-all duration-300 hover:scale-125`}
                           />
                         ))}
                       </div>
@@ -844,81 +904,81 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           }
                         }}
                         disabled={
-                          currentQuestionIndex ===
-                          questions.learningStyle.length - 1
+                          currentQuestionIndex === questions.learningStyle.length - 1
                         }
-                        className={`navigation-button ${
-                          currentQuestionIndex ===
-                          questions.learningStyle.length - 1
+                        className={`navigation-button learning ${
+                          currentQuestionIndex === questions.learningStyle.length - 1
                             ? "bg-gray-400"
-                            : "bg-pink-500 hover:bg-pink-600 text-white"
-                        }`}
+                            : ""
+                        } transition-all duration-300 hover:scale-110`}
                       >
                         <ChevronRight size={20} />
                       </button>
                     </div>
                   </div>
 
+                  {/* FIXED Progress Bar - Now shows accurate completion */}
                   <div className="progress-bar-container">
                     <div
-                      className="progress-bar bg-pink-500"
+                      className="progress-bar learning"
                       style={{
                         width: `${
-                          ((currentQuestionIndex + 1) /
-                            questions.learningStyle.length) *
+                          ((currentQuestionIndex + 1) / questions.learningStyle.length) *
                           100
                         }%`,
                       }}
                     />
                   </div>
 
-                  <div className="flex-1 pr-4">
+
+                  {/* Animated Question Content */}
+                  <div className="scrollable-content scrollbar-thin-pink">
                     <div className="question-container">
-                      <h4 className="question-text">
-                        {
-                          questions.learningStyle[currentQuestionIndex]
-                            ?.question
-                        }
+                      <h4 className="question-text animate-fade-in-up">
+                        {questions.learningStyle[currentQuestionIndex]?.question}
                       </h4>
 
-                      <div className="learning-options scrollbar-thin-pink">
-                        {questions.learningStyle[
-                          currentQuestionIndex
-                        ]?.options.map((opt) => (
-                          <label
-                            key={opt}
-                            className={`choice-label ${
+                      <div className="learning-options">
+                        {questions.learningStyle[currentQuestionIndex]?.options.map(
+                          (opt, index) => {
+                            const isSelected =
                               formData.learningStyle[
-                                questions.learningStyle[currentQuestionIndex]
-                                  .question
-                              ] === opt
-                                ? "border-pink-500 bg-pink-500/20 scale-105"
-                                : "border-gray-300 hover:border-pink-400 hover:bg-pink-500/10"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={`learning-${currentQuestionIndex}`}
-                              value={opt}
-                              checked={
-                                formData.learningStyle[
-                                  questions.learningStyle[currentQuestionIndex]
-                                    .question
-                                ] === opt
-                              }
-                              onChange={() =>
-                                handleChange(
-                                  "learningStyle",
-                                  questions.learningStyle[currentQuestionIndex]
-                                    .question,
-                                  opt
-                                )
-                              }
-                              className="accent-pink-500 w-5 h-5"
-                            />
-                            <span className="choice-text">{opt}</span>
-                          </label>
-                        ))}
+                                questions.learningStyle[currentQuestionIndex].question
+                              ] === opt;
+
+                            return (
+                              <label
+                                key={opt}
+                                className={`learning-choice-label learning-choice-animate learning-choice-animate-delay-${
+                                  index + 1
+                                } ${
+                                  isSelected
+                                    ? "border-pink-500 bg-pink-500/20 scale-105"
+                                    : "border-gray-300 hover:border-pink-400 hover:bg-pink-500/10"
+                                } transition-all duration-300 hover:scale-105`}
+                              >
+                                <input
+                                  type="radio"
+                                  name={`learning-question-${currentQuestionIndex}`}
+                                  value={opt}
+                                  checked={isSelected}
+                                  onChange={() => {
+                                    handleChange(
+                                      "learningStyle",
+                                      questions.learningStyle[currentQuestionIndex]
+                                        .question,
+                                      opt
+                                    );
+                                  }}
+                                  className="learning-choice-input"
+                                />
+                                <span className="learning-choice-text">
+                                  {opt}
+                                </span>
+                              </label>
+                            );
+                          }
+                        )}
                       </div>
                     </div>
                   </div>
@@ -936,7 +996,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 <button
                   type="button"
                   onClick={handlePrevious}
-                  className={`nav-button ${getSectionColorClass(sections[currentSection - 1])}`}
+                  className={`nav-button ${getSectionColorClass(
+                    sections[currentSection - 1]
+                  )}`}
                 >
                   Previous Section
                 </button>
@@ -946,7 +1008,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 <button
                   type="button"
                   onClick={handleNext}
-                  className={`nav-button ${getSectionColorClass(sections[currentSection])}`}
+                  className={`nav-button ${getSectionColorClass(
+                    sections[currentSection]
+                  )}`}
                 >
                   Next Section
                 </button>
@@ -954,9 +1018,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="nav-button bg-green-600 hover:bg-green-500 border-green-500"
+                  className={`nav-button ${
+                    isLearningStyleComplete() 
+                      ? "bg-green-600 hover:bg-green-500 border-green-500" 
+                      : "bg-gray-500 hover:bg-gray-400 border-gray-400 cursor-not-allowed"
+                  }`}
+                  disabled={!isLearningStyleComplete()}
                 >
-                  Review Answers
+                  {isLearningStyleComplete() ? "Review Answers" : "Complete All Questions"}
                 </button>
               )}
             </div>

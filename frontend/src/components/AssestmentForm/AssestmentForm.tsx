@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AssestmentForm.css";
-import type { User, AssessmentAnswers } from "../../types";
+import type { User, AssessmentAnswers, AssessmentFormProps } from "../../types";
 import DotGrid from "../ActiveBackground/index";
 import {
   Info,
@@ -22,21 +22,13 @@ import {
   sectionFormBgColors,
   sectionHoverColors,
   sectionDotColors,
+  sections,
+  choiceLabels,
+  getSectionColorClass
 } from "../../config/constants";
 import TooltipButton from "../TootltipButton/TooltipButton";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
-
-interface AssessmentFormProps {
-  currentUser: User | null;
-  setCurrentUser: (user: User) => void;
-  onSubmit: (answers: AssessmentAnswers) => void;
-  onNextSection: () => void;
-  onPrevSection: () => void;
-  currentSectionIndex: number;
-  totalSections: number;
-  loading?: boolean;
-}
 
 const AssessmentForm: React.FC<AssessmentFormProps> = ({
   currentUser,
@@ -60,13 +52,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const [showReview, setShowReview] = useState(false);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
 
-  const sections: (keyof AssessmentAnswers)[] = [
-    "academicAptitude",
-    "technicalSkills",
-    "careerInterest",
-    "learningStyle",
-  ];
-
   const section = sections[currentSection];
   const { base, active } = sectionDotColors[section] || {
     base: "#000",
@@ -77,7 +62,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const isLearningStyleComplete = () => {
     const learningAnswers = formData.learningStyle;
     return questions.learningStyle.every(
-      (ls) => learningAnswers[ls.question] !== undefined && learningAnswers[ls.question] !== ""
+      (ls) =>
+        learningAnswers[ls.question] !== undefined &&
+        learningAnswers[ls.question] !== ""
     );
   };
 
@@ -254,28 +241,32 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
     if (section === "learningStyle") {
       const firstUnansweredIndex = questions.learningStyle.findIndex(
-        (ls) => answers[ls.question] === undefined || answers[ls.question] === ""
+        (ls) =>
+          answers[ls.question] === undefined || answers[ls.question] === ""
       );
 
       if (firstUnansweredIndex !== -1) {
         // Scroll to the unanswered question
         setCurrentQuestionIndex(firstUnansweredIndex);
-        
-        toast.warning("Please select an option for all Learning Style questions.", {
-          position: "top-right",
-          autoClose: 3000,
-          style: {
-            backgroundColor: "rgba(236, 72, 153, 0.3)",
-            backdropFilter: "blur(6px)",
-            border: "2px solid #EC4899",
-            color: "#fff",
-            fontWeight: "bold",
-            fontSize: "14px",
-            borderRadius: "8px",
-            fontFamily: "Poppins",
-          },
-          transition: Bounce,
-        });
+
+        toast.warning(
+          "Please select an option for all Learning Style questions.",
+          {
+            position: "top-right",
+            autoClose: 3000,
+            style: {
+              backgroundColor: "rgba(236, 72, 153, 0.3)",
+              backdropFilter: "blur(6px)",
+              border: "2px solid #EC4899",
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: "14px",
+              borderRadius: "8px",
+              fontFamily: "Poppins",
+            },
+            transition: Bounce,
+          }
+        );
         return false;
       }
     }
@@ -287,21 +278,24 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     if (validateSection()) {
       // Special validation for learning style section before moving to review
       if (currentSection === 3 && !isLearningStyleComplete()) {
-        toast.warning("Please answer all Learning Style questions before proceeding.", {
-          position: "top-right",
-          autoClose: 3000,
-          style: {
-            backgroundColor: "rgba(236, 72, 153, 0.3)",
-            backdropFilter: "blur(6px)",
-            border: "2px solid #EC4899",
-            color: "#fff",
-            fontWeight: "bold",
-            fontSize: "14px",
-            borderRadius: "8px",
-            fontFamily: "Poppins",
-          },
-          transition: Bounce,
-        });
+        toast.warning(
+          "Please answer all Learning Style questions before proceeding.",
+          {
+            position: "top-right",
+            autoClose: 3000,
+            style: {
+              backgroundColor: "rgba(236, 72, 153, 0.3)",
+              backdropFilter: "blur(6px)",
+              border: "2px solid #EC4899",
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: "14px",
+              borderRadius: "8px",
+              fontFamily: "Poppins",
+            },
+            transition: Bounce,
+          }
+        );
         return;
       }
 
@@ -435,15 +429,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     );
   };
 
-  const getSectionColorClass = (section: string) => {
-    const colorMap: { [key: string]: string } = {
-      academicAptitude: "academic-bg academic-hover",
-      technicalSkills: "technical-bg technical-hover",
-      careerInterest: "career-bg career-hover",
-      learningStyle: "learning-bg learning-hover",
-    };
-    return colorMap[section] || "bg-blue-500 hover:bg-blue-600";
-  };
+
 
   return (
     <div className="assessment-container">
@@ -485,6 +471,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               {/* Academic Aptitude Section */}
               {currentSection === 0 && (
                 <div className="form-section">
+                  <div className="section-header">
+                    <h3 className="section-title font-poppins">
+                      Academic Aptitude
+                    </h3>
+                  </div>
                   {/* Progress Section */}
                   <div className="progress-info">
                     <span className="progress-text academic">
@@ -616,11 +607,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                             <span className="choice-text transition-all duration-300">
                               {
                                 [
-                                  "Strongly Disagree",
-                                  "Disagree",
-                                  "Neutral",
-                                  "Agree",
                                   "Strongly Agree",
+                                  "Agree",
+                                  "Neutral",
+                                  "Disagree",
+                                  "Strongly Disagree",
                                 ][val - 1]
                               }
                             </span>
@@ -636,15 +627,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               {currentSection === 1 && (
                 <div className="form-section">
                   <div className="section-header">
-                    <h3 className="section-title text-orange-500">
+                    <h3 className="section-title  font-poppins">
                       Technical Skills
                     </h3>
-                    <TooltipButton
-                      id="technical"
-                      paragraph="Pick at least one technical skill you feel confident in."
-                      buttonBgColor="bg-orange-500"
-                      icon={<Info size={20} />}
-                    />
                   </div>
 
                   <div className="skills-container">
@@ -680,6 +665,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               {/* Career Interest Section */}
               {currentSection === 2 && (
                 <div className="form-section">
+                  <div className="section-header">
+                    <h3 className="section-title text-orange-500 font-poppins">
+                      Career Interest
+                    </h3>
+                  </div>
                   {/* Progress Section */}
                   <div className="progress-info">
                     <span className="progress-text career">
@@ -772,7 +762,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         {questions.careerInterest[currentQuestionIndex]}
                       </h4>
 
-                      <div className="choices-grid">
+                      <div className="choices-grid text-text-primary font-poppins ">
                         {[1, 2, 3, 4, 5].map((val, index) => {
                           const isSelected =
                             formData.careerInterest[
@@ -790,7 +780,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                   : "border-gray-300"
                               } transition-all duration-300`}
                               onAnimationEnd={(e) => {
-                                // Remove the pulse animation after it completes
                                 if (e.animationName === "careerPulse") {
                                   e.currentTarget.classList.remove(
                                     "career-choice-selected"
@@ -811,7 +800,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                     ],
                                     val
                                   );
-                                  // Add pulse animation when selected
                                   setTimeout(() => {
                                     const element = document
                                       .querySelector(
@@ -828,7 +816,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                 className="career-choice-input"
                               />
                               <span className="career-choice-text">
-                                {val}
+                                {val}️⃣ {choiceLabels[val]}
                               </span>
                             </label>
                           );
@@ -846,11 +834,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     <h3 className="section-title text-pink-600 font-poppins">
                       Learning Style
                     </h3>
-                    <TooltipButton
-                      id="learning-style"
-                      icon={<Wrench size={20} />}
-                      paragraph="This section identifies how you prefer to learn and process information."
-                    />
                   </div>
 
                   {/* Progress Section */}
@@ -864,7 +847,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       <button
                         type="button"
                         onClick={() =>
-                          setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
+                          setCurrentQuestionIndex((prev) =>
+                            Math.max(0, prev - 1)
+                          )
                         }
                         disabled={currentQuestionIndex === 0}
                         className={`navigation-button learning ${
@@ -904,10 +889,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           }
                         }}
                         disabled={
-                          currentQuestionIndex === questions.learningStyle.length - 1
+                          currentQuestionIndex ===
+                          questions.learningStyle.length - 1
                         }
                         className={`navigation-button learning ${
-                          currentQuestionIndex === questions.learningStyle.length - 1
+                          currentQuestionIndex ===
+                          questions.learningStyle.length - 1
                             ? "bg-gray-400"
                             : ""
                         } transition-all duration-300 hover:scale-110`}
@@ -923,62 +910,67 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       className="progress-bar learning"
                       style={{
                         width: `${
-                          ((currentQuestionIndex + 1) / questions.learningStyle.length) *
+                          ((currentQuestionIndex + 1) /
+                            questions.learningStyle.length) *
                           100
                         }%`,
                       }}
                     />
                   </div>
 
-
                   {/* Animated Question Content */}
                   <div className="scrollable-content scrollbar-thin-pink">
                     <div className="question-container">
                       <h4 className="question-text animate-fade-in-up">
-                        {questions.learningStyle[currentQuestionIndex]?.question}
+                        {
+                          questions.learningStyle[currentQuestionIndex]
+                            ?.question
+                        }
                       </h4>
 
                       <div className="learning-options">
-                        {questions.learningStyle[currentQuestionIndex]?.options.map(
-                          (opt, index) => {
-                            const isSelected =
-                              formData.learningStyle[
-                                questions.learningStyle[currentQuestionIndex].question
-                              ] === opt;
+                        {questions.learningStyle[
+                          currentQuestionIndex
+                        ]?.options.map((opt, index) => {
+                          const isSelected =
+                            formData.learningStyle[
+                              questions.learningStyle[currentQuestionIndex]
+                                .question
+                            ] === opt;
 
-                            return (
-                              <label
-                                key={opt}
-                                className={`learning-choice-label learning-choice-animate learning-choice-animate-delay-${
-                                  index + 1
-                                } ${
-                                  isSelected
-                                    ? "border-pink-500 bg-pink-500/20 scale-105"
-                                    : "border-gray-300 hover:border-pink-400 hover:bg-pink-500/10"
-                                } transition-all duration-300 hover:scale-105`}
-                              >
-                                <input
-                                  type="radio"
-                                  name={`learning-question-${currentQuestionIndex}`}
-                                  value={opt}
-                                  checked={isSelected}
-                                  onChange={() => {
-                                    handleChange(
-                                      "learningStyle",
-                                      questions.learningStyle[currentQuestionIndex]
-                                        .question,
-                                      opt
-                                    );
-                                  }}
-                                  className="learning-choice-input"
-                                />
-                                <span className="learning-choice-text">
-                                  {opt}
-                                </span>
-                              </label>
-                            );
-                          }
-                        )}
+                          return (
+                            <label
+                              key={opt}
+                              className={`learning-choice-label learning-choice-animate learning-choice-animate-delay-${
+                                index + 1
+                              } ${
+                                isSelected
+                                  ? "border-pink-500 bg-pink-500/20 scale-105"
+                                  : "border-gray-300 hover:border-pink-400 hover:bg-pink-500/10"
+                              } transition-all duration-300 hover:scale-105`}
+                            >
+                              <input
+                                type="radio"
+                                name={`learning-question-${currentQuestionIndex}`}
+                                value={opt}
+                                checked={isSelected}
+                                onChange={() => {
+                                  handleChange(
+                                    "learningStyle",
+                                    questions.learningStyle[
+                                      currentQuestionIndex
+                                    ].question,
+                                    opt
+                                  );
+                                }}
+                                className="learning-choice-input"
+                              />
+                              <span className="learning-choice-text">
+                                {opt}
+                              </span>
+                            </label>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -1019,13 +1011,15 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   type="button"
                   onClick={handleNext}
                   className={`nav-button ${
-                    isLearningStyleComplete() 
-                      ? "bg-green-600 hover:bg-green-500 border-green-500" 
+                    isLearningStyleComplete()
+                      ? "bg-green-600 hover:bg-green-500 border-green-500"
                       : "bg-gray-500 hover:bg-gray-400 border-gray-400 cursor-not-allowed"
                   }`}
                   disabled={!isLearningStyleComplete()}
                 >
-                  {isLearningStyleComplete() ? "Review Answers" : "Complete All Questions"}
+                  {isLearningStyleComplete()
+                    ? "Review Answers"
+                    : "Complete All Questions"}
                 </button>
               )}
             </div>

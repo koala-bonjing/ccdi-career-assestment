@@ -6,6 +6,7 @@ import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
 import ImageSlider from "../ImageSlider/ImageSlider";
 import { ArrowBigRight } from "lucide-react";
 import DotGrid from "../ActiveBackground";
+import "./WelcomePage.css";
 
 function WelcomeScreenComponent() {
   const { setName } = useEvaluationStore();
@@ -23,9 +24,9 @@ function WelcomeScreenComponent() {
   };
 
   return (
-    <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="welcome-container">
       {/* Background */}
-      <div className="absolute inset-0 z-0 bg-black">
+      <div className="welcome-background">
         <DotGrid
           dotSize={5}
           gap={15}
@@ -43,18 +44,18 @@ function WelcomeScreenComponent() {
       <ProgressSideBar isWelcomePage={true} />
 
       {/* Center Content */}
-      <div className="relative z-10 mr-96">
-        <div className="flex flex-col items-center justify-center bg-white/10 rounded-xl p-12 shadow-lg">
-          <h1 className="text-3xl font-semibold font-poppins text-white mb-4">
+      <div className="welcome-content">
+        <div className="welcome-card">
+          <h1 className="welcome-title">
             Welcome to CCDI Career Assessment Test
           </h1>
 
-          <div className="grid grid-cols-3 gap-6 w-full mb-6">
-            <p className="text-white/80 text-center">
+          <div className="features-grid">
+            <p className="feature-text">
               Start your career assessment test
             </p>
-            <p className="text-white/80 text-center">Discover your strengths</p>
-            <p className="text-white/80 text-center">
+            <p className="feature-text">Discover your strengths</p>
+            <p className="feature-text">
               Plan your future with CCDI
             </p>
           </div>
@@ -63,34 +64,27 @@ function WelcomeScreenComponent() {
           {!showInput ? (
             <button
               onClick={() => setShowInput(true)}
-              className="w-full bg-btn-solid-bg text-btn-solid-text px-6 py-3 rounded-md 
-              hover:bg-transparent hover:border hover:border-primary hover:text-primary 
-              transition-all duration-300 mb-6 text-lg font-medium font-poppins"
+              className="start-button"
             >
-              START ASSESTMENT
+              START ASSESSMENT
             </button>
           ) : (
             <form
               onSubmit={handleSubmit}
-              className="flex flex-row items-center space-x-4 mb-6 w-full"
+              className="name-form"
             >
               <input
                 type="text"
                 value={localName}
                 onChange={(e) => setLocalName(e.target.value)}
                 placeholder="Enter your full name"
-                className="flex-1 p-3 font-poppins text-xl rounded-md text-center
-  border border-white focus:outline-none focus:ring-2 focus:ring-primary
-  bg-transparent text-white placeholder-white capitalize
-  transition-all duration-300 hover:bg-white/30 hover:border-white"
+                className="name-input"
                 required
               />
 
               <button
                 type="submit"
-                className="bg-btn-solid-bg text-btn-solid-text p-3 rounded-md 
-                hover:bg-transparent hover:border hover:border-primary hover:text-primary 
-                transition-all duration-300 flex items-center justify-center w-16 h-16"
+                className="submit-button"
                 title="Continue"
               >
                 <ArrowBigRight size={28} strokeWidth={2.5} />

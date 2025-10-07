@@ -63,3 +63,14 @@ export interface EvaluationResult {
     teElectrical: number;
   };
 }
+
+export interface AssessmentFormProps {
+  currentUser: User | null;
+  setCurrentUser: (user: User) => void;
+  onSubmit: (answers: AssessmentAnswers) => void;
+  onNextSection: () => void;
+  onPrevSection: () => void;
+  currentSectionIndex: number;
+  totalSections: number;
+  loading?: boolean;
+}

@@ -314,6 +314,33 @@ const assessmentSections = [
   },
 ];
 
+const sections: (keyof AssessmentAnswers)[] = [
+  "academicAptitude",
+  "technicalSkills",
+  "careerInterest",
+  "learningStyle",
+];
+
+const choiceLabels: Record<number, string> = {
+  1: "Strongly Matches",
+  2: "Matches",
+  3: "Neutral",
+  4: "Partially Matches",
+  5: "Does Not Match",
+};
+
+ const getSectionColorClass = (section: string) => {
+    const colorMap: { [key: string]: string } = {
+      academicAptitude: "academic-bg academic-hover",
+      technicalSkills: "technical-bg technical-hover",
+      careerInterest: "career-bg career-hover",
+      learningStyle: "learning-bg learning-hover",
+    };
+    return colorMap[section] || "bg-blue-500 hover:bg-blue-600";
+  };
+
+  
+
 export {
   BASE_URL,
   questions,
@@ -322,4 +349,8 @@ export {
   sectionHoverColors,
   sectionFormBgColors,
   assessmentSections,
+  sections,
+  choiceLabels,
+  getSectionColorClass,
+  
 };

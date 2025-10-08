@@ -6,7 +6,7 @@ This React app helps evaluate incoming students' strengths, interests, and learn
 
 ## ✨ Features
 
-- 🧠 AI-powered career evaluation via **Gemini 1.5 Flash**
+- 🧠 AI-powered career evaluation via **Gemini 2.5 Flash**
 - 📝 Dynamic questionnaire with checkbox, scale, and radio input types
 - 📈 Course fit percentages for four programs
 - 💬 Personalized recommendation summary
@@ -39,3 +39,4 @@ cd ccdi-career-assestment
 
 # Install dependencies
 npm install
+

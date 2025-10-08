@@ -30,3 +30,38 @@ Back End:
           },
           transition: Bounce,
         }
+
+
+-Security:
+
+ ✔️Sign up
+    >Fulll name
+    >User Name / email
+    >Password
+    >Prefered course
+    >I agree
+    >code
+
+ ✔️Login
+    >Full name
+    >Email Address
+    >code
+
+✔️Database:
+  -tblStatus:
+      >Full name
+      >Email
+      >status
+
+✔️Questions:
+  -tblQuestions:
+      >categorize by course
+  
+  -tblResult:
+      >summarize
+
+-Printable result:
+      >document function
+
+-Instructions:
+      >by question section

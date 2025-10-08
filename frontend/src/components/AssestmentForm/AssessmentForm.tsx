@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// components/AssessmentForm/AssessmentForm.tsx
+import React, { useState, useEffect } from "react";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AssestmentForm.css";
@@ -17,30 +18,48 @@ import {
 import { Modal } from "react-bootstrap";
 import {
   categoryTitles,
-  questions,
   sectionBgColors,
   sectionFormBgColors,
   sectionHoverColors,
   sectionDotColors,
   sections,
   choiceLabels,
-  getSectionColorClass
+  getSectionColorClass,
+  getSectionColorClasses,
 } from "../../config/constants";
-import TooltipButton from "../TootltipButton/TooltipButton";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
+import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
+import { useEvaluationStore } from "../../../store/useEvaluationStore";
 
 const AssessmentForm: React.FC<AssessmentFormProps> = ({
   currentUser,
   setCurrentUser,
   onSubmit,
   loading,
+  restoredFormData, // Add this prop
 }) => {
-  const [formData, setFormData] = useState<AssessmentAnswers>({
-    academicAptitude: {},
-    technicalSkills: {},
-    careerInterest: {},
-    learningStyle: {},
+  // Get the store update function
+  const { updateAnswer } = useEvaluationStore();
+
+  const {
+    questions,
+    loading: questionsLoading,
+    error,
+  } = useAssessmentQuestions();
+
+  // Initialize formData with restored data if available
+  const [formData, setFormData] = useState<AssessmentAnswers>(() => {
+    if (restoredFormData) {
+      console.log("🔄 Initializing form with restored data:", restoredFormData);
+      return restoredFormData;
+    }
+    return {
+      academicAptitude: {},
+      technicalSkills: {},
+      careerInterest: {},
+      learningStyle: {},
+    };
   });
 
   const [showResetModal, setShowResetModal] = useState(false);
@@ -51,35 +70,140 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showReview, setShowReview] = useState(false);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
+  const [programScores, setProgramScores] = useState({
+    BSCS: 0,
+    BSIT: 0,
+    BSIS: 0,
+    EE: 0,
+  });
+
+  // Update form data when restoredFormData changes
+  useEffect(() => {
+    if (restoredFormData) {
+      console.log("🔄 Updating form with restored data:", restoredFormData);
+      setFormData(restoredFormData);
+      
+      // Also restore program scores if needed
+      // You might want to calculate this from the restored data
+    }
+  }, [restoredFormData]);
 
   const section = sections[currentSection];
-  const { base, active } = sectionDotColors[section] || {
-    base: "#000",
-    active: "#000",
+
+  // Get current section questions with safe fallback
+  const getCurrentQuestions = () => {
+    if (!questions) return [];
+
+    switch (section) {
+      case "academicAptitude":
+        return questions.academicAptitude || [];
+      case "technicalSkills":
+        return questions.technicalSkills || [];
+      case "careerInterest":
+        return questions.careerInterest || [];
+      case "learningStyle":
+        return questions.learningStyle || [];
+      default:
+        return [];
+    }
   };
 
-  // Add this function to check if all learning style questions are answered
-  const isLearningStyleComplete = () => {
-    const learningAnswers = formData.learningStyle;
-    return questions.learningStyle.every(
-      (ls) =>
-        learningAnswers[ls.question] !== undefined &&
-        learningAnswers[ls.question] !== ""
-    );
-  };
+  const currentQuestions = getCurrentQuestions();
+  const currentQuestion = currentQuestions[currentQuestionIndex];
 
+  // Fixed: handleChange now updates both form state AND evaluation store
   const handleChange = (
     section: keyof AssessmentAnswers,
-    question: string,
-    value: string | boolean | number
+    questionText: string,
+    value: string | boolean | number,
+    program?: string
   ) => {
+    // Update local form state
     setFormData((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
-        [question]: value,
+        [questionText]: value,
       },
     }));
+
+    // Update the evaluation store for auto-save
+    const storeKey = `${section}.${questionText}`;
+    updateAnswer(storeKey, value);
+    console.log("📝 Updated store with:", { storeKey, value });
+
+    // Update program compatibility scores
+    if (typeof value === "number" && value >= 1 && value <= 5 && program) {
+      setProgramScores((prev) => {
+        const newScores = { ...prev };
+        const scoreToAdd = (value - 1) * 2;
+        newScores[program as keyof typeof programScores] += scoreToAdd;
+        return newScores;
+      });
+    }
+  };
+
+  // Show loading or error states
+  if (questionsLoading) {
+    return (
+      <div className="assessment-container">
+        <NavigationBar />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading assessment questions...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="assessment-container">
+        <NavigationBar />
+        <div className="main-content">
+          <div className="error-container">
+            <h3>Error Loading Questions</h3>
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()}>Retry</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    !questions ||
+    (questions.academicAptitude.length === 0 &&
+      questions.technicalSkills.length === 0 &&
+      questions.careerInterest.length === 0 &&
+      questions.learningStyle.length === 0)
+  ) {
+    return (
+      <div className="assessment-container">
+        <NavigationBar />
+        <div className="main-content">
+          <div className="error-container">
+            <h3>No Questions Available</h3>
+            <p>
+              Please check if the server is running and questions are loaded.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isLearningStyleComplete = () => {
+    if (section !== "learningStyle") return true;
+
+    const learningAnswers = formData.learningStyle;
+    return questions.learningStyle.every(
+      (question) =>
+        learningAnswers[question.questionText] !== undefined &&
+        learningAnswers[question.questionText] !== ""
+    );
   };
 
   const handleReset = (section?: keyof AssessmentAnswers) => {
@@ -99,6 +223,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         learningStyle: {},
       });
       setCurrentQuestionIndex(0);
+      setProgramScores({ BSCS: 0, BSIT: 0, BSIS: 0, EE: 0 });
     }
     setShowResetModal(false);
   };
@@ -113,6 +238,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       const timestamp = new Date().toISOString();
       const dataToSave = {
         answers: formData,
+        programScores,
         timestamp: timestamp,
         section: categoryTitles[sections[currentSection]],
         currentSection: currentSection,
@@ -167,13 +293,20 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const validateSection = (): boolean => {
     const answers = formData[section];
 
-    if (section === "academicAptitude") {
-      const firstUnansweredIndex = questions.academicAptitude.findIndex(
-        (q) => answers[q] === undefined || answers[q] === ""
+    if (
+      section === "academicAptitude" ||
+      section === "careerInterest" ||
+      section === "learningStyle"
+    ) {
+      const firstUnansweredIndex = currentQuestions.findIndex(
+        (q) =>
+          answers[q.questionText] === undefined ||
+          answers[q.questionText] === ""
       );
 
       if (firstUnansweredIndex !== -1) {
-        toast.warning("Please answer all Academic Aptitude questions.", {
+        const sectionName = categoryTitles[section];
+        toast.warning(`Please answer all ${sectionName} questions.`, {
           position: "top-right",
           autoClose: 3000,
           style: {
@@ -200,73 +333,17 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         toast.warning("Please select at least one Technical Skill.", {
           position: "top-right",
           style: {
-            backgroundColor: "rgba(255, 165, 0, 0.5)",
+            backgroundColor: "rgba(255, 140, 0, 0.35)",
             color: "#fff",
-            border: "2px solid #FF8C00",
-            borderRadius: "8px",
+            border: "2px solid rgba(255, 120, 0, 0.7)",
+            borderRadius: "10px",
             fontWeight: "500",
             fontFamily: "Poppins",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            boxShadow: "0 4px 20px rgba(255, 120, 0, 0.4)",
           },
         });
-        return false;
-      }
-    }
-
-    if (section === "careerInterest") {
-      const firstUnansweredIndex = questions.careerInterest.findIndex(
-        (q) => answers[q] === undefined || answers[q] === ""
-      );
-
-      if (firstUnansweredIndex !== -1) {
-        toast.warning("Please answer all Career Interest questions.", {
-          position: "top-right",
-          autoClose: 3000,
-          style: {
-            backgroundColor: "rgb(147, 51, 234, 0.3)",
-            backdropFilter: "blur(6px)",
-            border: "2px solid #9333ea",
-            color: "#fff",
-            fontWeight: "bold",
-            fontSize: "14px",
-            borderRadius: "8px",
-            fontFamily: "Poppins",
-          },
-          transition: Bounce,
-        });
-
-        setCurrentQuestionIndex(firstUnansweredIndex);
-        return false;
-      }
-    }
-
-    if (section === "learningStyle") {
-      const firstUnansweredIndex = questions.learningStyle.findIndex(
-        (ls) =>
-          answers[ls.question] === undefined || answers[ls.question] === ""
-      );
-
-      if (firstUnansweredIndex !== -1) {
-        // Scroll to the unanswered question
-        setCurrentQuestionIndex(firstUnansweredIndex);
-
-        toast.warning(
-          "Please select an option for all Learning Style questions.",
-          {
-            position: "top-right",
-            autoClose: 3000,
-            style: {
-              backgroundColor: "rgba(236, 72, 153, 0.3)",
-              backdropFilter: "blur(6px)",
-              border: "2px solid #EC4899",
-              color: "#fff",
-              fontWeight: "bold",
-              fontSize: "14px",
-              borderRadius: "8px",
-              fontFamily: "Poppins",
-            },
-            transition: Bounce,
-          }
-        );
         return false;
       }
     }
@@ -276,7 +353,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const handleNext = () => {
     if (validateSection()) {
-      // Special validation for learning style section before moving to review
       if (currentSection === 3 && !isLearningStyleComplete()) {
         toast.warning(
           "Please answer all Learning Style questions before proceeding.",
@@ -320,8 +396,21 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateSection()) {
-      onSubmit(formData);
+      const submissionData = {
+        answers: formData,
+        programScores,
+        recommendedProgram: getRecommendedProgram(programScores),
+      };
+      onSubmit(submissionData);
     }
+  };
+
+  const getRecommendedProgram = (scores: typeof programScores) => {
+    const entries = Object.entries(scores);
+    const highest = entries.reduce((max, current) =>
+      current[1] > max[1] ? current : max
+    );
+    return highest[0];
   };
 
   const navigateToSection = (sectionIndex: number) => {
@@ -336,14 +425,24 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     value: any
   ): string => {
     if (section === "academicAptitude" || section === "careerInterest") {
-      const labels = [
-        "Strongly Disagree",
-        "Disagree",
-        "Neutral",
-        "Agree",
-        "Strongly Agree",
-      ];
-      return labels[value - 1] || "Not answered";
+      const labels =
+        section === "careerInterest"
+          ? [
+              "Strongly Matches",
+              "Matches",
+              "Neutral",
+              "Partially Matches",
+              "Does Not Match",
+            ]
+          : [
+              "Strongly Disagree",
+              "Disagree",
+              "Neutral",
+              "Agree",
+              "Strongly Agree",
+            ];
+
+      return labels[value - 1] || "Not Answered";
     }
 
     if (section === "technicalSkills") {
@@ -358,6 +457,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   };
 
   const renderReviewSection = () => {
+    const getQuestionsBySection = (sectionKey: string) => {
+      if (!questions) return [];
+      switch (sectionKey) {
+        case "academicAptitude":
+          return questions.academicAptitude || [];
+        case "technicalSkills":
+          return questions.technicalSkills || [];
+        case "careerInterest":
+          return questions.careerInterest || [];
+        case "learningStyle":
+          return questions.learningStyle || [];
+        default:
+          return [];
+      }
+    };
+
     return (
       <div className="review-section">
         <h2 className="review-header">
@@ -365,89 +480,81 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </h2>
 
         <div className="review-content scrollbar-thin-blue">
-          {sections.map((sectionKey, sectionIndex) => (
-            <div key={sectionKey} className="review-section-item">
-              <div className="review-section-header">
-                <h3 className="review-section-title">
-                  {categoryTitles[sectionKey]}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => navigateToSection(sectionIndex)}
-                  className="review-edit-button"
-                >
-                  <Edit size={16} /> Edit
-                </button>
-              </div>
+          {sections.map((sectionKey, sectionIndex) => {
+            const sectionQuestions = getQuestionsBySection(sectionKey);
+            return (
+              <div key={sectionKey} className="review-section-item">
+                <div className="review-section-header">
+                  <h3 className="review-section-title">
+                    {categoryTitles[sectionKey]}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => navigateToSection(sectionIndex)}
+                    className="review-edit-button"
+                  >
+                    <Edit size={16} /> Edit
+                  </button>
+                </div>
 
-              <div className="review-answers-container">
-                {sectionKey === "technicalSkills" ? (
-                  <div>
-                    <h4 className="font-medium mb-2">Selected Skills:</h4>
-                    <ul className="list-disc list-inside">
-                      {questions.technicalSkills
-                        .filter((skill) => formData.technicalSkills[skill])
-                        .map((skill) => (
-                          <li key={skill}>{skill}</li>
-                        ))}
-                      {Object.values(formData.technicalSkills).filter((v) => v)
-                        .length === 0 && (
-                        <li className="text-gray-400">No skills selected</li>
-                      )}
-                    </ul>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {questions[sectionKey].map((question, qIndex) => {
-                      const questionText =
-                        typeof question === "string"
-                          ? question
-                          : question.question;
-                      const answer = formData[sectionKey][questionText];
-
-                      return (
-                        <div
-                          key={questionText}
-                          className="border-b border-gray-600 pb-3 last:border-0"
-                        >
-                          <p className="font-medium">
-                            {qIndex + 1}. {questionText}
-                          </p>
-                          <p className="text-blue-300">
-                            {getAnswerLabel(sectionKey, questionText, answer)}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <div className="review-answers-container">
+                  {sectionKey === "technicalSkills" ? (
+                    <div>
+                      <h4 className="font-medium mb-2">Selected Skills:</h4>
+                      <ul className="list-disc list-inside">
+                        {sectionQuestions
+                          .filter(
+                            (skill) =>
+                              formData.technicalSkills[skill.questionText]
+                          )
+                          .map((skill) => (
+                            <li key={skill._id}>{skill.questionText}</li>
+                          ))}
+                        {Object.values(formData.technicalSkills).filter(
+                          (v) => v
+                        ).length === 0 && (
+                          <li className="text-gray-400">No skills selected</li>
+                        )}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {sectionQuestions.map((question, qIndex) => {
+                        const answer =
+                          formData[sectionKey][question.questionText];
+                        return (
+                          <div
+                            key={question._id}
+                            className="border-b border-gray-600 pb-3 last:border-0"
+                          >
+                            <p className="font-medium">
+                              {qIndex + 1}. {question.questionText}
+                            </p>
+                            <p className="text-blue-300">
+                              {getAnswerLabel(
+                                sectionKey,
+                                question.questionText,
+                                answer
+                              )}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
   };
 
-
-
   return (
     <div className="assessment-container">
       <div className="background-overlay">
-        <div className="background-full">
-          <DotGrid
-            dotSize={5}
-            gap={15}
-            baseColor="#393E46"
-            activeColor={active}
-            proximity={120}
-            shockRadius={250}
-            shockStrength={5}
-            resistance={750}
-            returnDuration={1.5}
-            className="w-full h-full"
-          />
-        </div>
+        <div className="background-full"></div>
       </div>
 
       <ToastContainer />
@@ -456,6 +563,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         currentSection={currentSection}
         onSectionChange={setCurrentSection}
       />
+
+      {/* Recovery Notification */}
+      {restoredFormData && (
+        <div className="recovery-notification">
+          ✅ Your previous answers have been restored - you can continue where you left off
+        </div>
+      )}
 
       <div className="main-content">
         <form
@@ -480,7 +594,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   <div className="progress-info">
                     <span className="progress-text academic">
                       Question {currentQuestionIndex + 1} of{" "}
-                      {questions.academicAptitude.length}
+                      {currentQuestions.length}
                     </span>
 
                     <div className="progress-controls">
@@ -500,7 +614,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       </button>
 
                       <div className="progress-dots">
-                        {questions.academicAptitude.map((_, index) => (
+                        {currentQuestions.map((_, index) => (
                           <button
                             key={index}
                             type="button"
@@ -509,7 +623,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               index === currentQuestionIndex
                                 ? "bg-blue-500 scale-125 active"
                                 : formData.academicAptitude[
-                                    questions.academicAptitude[index]
+                                    currentQuestions[index]?.questionText
                                   ]
                                 ? "bg-green-500 hover:bg-green-400"
                                 : "bg-gray-400 hover:bg-gray-300"
@@ -523,18 +637,16 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         onClick={() => {
                           if (
                             currentQuestionIndex <
-                            questions.academicAptitude.length - 1
+                            currentQuestions.length - 1
                           ) {
                             setCurrentQuestionIndex((prev) => prev + 1);
                           }
                         }}
                         disabled={
-                          currentQuestionIndex ===
-                          questions.academicAptitude.length - 1
+                          currentQuestionIndex === currentQuestions.length - 1
                         }
                         className={`navigation-button academic ${
-                          currentQuestionIndex ===
-                          questions.academicAptitude.length - 1
+                          currentQuestionIndex === currentQuestions.length - 1
                             ? "bg-gray-400"
                             : ""
                         } transition-all duration-300 hover:scale-110`}
@@ -551,7 +663,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
-                            questions.academicAptitude.length) *
+                            currentQuestions.length) *
                           100
                         }%`,
                       }}
@@ -565,7 +677,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       className="question-container question-transition-enter-active"
                     >
                       <h4 className="question-text animate-fade-in-up">
-                        {questions.academicAptitude[currentQuestionIndex]}
+                        {currentQuestion?.questionText || "Loading question..."}
                       </h4>
 
                       <div className="choices-grid">
@@ -576,7 +688,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               index + 1
                             } ${
                               formData.academicAptitude[
-                                questions.academicAptitude[currentQuestionIndex]
+                                currentQuestion?.questionText
                               ] === val
                                 ? "border-blue-500 bg-blue-500/20 scale-105 choice-selected"
                                 : "border-gray-300 hover:border-blue-400 hover:bg-blue-500/10 hover:scale-105"
@@ -588,18 +700,15 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               value={val}
                               checked={
                                 formData.academicAptitude[
-                                  questions.academicAptitude[
-                                    currentQuestionIndex
-                                  ]
+                                  currentQuestion?.questionText
                                 ] === val
                               }
                               onChange={() =>
                                 handleChange(
                                   "academicAptitude",
-                                  questions.academicAptitude[
-                                    currentQuestionIndex
-                                  ],
-                                  val
+                                  currentQuestion?.questionText || "",
+                                  val,
+                                  currentQuestion?.program
                                 )
                               }
                               className="choice-input transition-all duration-300 hover:scale-110"
@@ -607,11 +716,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                             <span className="choice-text transition-all duration-300">
                               {
                                 [
-                                  "Strongly Agree",
-                                  "Agree",
-                                  "Neutral",
-                                  "Disagree",
                                   "Strongly Disagree",
+                                  "Disagree",
+                                  "Neutral",
+                                  "Agree",
+                                  "Strongly Agree",
                                 ][val - 1]
                               }
                             </span>
@@ -634,9 +743,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
                   <div className="skills-container">
                     <div className="skills-list scrollbar-thin-orange">
-                      {questions.technicalSkills.map((skill, index) => (
+                      {currentQuestions.map((skill, index) => (
                         <label
-                          key={skill}
+                          key={skill._id}
                           className="skill-label fade-in-up hover:border-orange-400 hover:bg-orange-500/10"
                           style={{
                             animationDelay: `${index * 100}ms`,
@@ -644,17 +753,22 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         >
                           <input
                             type="checkbox"
-                            checked={!!formData.technicalSkills[skill]}
+                            checked={
+                              !!formData.technicalSkills[skill.questionText]
+                            }
                             onChange={(e) =>
                               handleChange(
                                 "technicalSkills",
-                                skill,
-                                e.target.checked
+                                skill.questionText,
+                                e.target.checked,
+                                skill.program
                               )
                             }
                             className="skill-checkbox"
                           />
-                          <span className="font-medium">{skill}</span>
+                          <span className="font-medium">
+                            {skill.questionText}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -674,7 +788,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   <div className="progress-info">
                     <span className="progress-text career">
                       Question {currentQuestionIndex + 1} of{" "}
-                      {questions?.careerInterest?.length ?? 0}
+                      {currentQuestions.length}
                     </span>
 
                     <div className="progress-controls">
@@ -694,7 +808,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       </button>
 
                       <div className="progress-dots">
-                        {(questions?.careerInterest ?? []).map((_, index) => (
+                        {currentQuestions.map((_, index) => (
                           <button
                             key={index}
                             type="button"
@@ -703,7 +817,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               index === currentQuestionIndex
                                 ? "bg-purple-500 scale-125 career-active"
                                 : formData.careerInterest[
-                                    questions.careerInterest[index]
+                                    currentQuestions[index]?.questionText
                                   ]
                                 ? "bg-green-500 hover:bg-green-400"
                                 : "bg-gray-400 hover:bg-gray-300"
@@ -717,18 +831,16 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         onClick={() => {
                           if (
                             currentQuestionIndex <
-                            questions.careerInterest.length - 1
+                            currentQuestions.length - 1
                           ) {
                             setCurrentQuestionIndex((prev) => prev + 1);
                           }
                         }}
                         disabled={
-                          currentQuestionIndex ===
-                          questions.careerInterest.length - 1
+                          currentQuestionIndex === currentQuestions.length - 1
                         }
                         className={`navigation-button career ${
-                          currentQuestionIndex ===
-                          questions.careerInterest.length - 1
+                          currentQuestionIndex === currentQuestions.length - 1
                             ? "bg-gray-400"
                             : ""
                         }`}
@@ -745,7 +857,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
-                            questions.careerInterest.length) *
+                            currentQuestions.length) *
                           100
                         }%`,
                       }}
@@ -759,14 +871,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       className="question-container"
                     >
                       <h4 className="question-text animate-fade-in-up">
-                        {questions.careerInterest[currentQuestionIndex]}
+                        {currentQuestion?.questionText || "Loading question..."}
                       </h4>
 
                       <div className="choices-grid text-text-primary font-poppins ">
                         {[1, 2, 3, 4, 5].map((val, index) => {
                           const isSelected =
                             formData.careerInterest[
-                              questions.careerInterest[currentQuestionIndex]
+                              currentQuestion?.questionText
                             ] === val;
 
                           return (
@@ -795,10 +907,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                 onChange={() => {
                                   handleChange(
                                     "careerInterest",
-                                    questions.careerInterest[
-                                      currentQuestionIndex
-                                    ],
-                                    val
+                                    currentQuestion?.questionText || "",
+                                    val,
+                                    currentQuestion?.program
                                   );
                                   setTimeout(() => {
                                     const element = document
@@ -840,7 +951,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   <div className="progress-info">
                     <span className="progress-text learning">
                       Question {currentQuestionIndex + 1} of{" "}
-                      {questions.learningStyle.length}
+                      {currentQuestions.length}
                     </span>
 
                     <div className="progress-controls">
@@ -860,7 +971,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                       </button>
 
                       <div className="progress-dots">
-                        {questions.learningStyle.map((_, index) => (
+                        {currentQuestions.map((_, index) => (
                           <button
                             key={index}
                             type="button"
@@ -869,7 +980,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               index === currentQuestionIndex
                                 ? "bg-pink-500 scale-125 learning-active"
                                 : formData.learningStyle[
-                                    questions.learningStyle[index].question
+                                    currentQuestions[index]?.questionText
                                   ]
                                 ? "bg-green-500 hover:bg-green-400"
                                 : "bg-gray-400 hover:bg-gray-300"
@@ -883,18 +994,16 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         onClick={() => {
                           if (
                             currentQuestionIndex <
-                            questions.learningStyle.length - 1
+                            currentQuestions.length - 1
                           ) {
                             setCurrentQuestionIndex((prev) => prev + 1);
                           }
                         }}
                         disabled={
-                          currentQuestionIndex ===
-                          questions.learningStyle.length - 1
+                          currentQuestionIndex === currentQuestions.length - 1
                         }
                         className={`navigation-button learning ${
-                          currentQuestionIndex ===
-                          questions.learningStyle.length - 1
+                          currentQuestionIndex === currentQuestions.length - 1
                             ? "bg-gray-400"
                             : ""
                         } transition-all duration-300 hover:scale-110`}
@@ -904,14 +1013,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     </div>
                   </div>
 
-                  {/* FIXED Progress Bar - Now shows accurate completion */}
+                  {/* Progress Bar */}
                   <div className="progress-bar-container">
                     <div
                       className="progress-bar learning"
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
-                            questions.learningStyle.length) *
+                            currentQuestions.length) *
                           100
                         }%`,
                       }}
@@ -922,20 +1031,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   <div className="scrollable-content scrollbar-thin-pink">
                     <div className="question-container">
                       <h4 className="question-text animate-fade-in-up">
-                        {
-                          questions.learningStyle[currentQuestionIndex]
-                            ?.question
-                        }
+                        {currentQuestion?.questionText || "Loading question..."}
                       </h4>
 
                       <div className="learning-options">
-                        {questions.learningStyle[
-                          currentQuestionIndex
-                        ]?.options.map((opt, index) => {
+                        {currentQuestion?.options?.map((opt, index) => {
                           const isSelected =
                             formData.learningStyle[
-                              questions.learningStyle[currentQuestionIndex]
-                                .question
+                              currentQuestion.questionText
                             ] === opt;
 
                           return (
@@ -957,10 +1060,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                 onChange={() => {
                                   handleChange(
                                     "learningStyle",
-                                    questions.learningStyle[
-                                      currentQuestionIndex
-                                    ].question,
-                                    opt
+                                    currentQuestion.questionText,
+                                    opt,
+                                    currentQuestion.program
                                   );
                                 }}
                                 className="learning-choice-input"
@@ -990,7 +1092,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   onClick={handlePrevious}
                   className={`nav-button ${getSectionColorClass(
                     sections[currentSection - 1]
-                  )}`}
+                  )} bg-green-500 `}
                 >
                   Previous Section
                 </button>
@@ -1000,9 +1102,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 <button
                   type="button"
                   onClick={handleNext}
-                  className={`nav-button ${getSectionColorClass(
+                  className={`nav-button ${getSectionColorClasses(
                     sections[currentSection]
-                  )}`}
+                  )}  font-poppins text-white`}
                 >
                   Next Section
                 </button>
@@ -1012,14 +1114,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                   onClick={handleNext}
                   className={`nav-button ${
                     isLearningStyleComplete()
-                      ? "bg-green-600 hover:bg-green-500 border-green-500"
-                      : "bg-gray-500 hover:bg-gray-400 border-gray-400 cursor-not-allowed"
+                      ? "bg-blue-600 hover:bg-blue-500 border-blue-500"
+                      : "bg-gray-500 hover:bg-gray-400 border-gray-400 cursor-not-allowed "
                   }`}
                   disabled={!isLearningStyleComplete()}
                 >
                   {isLearningStyleComplete()
                     ? "Review Answers"
-                    : "Complete All Questions"}
+                    : "Complete all Questions"}
                 </button>
               )}
             </div>
@@ -1042,7 +1144,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               onClick={saveAnswersLocally}
               className="review-button bg-blue-600 hover:bg-blue-500 border-blue-500 flex items-center gap-2"
             >
-              <Download size={18} />
+              <Download size={18} className="hidden sm:inline" />
               Save Answers Locally
             </button>
 

@@ -2,7 +2,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  evaluations?: Evaluation[];
+  preferredCourse: string;
 }
 
 export interface Evaluation {
@@ -13,13 +13,13 @@ export interface Evaluation {
   recommendedProgram: ProgramType;
 }
 
-export type ProgramType = "BSCS" | "BSIT" | "BSIS" | "teElectrical";
+export type ProgramType = "BSCS" | "BSIT" | "BSIS" | "EE";
 
 export const ProgramLabels: Record<ProgramType, string> = {
   BSCS: "BSCS",
   BSIT: "BSIT",
   BSIS: "BSIS",
-  teElectrical: "Technology Engineering (Electrical)",
+  EE: "Technology Engineering (Electrical)",
 };
 
 export interface AssessmentAnswers {
@@ -38,6 +38,7 @@ export interface AssessmentAnswers {
 }
 
 // In your types.ts file
+
 export interface AssessmentResult {
   success: boolean;
   evaluation: string;
@@ -48,8 +49,15 @@ export interface AssessmentResult {
     BSIT: number;
     BSCS: number;
     BSIS: number;
-    teElectrical: number;
+    EE: number;
   };
+  programScores?: {
+    BSCS: number;
+    BSIT: number;
+    BSIS: number;
+    EE: number;
+  };
+  submissionDate?: string;
 }
 
 export interface EvaluationResult {
@@ -60,7 +68,7 @@ export interface EvaluationResult {
     BSIT: number;
     BSCS: number;
     BSIS: number;
-    teElectrical: number;
+    EE: number;
   };
 }
 

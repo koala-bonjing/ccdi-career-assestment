@@ -1,11 +1,21 @@
 import React, { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
+import { useAuth } from "../../context/AuthContext"; // Adjust path based on your structure
+import { useNavigate } from "react-router-dom"; // For redirecting after logout
 
 function NavigationBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth(); // Get auth state and logout function
+  const navigate = useNavigate(); // For navigation after logout
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout(); // Clear auth state
+    setIsMobileMenuOpen(false); // Close mobile menu
+    navigate("/signup"); // Redirect to signup page
   };
 
   return (
@@ -35,7 +45,7 @@ function NavigationBar() {
         </div>
 
         {/* Desktop Links - Hidden on mobile */}
-        <ul className="hidden md:flex list-none m-0 p-0 gap-6 lg:gap-8 font-mono">
+        <ul className="hidden md:flex list-none m-0 p-0 gap-6 lg:gap-8 font-mono items-center">
           <li>
             <a
               href="#home"
@@ -60,6 +70,17 @@ function NavigationBar() {
               Contact
             </a>
           </li>
+          {isAuthenticated && (
+            <li>
+              <button
+                onClick={handleLogout}
+                className="text-white no-underline hover:text-red-400 transition-colors duration-300 text-sm lg:text-base flex items-center gap-1"
+              >
+                <LogOut size={16} />
+                Log Out
+              </button>
+            </li>
+          )}
         </ul>
 
         {/* Mobile Menu Button */}
@@ -78,7 +99,7 @@ function NavigationBar() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={toggleMobileMenu}
           aria-hidden="true"
@@ -93,7 +114,7 @@ function NavigationBar() {
           text-white shadow-2xl border-l border-white/10
           z-40 transition-transform duration-300 ease-in-out
           w-64 sm:w-72
-          ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+          ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
           md:hidden
         `}
       >
@@ -101,7 +122,7 @@ function NavigationBar() {
           <h3 className="font-poppins font-semibold text-lg mb-4 text-center">
             Navigation
           </h3>
-          
+
           <ul className="space-y-4">
             <li>
               <a
@@ -151,6 +172,24 @@ function NavigationBar() {
                 Contact
               </a>
             </li>
+            {isAuthenticated && (
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="
+                    block py-3 px-4 rounded-lg
+                    bg-red-500/10 border border-red-500/30
+                    text-red-400 no-underline
+                    hover:bg-red-500/20 hover:border-red-500/50
+                    transition-all duration-300
+                    text-center flex justify-center items-center gap-2
+                  "
+                >
+                  <LogOut size={16} />
+                  Log Out
+                </button>
+              </li>
+            )}
           </ul>
 
           {/* Additional mobile-only info */}

@@ -1,28 +1,15 @@
-import React from "react";
-import { useEvaluationStore } from "../../store/useEvaluationStore";
-import { ProgramLabels } from "../types";
-import { getProgramTextColor } from "../utils/colorUtils";
-import type { AssessmentResult } from "../types";
-import ProgressSideBar from "./ProgressSideBar/ProgressSideBar";
+import React, { useState, useEffect } from "react";
+import { useEvaluationStore } from "../../../store/useEvaluationStore";
+import { ProgramLabels } from "../../types";
+import { getProgramTextColor } from "../../utils/colorUtils";
+import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
+import NavigationBar from "../NavigationBarComponents/NavigationBar";
+import { useAuth } from "../../context/AuthContext";
 
 const ResultsPage: React.FC = () => {
   const { result, name, loading, error } = useEvaluationStore();
-
-  console.log("🔍 RESULTS PAGE DEBUG:");
-  console.log("🔍 Name:", name);
-  console.log("🔍 Result:", result);
-  console.log("🔍 Loading:", loading);
-  console.log("🔍 Error:", error);
-  console.log("🔍 Result type:", typeof result);
-  console.log("🔍 Result keys:", result ? Object.keys(result) : "No result");
-
-  if (result) {
-    console.log("🔍 Result properties:");
-    console.log("  - evaluation:", result.evaluation);
-    console.log("  - recommendations:", result.recommendations);
-    console.log("  - recommendedProgram:", result.recommendedProgram);
-    console.log("  - percent:", result.percent);
-  }
+  const [currentSection, setCurrentSection] = useState(0);
+  const { user: authUser } = useAuth();
 
   if (loading) {
     return (
@@ -78,17 +65,23 @@ const ResultsPage: React.FC = () => {
       BSCS: "bg-blue-500",
       BSIT: "bg-orange-500",
       BSIS: "bg-purple-500",
-      teElectrical: "bg-pink-500",
+      EE: "bg-pink-500",
     };
     return colorMap[programType] || "bg-gray-500";
   };
 
   return (
     <div className="results-page max-w-4xl mx-auto p-6 font-poppins">
-      <ProgressSideBar recommendedProgram={result.recommendedProgram} />
+      <NavigationBar />
+      <ProgressSideBar
+        recommendedProgram={result.recommendedProgram}
+        currentSection={currentSection}
+        onSectionChange={setCurrentSection}
+      />
+
       {/* Heading */}
       <h2 className="text-4xl font-bold text-center mb-6 text-gray-800">
-        Results for <span className={nameColorClass}>{name}</span>
+        Results for <span className={nameColorClass}>{authUser?.fullName}</span>
       </h2>
 
       {/* Evaluation + Recommendations */}

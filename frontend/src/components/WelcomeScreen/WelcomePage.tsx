@@ -1,44 +1,44 @@
-import React, { useState } from "react";
-import { useEvaluationStore } from "../../../store/useEvaluationStore";
+// src/components/WelcomeScreenComponent/WelcomeScreenComponent.tsx
+import React, { useEffect } from "react";
 import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
 import ImageSlider from "../ImageSlider/ImageSlider";
-import { ArrowBigRight } from "lucide-react";
-import DotGrid from "../ActiveBackground";
 import "./WelcomePage.css";
 
 function WelcomeScreenComponent() {
-  const { setName } = useEvaluationStore();
   const { hideWelcome } = useWelcomeScreen();
-  const [localName, setLocalName] = useState("");
-  const [showInput, setShowInput] = useState(false);
-  const [currentSection, setCurrentSection] = useState(0);
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (localName.trim()) {
-      setName(localName.trim());
-      hideWelcome();
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
     }
+  }, [isAuthenticated, navigate]);
+
+  const handleStartAssessment = () => {
+    hideWelcome();
+    // Navigate directly to assessment test
+    navigate('/ccdi-career-assessment-test');
   };
+
+  // Show loading while checking authentication
+  if (!isAuthenticated) {
+    return (
+      <div className="welcome-container">
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="welcome-container">
       {/* Background */}
-      <div className="welcome-background">
-        <DotGrid
-          dotSize={5}
-          gap={15}
-          baseColor="#393E46"
-          activeColor="#5227FF"
-          proximity={120}
-          shockRadius={250}
-          shockStrength={5}
-          resistance={750}
-          returnDuration={1.5}
-        />
-      </div>
+      <div className="welcome-background"></div>
 
       <NavigationBar />
       <ProgressSideBar isWelcomePage={true} />
@@ -46,9 +46,16 @@ function WelcomeScreenComponent() {
       {/* Center Content */}
       <div className="welcome-content">
         <div className="welcome-card">
-          <h1 className="welcome-title">
-            Welcome to CCDI Career Assessment Test
-          </h1>
+          {user && (
+            <div className="user-welcome-section">
+              <h2 className="user-greeting">
+                Hello, <span className="user-name">{user.fullName}</span> !
+              </h2>
+              <p className="user-course">
+                Preferred Course: <strong>{user.preferredCourse}</strong>
+              </p>
+            </div>
+          )}
 
           <div className="features-grid">
             <p className="feature-text">
@@ -60,37 +67,13 @@ function WelcomeScreenComponent() {
             </p>
           </div>
 
-          {/* Show START button first, then form */}
-          {!showInput ? (
-            <button
-              onClick={() => setShowInput(true)}
-              className="start-button"
-            >
-              START ASSESSMENT
-            </button>
-          ) : (
-            <form
-              onSubmit={handleSubmit}
-              className="name-form"
-            >
-              <input
-                type="text"
-                value={localName}
-                onChange={(e) => setLocalName(e.target.value)}
-                placeholder="Enter your full name"
-                className="name-input"
-                required
-              />
-
-              <button
-                type="submit"
-                className="submit-button"
-                title="Continue"
-              >
-                <ArrowBigRight size={28} strokeWidth={2.5} />
-              </button>
-            </form>
-          )}
+          {/* Single START button - no form needed */}
+          <button
+            onClick={handleStartAssessment}
+            className="start-button"
+          >
+            START ASSESSMENT
+          </button>
 
           {/* Image slider is always shown below */}
           <ImageSlider />

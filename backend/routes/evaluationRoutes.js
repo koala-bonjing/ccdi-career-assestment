@@ -1,72 +1,144 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 const Evaluation = require("../models/Evaluation");
 
-// Save evaluation
+// Save evaluation results (your existing route)
 router.post("/save-evaluation", async (req, res) => {
   try {
-    const { 
-      name, 
-      // Handle both frontend and backend field names
-      evaluation = req.body.result,
-      recommendations = req.body.recommendation,
-      recommendedProgram = req.body.recommendedCourse,
-      percent 
+    const {
+      userId,
+      userName,
+      userEmail,
+      evaluation,
+      recommendations,
+      recommendedCourse,
+      percent,
+      programScores
     } = req.body;
 
-    // Check which fields we actually received
-    const finalEvaluation = evaluation || req.body.result;
-    const finalRecommendations = recommendations || req.body.recommendation;
-    const finalRecommendedProgram = recommendedProgram || req.body.recommendedCourse;
-
-    if (!name || !finalEvaluation || !finalRecommendations || !finalRecommendedProgram || !percent) {
-      return res.status(400).json({ 
-        message: "Missing required fields",
-        received: req.body 
+    // Validate required fields
+    if (!userId || !recommendedCourse || !percent) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: userId, recommendedCourse, or percent"
       });
     }
 
-    // Check if user exists
-    let user = await User.findOne({ name });
-    if (!user) {
-      user = await User.create({ name });
-    }
-
-    // Save evaluation
-    const evaluationDoc = await Evaluation.create({
-      userId: user._id,
-      result: finalEvaluation,
-      recommendation: finalRecommendations,
-      recommendedCourse: finalRecommendedProgram,
+    const evaluationDoc = new Evaluation({
+      userId,
+      userName: userName || "Anonymous User",
+      userEmail: userEmail || "",
+      evaluation: evaluation || "No evaluation details provided",
+      recommendations: recommendations || "No specific recommendations",
+      recommendedCourse,
       percent,
+      programScores: programScores || {},
+      submissionDate: new Date()
     });
 
-    res.status(200).json({ success: true, user, evaluation: evaluationDoc });
+    await evaluationDoc.save();
+    
+    console.log('✅ Evaluation saved for user:', userId);
+    res.status(201).json({
+      success: true,
+      message: 'Evaluation saved successfully',
+      evaluationId: evaluationDoc._id,
+      data: evaluationDoc
+    });
   } catch (error) {
-    console.error("Save error:", error);
-    res.status(500).json({ message: "Error saving evaluation" });
+    console.error('❌ Error saving evaluation:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to save evaluation',
+      error: error.message 
+    });
   }
 });
 
-// Get all evaluations
-router.get("/get-evaluation", async (req, res) => {
+// Get all evaluations for a specific user
+router.get("/get-evaluations/:userId", async (req, res) => {
   try {
-    const evaluations = await Evaluation.find().populate("userId", "name");
-    res.status(200).json({ success: true, evaluations });
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required"
+      });
+    }
+
+    const evaluations = await Evaluation.find({ userId })
+      .sort({ submissionDate: -1 })
+      .select("-__v"); // Exclude version key
+
+    res.status(200).json({
+      success: true,
+      count: evaluations.length,
+      data: evaluations
+    });
   } catch (error) {
-    console.error("Fetch error:", error);
-    res.status(500).json({ message: "Error fetching evaluations" });
+    console.error('❌ Error fetching evaluations:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch evaluations',
+      error: error.message 
+    });
   }
 });
 
-router.get("/get-evaluation/examinee/id", async (req, res) => {
+// Get a specific evaluation by ID
+router.get("/evaluation/:evaluationId", async (req, res) => {
   try {
-    const evaluations = await Evaluation.find().populate("userId", "name");
-    res.status(200).json({ success: true, evaluations });
+    const { evaluationId } = req.params;
+
+    const evaluation = await Evaluation.findById(evaluationId);
+
+    if (!evaluation) {
+      return res.status(404).json({
+        success: false,
+        message: "Evaluation not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: evaluation
+    });
   } catch (error) {
-    console.error("Fetch error:", error);
-    res.status(500).json({ message: "Error fetching evaluations" });
+    console.error('❌ Error fetching evaluation:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch evaluation',
+      error: error.message 
+    });
+  }
+});
+
+// Delete an evaluation
+router.delete("/evaluation/:evaluationId", async (req, res) => {
+  try {
+    const { evaluationId } = req.params;
+
+    const evaluation = await Evaluation.findByIdAndDelete(evaluationId);
+
+    if (!evaluation) {
+      return res.status(404).json({
+        success: false,
+        message: "Evaluation not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Evaluation deleted successfully"
+    });
+  } catch (error) {
+    console.error('❌ Error deleting evaluation:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete evaluation',
+      error: error.message 
+    });
   }
 });
 

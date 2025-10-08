@@ -7,7 +7,7 @@ import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import { useAuth } from "../../context/AuthContext";
 
 const ResultsPage: React.FC = () => {
-  const { result, name, loading, error } = useEvaluationStore();
+  const { result, loading, error } = useEvaluationStore();
   const [currentSection, setCurrentSection] = useState(0);
   const { user: authUser } = useAuth();
 

@@ -1,0 +1,28 @@
+/* Custom Navbar Styles */
+.custom-navbar {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Logout link styling */
+.logout-link {
+  color: rgba(255, 255, 255, 0.75) !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+}
+
+.logout-link:hover {
+  color: #f87171 !important;
+}
+
+/* Your existing modal styles can remain the same */
+.logout-modal-overlay {
+  /* ... your existing modal styles ... */
+}
+
+.logout-modal {
+  /* ... your existing modal styles ... */
+}
+
+/* Rest of your modal styles... */

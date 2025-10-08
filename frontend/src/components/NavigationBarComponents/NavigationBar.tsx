@@ -1,211 +1,78 @@
 import React, { useState } from "react";
-import { Menu, X, LogOut } from "lucide-react";
-import { useAuth } from "../../context/AuthContext"; // Adjust path based on your structure
-import { useNavigate } from "react-router-dom"; // For redirecting after logout
+import { Navbar, Nav, Container, Modal, Button } from 'react-bootstrap';
+import { LogOut } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function NavigationBar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, logout } = useAuth(); // Get auth state and logout function
-  const navigate = useNavigate(); // For navigation after logout
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+  const handleLogoutClick = (e) => {
+    e.preventDefault(); // This is crucial: it stops the link from navigating
+    setShowLogoutModal(true);
   };
 
-  const handleLogout = () => {
-    logout(); // Clear auth state
-    setIsMobileMenuOpen(false); // Close mobile menu
-    navigate("/signup"); // Redirect to signup page
+  const handleConfirmLogout = () => {
+    logout(); // Perform your logout logic
+    setShowLogoutModal(false); // Close the modal
+    navigate("/signup"); // Redirect after logout
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false); // Simply close the modal
   };
 
   return (
     <>
-      {/* Navigation Bar */}
-      <nav
-        className="
-          fixed top-0 left-0 
-          w-[calc(100%-24rem)] lg:w-[calc(100%-20rem)] xl:w-[calc(100%-24rem)]
-          bg-white/10 backdrop-blur-md
-          text-white 
-          flex justify-between items-center
-          z-50 shadow-lg border-b border-white/10
-          h-16
-          px-4 sm:px-6 lg:px-8
-          transition-all duration-300
-        "
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <h1 className="font-poppins font-bold text-lg sm:text-xl lg:text-2xl">
-            CCDI
-          </h1>
-          <p className="font-poppins font-thin text-sm sm:text-base lg:text-lg mt-0.5 sm:mt-1">
-            Career Assessment
-          </p>
-        </div>
+      <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
+        <Container fluid>
+          <Navbar.Brand href="#home" className="d-flex align-items-center">
+            <span className="fw-bold fs-4">CCDI</span>
+            <span className="fw-light fs-6 ms-2 mt-1">Career Assessment</span>
+          </Navbar.Brand>
 
-        {/* Desktop Links - Hidden on mobile */}
-        <ul className="hidden md:flex list-none m-0 p-0 gap-6 lg:gap-8 font-mono items-center">
-          <li>
-            <a
-              href="#home"
-              className="text-white no-underline hover:text-blue-400 transition-colors duration-300 text-sm lg:text-base"
-            >
-              Courses
-            </a>
-          </li>
-          <li>
-            <a
-              href="#about"
-              className="text-white no-underline hover:text-orange-400 transition-colors duration-300 text-sm lg:text-base"
-            >
-              About
-            </a>
-          </li>
-          <li>
-            <a
-              href="#contact"
-              className="text-white no-underline hover:text-purple-400 transition-colors duration-300 text-sm lg:text-base"
-            >
-              Contact
-            </a>
-          </li>
-          {isAuthenticated && (
-            <li>
-              <button
-                onClick={handleLogout}
-                className="text-white no-underline hover:text-red-400 transition-colors duration-300 text-sm lg:text-base flex items-center gap-1"
-              >
-                <LogOut size={16} />
-                Log Out
-              </button>
-            </li>
-          )}
-        </ul>
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={toggleMobileMenu}
-          className="md:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-300"
-          aria-label="Toggle menu"
-        >
-          {isMobileMenuOpen ? (
-            <X size={20} className="text-white" />
-          ) : (
-            <Menu size={20} className="text-white" />
-          )}
-        </button>
-      </nav>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={toggleMobileMenu}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Mobile Menu Slide-in */}
-      <div
-        className={`
-          fixed top-16 right-0 h-[calc(100vh-4rem)]
-          bg-gradient-to-b from-black/95 to-gray-900/95 backdrop-blur-md
-          text-white shadow-2xl border-l border-white/10
-          z-40 transition-transform duration-300 ease-in-out
-          w-64 sm:w-72
-          ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
-          md:hidden
-        `}
-      >
-        <div className="p-6 space-y-6">
-          <h3 className="font-poppins font-semibold text-lg mb-4 text-center">
-            Navigation
-          </h3>
-
-          <ul className="space-y-4">
-            <li>
-              <a
-                href="#home"
-                onClick={toggleMobileMenu}
-                className="
-                  block py-3 px-4 rounded-lg
-                  bg-blue-500/10 border border-blue-500/30
-                  text-blue-400 no-underline
-                  hover:bg-blue-500/20 hover:border-blue-500/50
-                  transition-all duration-300
-                  text-center
-                "
-              >
-                Courses
-              </a>
-            </li>
-            <li>
-              <a
-                href="#about"
-                onClick={toggleMobileMenu}
-                className="
-                  block py-3 px-4 rounded-lg
-                  bg-orange-500/10 border border-orange-500/30
-                  text-orange-400 no-underline
-                  hover:bg-orange-500/20 hover:border-orange-500/50
-                  transition-all duration-300
-                  text-center
-                "
-              >
-                About
-              </a>
-            </li>
-            <li>
-              <a
-                href="#contact"
-                onClick={toggleMobileMenu}
-                className="
-                  block py-3 px-4 rounded-lg
-                  bg-purple-500/10 border border-purple-500/30
-                  text-purple-400 no-underline
-                  hover:bg-purple-500/20 hover:border-purple-500/50
-                  transition-all duration-300
-                  text-center
-                "
-              >
-                Contact
-              </a>
-            </li>
-            {isAuthenticated && (
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="
-                    block py-3 px-4 rounded-lg
-                    bg-red-500/10 border border-red-500/30
-                    text-red-400 no-underline
-                    hover:bg-red-500/20 hover:border-red-500/50
-                    transition-all duration-300
-                    text-center flex justify-center items-center gap-2
-                  "
-                >
-                  <LogOut size={16} />
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              <Nav.Link href="#home">Courses</Nav.Link>
+              <Nav.Link href="#about">About</Nav.Link>
+              <Nav.Link href="#contact">Contact</Nav.Link>
+            </Nav>
+            <Nav className="ms-auto">
+              {isAuthenticated && (
+                // Use a Nav.Link as a button to trigger the modal
+                <Nav.Link as={Button} onClick={handleLogoutClick} className="logout-link">
+                  <LogOut size={16} className="me-1" />
                   Log Out
-                </button>
-              </li>
-            )}
-          </ul>
+                </Nav.Link>
+              )}
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
 
-          {/* Additional mobile-only info */}
-          <div className="mt-8 p-4 bg-white/5 rounded-xl border border-white/10">
-            <p className="text-xs text-white/60 text-center">
-              CCDI Career Guidance Program
-            </p>
-            <p className="text-xs text-white/40 text-center mt-1">
-              Find your perfect career path
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Bootstrap Modal for Logout Confirmation */}
+      <Modal show={showLogoutModal} onHide={handleCancelLogout} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Logout</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to log out? Any unsaved progress will be lost.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCancelLogout}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleConfirmLogout}>
+            Log Out
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Spacer to prevent content from being hidden under fixed nav */}
-      <div className="h-16"></div>
+      <div style={{ height: '76px' }}></div>
     </>
   );
 }

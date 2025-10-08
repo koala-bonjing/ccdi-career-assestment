@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "../context/AuthContext";
-import { BASE_URL } from "../config/constants";
+import { useAuth } from "../../context/AuthContext";
+import { BASE_URL } from "../../config/constants";
 
 interface SavedEvaluation {
   _id: string;

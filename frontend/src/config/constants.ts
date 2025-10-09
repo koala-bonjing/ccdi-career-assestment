@@ -1,7 +1,8 @@
+import { useState } from "react";
 import type { AssessmentAnswers } from "../types";
 import { Brain, BookOpen, Cpu, Target } from "lucide-react";
 
-const BASE_URL = "http://localhost:4000";
+const BASE_URL = "http://192.168.1.41:4000";
 
 const categoryTitles: Record<string, string> = {
   academicAptitude: "Academic Aptitude",
@@ -104,17 +105,17 @@ const choiceLabels: Record<number, string> = {
   5: "Does Not Match",
 };
 
- const getSectionColorClass = (section: string) => {
-    const colorMap: { [key: string]: string } = {
-      academicAptitude: "academic-bg academic-hover",
-      technicalSkills: "technical-bg technical-hover",
-      careerInterest: "career-bg career-hover",
-      learningStyle: "learning-bg learning-hover",
-    };
-    return colorMap[section] || "bg-blue-500 hover:bg-blue-600";
+const getSectionColorClass = (section: string) => {
+  const colorMap: { [key: string]: string } = {
+    academicAptitude: "academic-bg academic-hover",
+    technicalSkills: "technical-bg technical-hover",
+    careerInterest: "career-bg career-hover",
+    learningStyle: "learning-bg learning-hover",
   };
+  return colorMap[section] || "bg-blue-500 hover:bg-blue-600";
+};
 
-  const getSectionColorClasses = (section: string): string => {
+const getSectionColorClasses = (section: string): string => {
   switch (section) {
     case "academicAptitude":
       return "bg-blue-600 hover:bg-blue-700";
@@ -130,11 +131,10 @@ const choiceLabels: Record<number, string> = {
 };
 
 
-  
+
 
 export {
   BASE_URL,
-  questions,
   categoryTitles,
   sectionBgColors,
   sectionHoverColors,
@@ -143,6 +143,5 @@ export {
   sections,
   choiceLabels,
   getSectionColorClass,
-  getSectionColorClasses
-  
+  getSectionColorClasses,
 };

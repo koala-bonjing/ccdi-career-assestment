@@ -41,6 +41,7 @@ export interface AssessmentAnswers {
 
 export interface AssessmentResult {
   success: boolean;
+  summary: string;
   evaluation: string;
   recommendations: string;
   recommendedProgram: ProgramType;
@@ -62,6 +63,7 @@ export interface AssessmentResult {
 
 export interface EvaluationResult {
   result: string;
+  summary: string;  
   recommendation: string;
   recommendedCourse: ProgramType;
   percent: {
@@ -81,4 +83,5 @@ export interface AssessmentFormProps {
   currentSectionIndex: number;
   totalSections: number;
   loading?: boolean;
+  restoredFormData: AssessmentAnswers | null;
 }

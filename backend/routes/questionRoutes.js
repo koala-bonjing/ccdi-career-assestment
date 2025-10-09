@@ -69,15 +69,6 @@ router.post("/bulk", async (req, res) => {
   }
 });
 
-// Clear all questions (optional)
-router.delete("/", async (req, res) => {
-  try {
-    await Question.deleteMany({});
-    res.json({ message: "All questions deleted" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
 
 // Update question (admin)
 router.put("/:id", async (req, res) => {

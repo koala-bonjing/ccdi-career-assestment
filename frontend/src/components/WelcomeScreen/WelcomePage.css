@@ -1,313 +1,255 @@
-/* WelcomeScreenComponent.css - Light Theme */
-.welcome-container {
-  position: relative;
-  width: 100%;
+/* WelcomePage.css */
+.welcome-assessment-container {
   min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-main-content {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 2rem 0;
   overflow: hidden;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.welcome-background {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-color: #f8fafc;
+/* Modern section layout */
+.welcome-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-.welcome-content {
-  position: relative;
+/* Card enhancements - Fixed positioning */
+.welcome-card {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+  max-width: 900px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.welcome-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Section header - Modern gradient */
+.welcome-section-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   z-index: 10;
-  margin-right: 24rem;
+  padding: 2rem 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px 20px 0 0 !important;
+  text-align: center;
+}
+
+.welcome-section-header .card-title {
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Feature cards - Modern design */
+.welcome-feature-card {
+  transition: all 0.4s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 15px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.welcome-feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+}
+
+/* Image Slider Container - Centered */
+.welcome-image-slider-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 3rem 0 1rem 0;
+  padding: 0 2rem;
+}
+
+/* Center the actual image slider */
+.welcome-image-slider-container .image-slider {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Button enhancements - Modern style */
+.welcome-btn {
+  border-radius: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  font-family: "Poppins", sans-serif;
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.welcome-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-btn-success {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+}
+
+.welcome-btn-success:hover {
+  background: linear-gradient(135deg, #3bd471 0%, #2de0c4 100%);
+}
+
+/* Badge customizations */
+.welcome-badge {
+  font-weight: 600;
+  padding: 0.75em 1.5em;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border: none;
+}
+
+/* Animation for smooth transitions */
+@keyframes welcomeFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .welcome-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 1rem;
-  padding: 3rem;
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  animation: welcomeFadeInUp 0.6s ease-out;
 }
 
-.welcome-title {
-  font-size: 1.875rem;
-  font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  color: #1a202c;
+/* User welcome section */
+.welcome-user-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.welcome-user-section h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
   margin-bottom: 1rem;
-  text-align: center;
 }
 
-/* User Welcome Section Styles */
-.user-welcome-section {
-  text-align: center;
-  margin: 1.5rem 0;
-  padding: 1.5rem;
-  background-color: rgba(82, 39, 255, 0.05);
-  border-radius: 0.75rem;
-  border: 1px solid rgba(82, 39, 255, 0.1);
-  width: 100%;
+.welcome-user-section .welcome-text-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.user-greeting {
-  color: #2d3748;
-  font-size: 1.5rem;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
-  margin-bottom: 0.5rem;
+/* Features grid spacing */
+.welcome-features-grid {
+  margin: 3rem 0;
 }
 
-.user-name {
-  color: #5227FF;
-  font-weight: 600;
-}
-
-.user-course {
-  color: #4a5568;
-  font-size: 1.1rem;
-  margin: 0;
-}
-
-.user-course strong {
-  color: #5227FF;
-  font-weight: 600;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.feature-text {
-  color: #4a5568;
-  text-align: center;
-  font-size: 1rem;
-  line-height: 1.5;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(82, 39, 255, 0.1);
-}
-
-.start-button {
-  width: 100%;
-  background-color: #5227FF;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid transparent;
-  font-size: 1.125rem;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(82, 39, 255, 0.2);
-}
-
-.start-button:hover {
-  background-color: transparent;
-  border-color: #5227FF;
-  color: #5227FF;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(82, 39, 255, 0.3);
-}
-
-/* Remove the old form styles since we don't need them anymore */
-.name-form {
-  display: none;
-}
-
-.name-input {
-  display: none;
-}
-
-.submit-button {
-  display: none;
-}
-
-/* Mobile First Styles */
+/* Responsive design */
 @media (max-width: 768px) {
-  .welcome-content {
-    margin-right: 0;
-    padding: 1rem;
+  .welcome-main-content {
+    padding: 1rem 0;
+    align-items: flex-start;
+  }
+  
+  .welcome-card .card-body {
+    padding: 2rem !important;
+  }
+  
+  .welcome-section-header .card-title {
+    font-size: 1.5rem;
+  }
+  
+  .welcome-user-section h2 {
+    font-size: 2rem;
+  }
+  
+  .welcome-btn {
+    width: 100%;
+    padding: 1.25rem 2rem;
+  }
+  
+  .welcome-features-grid .row {
+    gap: 1.5rem;
+  }
+  
+  .welcome-feature-card {
+    padding: 1.5rem 1rem;
+  }
+  
+  .welcome-image-slider-container {
+    margin: 2rem 0 1rem 0;
+    padding: 0 1rem;
   }
   
   .welcome-card {
-    padding: 1.5rem;
     margin: 1rem;
-    width: calc(100% - 2rem);
-  }
-  
-  .welcome-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .user-welcome-section {
-    margin: 1rem 0;
-    padding: 1rem;
-  }
-  
-  .user-greeting {
-    font-size: 1.25rem;
-  }
-  
-  .user-course {
-    font-size: 1rem;
-  }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .feature-text {
-    font-size: 0.875rem;
-  }
-  
-  .start-button {
-    font-size: 1rem;
-    padding: 0.875rem 1rem;
+    border-radius: 15px;
   }
 }
 
-/* Tablet Styles */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .welcome-content {
-    margin-right: 6rem;
-    padding: 2rem;
+@media (max-width: 576px) {
+  .welcome-section {
+    padding: 0 0.5rem;
   }
   
-  .welcome-card {
-    padding: 2rem;
+  .welcome-card .card-body {
+    padding: 1.5rem !important;
   }
   
-  .welcome-title {
+  .welcome-user-section h2 {
     font-size: 1.75rem;
   }
   
-  .user-welcome-section {
-    margin: 1.25rem 0;
-    padding: 1.25rem;
-  }
-  
-  .features-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-  
-  .feature-text {
-    font-size: 0.9rem;
-  }
-}
-
-/* Large Desktop Styles */
-@media (min-width: 1025px) {
-  .welcome-content {
-    margin-right: 24rem;
-  }
-}
-
-/* Small Mobile Devices */
-@media (max-width: 480px) {
-  .welcome-card {
-    padding: 1rem;
-    margin: 0.5rem;
-  }
-  
-  .welcome-title {
-    font-size: 1.25rem;
-  }
-  
-  .user-welcome-section {
-    margin: 0.75rem 0;
-    padding: 0.75rem;
-  }
-  
-  .user-greeting {
+  .welcome-btn {
+    padding: 1rem 2rem;
     font-size: 1.1rem;
   }
   
-  .user-course {
-    font-size: 0.9rem;
+  .welcome-feature-card {
+    padding: 1.25rem 0.75rem;
   }
   
-  .feature-text {
-    font-size: 0.8rem;
+  .welcome-image-slider-container {
+    padding: 0 0.5rem;
+  }
+}
+
+/* Large screens enhancement */
+@media (min-width: 1200px) {
+  .welcome-section {
+    max-width: 1400px;
   }
   
-  .start-button {
-    font-size: 0.875rem;
-    padding: 0.75rem;
-  }
-}
-
-/* High DPI Screens */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .welcome-title,
-  .user-greeting {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .start-button {
-    transition: none;
-    transform: none !important;
-  }
-}
-
-/* High Contrast Mode - Light Theme */
-@media (prefers-contrast: high) {
   .welcome-card {
-    background-color: #ffffff;
-    border: 2px solid #000000;
-  }
-  
-  .user-welcome-section {
-    background-color: #f0f0f0;
-    border: 2px solid #000000;
-  }
-  
-  .user-name,
-  .user-course strong {
-    color: #0000ff; /* Blue for better contrast in light mode */
-  }
-  
-  .feature-text {
-    background-color: #ffffff;
-    border: 2px solid #000000;
-    color: #000000;
+    max-width: 1000px;
   }
 }
 
-/* Touch Device Optimizations */
-@media (hover: none) and (pointer: coarse) {
-  .start-button:hover {
-    background-color: #5227FF;
-    border-color: transparent;
-    color: white;
-    transform: none;
-  }
-  
-  .start-button:active {
-    background-color: transparent;
-    border-color: #5227FF;
-    color: #5227FF;
-    transform: scale(0.98);
-  }
+/* Enhanced focus states for accessibility */
+.welcome-btn:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  outline: none;
 }

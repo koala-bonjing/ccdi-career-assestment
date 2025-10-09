@@ -10,6 +10,7 @@ const assessmentRoutes = require("./routes/assessmentRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const HOST = process.env.HOST || '0.0.0.0'; // Add this line
 
 // Middleware
 app.use(cors());
@@ -39,8 +40,9 @@ app.use("/api/evaluations", assessmentRoutes);
 mongoose
   .connect(process.env.MONGO_DB)
   .then(() => {
-    app.listen(PORT, () =>
-      console.log(`✅ Server running on http://localhost:${PORT}`)
+    // Update this to use HOST variable
+    app.listen(PORT, HOST, () =>
+      console.log(`✅ Server running on http://${HOST}:${PORT}`)
     );
   })
   .catch((err) => console.error("MongoDB connection error:", err));

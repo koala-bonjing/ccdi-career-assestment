@@ -31,6 +31,7 @@ import { categoryTitles, sections, choiceLabels } from "../../config/constants";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
 import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
+import { saveAnswersAsDocument } from "../../hooks/saveAsDocsFile";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 
 const AssessmentForm: React.FC<AssessmentFormProps> = ({
@@ -61,14 +62,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   });
 
   const [showResetModal, setShowResetModal] = useState(false);
-  const [sectionToReset, setSectionToReset] = useState<
-    keyof AssessmentAnswers | null
-  >(null);
+  const [sectionToReset] = useState<keyof AssessmentAnswers | null>(null);
   const [currentSection, setCurrentSection] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showReview, setShowReview] = useState(false);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
-  const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [programScores, setProgramScores] = useState({
     BSCS: 0,
     BSIT: 0,
@@ -76,14 +74,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     EE: 0,
   });
 
-  useEffect(() => {
-    if (restoredFormData) {
-      console.log("🔄 Updating form with restored data:", restoredFormData);
-      setFormData(restoredFormData);
-
-      setShowRestoreModal(true);
-    }
-  }, [restoredFormData]);
+  const [answeredQuestions, setAnsweredQuestions] = useState({
+    academicAptitude: [] as string[],
+    technicalSkills: [] as string[],
+    careerInterest: [] as string[],
+    learningStyle: [] as string[],
+  });
 
   const section = sections[currentSection];
 
@@ -107,6 +103,29 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const currentQuestions = getCurrentQuestions();
   const currentQuestion = currentQuestions[currentQuestionIndex];
 
+  // Check if a specific question is answered
+  const isQuestionAnswered = (
+    section: keyof AssessmentAnswers,
+    questionText: string
+  ) => {
+    return answeredQuestions[section].includes(questionText);
+  };
+
+  // Calculate progress based on actual answered questions
+  const calculateProgress = (
+    questions: any[],
+    section: keyof AssessmentAnswers
+  ) => {
+    if (!questions.length) return 0;
+
+    const answeredCount = questions.filter((q) =>
+      isQuestionAnswered(section, q.questionText)
+    ).length;
+
+    const progress = (answeredCount / questions.length) * 100;
+    return parseFloat(progress.toFixed(0)); // Convert back to number with 1 decimal
+  };
+
   const handleChange = (
     section: keyof AssessmentAnswers,
     questionText: string,
@@ -119,6 +138,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         ...prev[section],
         [questionText]: value,
       },
+    }));
+
+    // Track answered questions
+    setAnsweredQuestions((prev) => ({
+      ...prev,
+      [section]: [...new Set([...prev[section], questionText])],
     }));
 
     const storeKey = `${section}.${questionText}`;
@@ -139,9 +164,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     if (section !== "learningStyle") return true;
 
     const learningAnswers = formData.learningStyle;
-    return questions.learningStyle.every(
+    const learningQuestions = questions?.learningStyle || [];
+
+    return learningQuestions.every(
       (question) =>
         learningAnswers[question.questionText] !== undefined &&
+        learningAnswers[question.questionText] !== null &&
         learningAnswers[question.questionText] !== ""
     );
   };
@@ -152,6 +180,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         ...prev,
         [section]: {},
       }));
+      setAnsweredQuestions((prev) => ({
+        ...prev,
+        [section]: [],
+      }));
       if (section === "academicAptitude") {
         setCurrentQuestionIndex(0);
       }
@@ -161,6 +193,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         technicalSkills: {},
         careerInterest: {},
         learningStyle: {},
+      });
+      setAnsweredQuestions({
+        academicAptitude: [],
+        technicalSkills: [],
+        careerInterest: [],
+        learningStyle: [],
       });
       setCurrentQuestionIndex(0);
       setProgramScores({ BSCS: 0, BSIT: 0, BSIS: 0, EE: 0 });
@@ -492,26 +530,78 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               );
             })}
           </div>
+
+          {/* SUBMIT BUTTONS - ADDED HERE */}
+          <div className="text-center mt-4 p-3 bg-light rounded">
+            <h5 className="mb-3">Ready to submit your assessment?</h5>
+            <div className="d-flex gap-3 justify-content-center flex-wrap">
+              <Button
+                variant="outline-secondary"
+                size="lg"
+                onClick={() => setShowReview(false)}
+              >
+                ← Back to Edit
+              </Button>
+              <Button
+                variant="success"
+                size="lg"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                      className="me-2"
+                    />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Assessment"
+                )}
+              </Button>
+              <Button
+                variant="outline-primary"
+                size="lg"
+                onClick={() => {
+                  saveAnswersAsDocument(
+                    formData,
+                    programScores,
+                    currentSection,
+                    sections,
+                    currentUser
+                  );
+                }}
+              >
+                <Download size={18} className="me-2" />
+                Save as File
+              </Button>
+            </div>
+          </div>
         </Card.Body>
       </Card>
     );
   };
 
   const renderAcademicAptitudeSection = () => (
-    <Card className="border-0 shadow-sm mx-auto" style={{ maxWidth: "800px" }}>
-      <Card.Header className="bg-primary text-white text-center">
+    <Card className="border-0 shadow-sm mx-auto max-width-800">
+      <Card.Header className="bg-primary text-white text-center section-header">
         <Card.Title className="mb-0 d-flex align-items-center justify-content-center">
           <BookOpen size={20} className="me-2" />
           Academic Aptitude
         </Card.Title>
       </Card.Header>
       <Card.Body className="p-4">
-        {/* Progress Info */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        {/* Progress Info - Keep this fixed */}
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row gap-2">
           <Badge bg="primary" className="fs-6">
             Question {currentQuestionIndex + 1} of {currentQuestions.length}
           </Badge>
-          <div className="d-flex gap-2 align-items-center">
+          <div className="d-flex gap-2 align-items-center flex-wrap justify-content-center">
             <Button
               variant="outline-primary"
               size="sm"
@@ -519,26 +609,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
               }
               disabled={currentQuestionIndex === 0}
+              className="progress-nav-btn"
             >
               <ChevronLeft size={16} />
+              Previous Question
             </Button>
-            <div className="d-flex gap-1 align-items-center mx-2">
-              {currentQuestions.map((_, index) => (
-                <Button
-                  key={index}
-                  variant={
-                    index === currentQuestionIndex
-                      ? "primary"
-                      : "outline-primary"
-                  }
-                  size="sm"
-                  className="px-2 py-1"
-                  onClick={() => setCurrentQuestionIndex(index)}
-                >
-                  {index + 1}
-                </Button>
-              ))}
-            </div>
+
             <Button
               variant="outline-primary"
               size="sm"
@@ -548,108 +624,221 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 }
               }}
               disabled={currentQuestionIndex === currentQuestions.length - 1}
+              className="progress-nav-btn"
             >
               <ChevronRight size={16} />
+              Next Question
             </Button>
           </div>
         </div>
 
         {/* Progress Bar */}
         <ProgressBar
-          now={((currentQuestionIndex + 1) / currentQuestions.length) * 100}
+          now={calculateProgress(currentQuestions, "academicAptitude")}
           className="mb-4"
           variant="primary"
           style={{ height: "8px" }}
+          label={`${calculateProgress(
+            currentQuestions,
+            "academicAptitude"
+          ).toFixed(0)}%`}
         />
 
-        {/* Question Content */}
-        <div className="text-center">
+        {/* Question Text - Keep this fixed */}
+        <div className="text-center question-text-container">
           <Form.Group>
-            <Form.Label className="h4 mb-4 text-dark d-block">
+            <Form.Label className="h4 mb-4 text-dark d-block question-text">
               {currentQuestion?.questionText || "Loading question..."}
             </Form.Label>
-            <div className="d-grid gap-3 mx-auto" style={{ maxWidth: "600px" }}>
-              {[1, 2, 3, 4, 5].map((val, index) => (
-                <Form.Check
-                  key={val}
-                  type="radio"
-                  name={`academic-question-${currentQuestionIndex}`}
-                  id={`academic-${currentQuestionIndex}-${val}`}
-                  label={
-                    [
-                      "Strongly Agree",
-                      "Agree",
-                      "Neutral",
-                      "Disagree",
-                      "Strongly Disagree",
-                    ][val - 1]
-                  }
-                  checked={
-                    formData.academicAptitude[
-                      currentQuestion?.questionText || ""
-                    ] === val
-                  }
-                  onChange={() =>
-                    handleChange(
-                      "academicAptitude",
-                      currentQuestion?.questionText || "",
-                      val,
-                      currentQuestion?.program
-                    )
-                  }
-                  className="p-3 border rounded hover-shadow text-start"
-                />
-              ))}
-            </div>
           </Form.Group>
         </div>
+
+        {/* Scrollable Choices Only */}
+        <div className="choices-container">
+          <div className="d-grid gap-3 mx-auto max-width-600">
+            {[1, 2, 3, 4, 5].map((val, index) => (
+              <Form.Check
+                key={val}
+                type="radio"
+                name={`academic-question-${currentQuestionIndex}`}
+                id={`academic-${currentQuestionIndex}-${val}`}
+                label={
+                  [
+                    "Strongly Agree",
+                    "Agree",
+                    "Neutral",
+                    "Disagree",
+                    "Strongly Disagree",
+                  ][val - 1]
+                }
+                checked={
+                  formData.academicAptitude[
+                    currentQuestion?.questionText || ""
+                  ] === val
+                }
+                onChange={() =>
+                  handleChange(
+                    "academicAptitude",
+                    currentQuestion?.questionText || "",
+                    val,
+                    currentQuestion?.program
+                  )
+                }
+                className="p-3 border rounded hover-shadow text-start form-option"
+              />
+            ))}
+          </div>
+        </div>
       </Card.Body>
+
+      {/* Navigation - Keep this fixed at bottom */}
+      <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
+        <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
+          <div className="order-2 order-md-1">
+            {currentSection > 0 && (
+              <Button
+                variant="outline-secondary"
+                onClick={handlePrevious}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                ← Previous Section
+              </Button>
+            )}
+          </div>
+
+          <div className="order-1 order-md-2 mb-2 mb-md-0">
+            <Badge bg="light" text="dark" className="fs-6 p-2">
+              Section {currentSection + 1} of {sections.length}
+            </Badge>
+          </div>
+
+          <div className="order-3 order-md-3">
+            {currentSection < sections.length - 1 ? (
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                Next Section →
+              </Button>
+            ) : (
+              <Button
+                variant={isLearningStyleComplete() ? "success" : "secondary"}
+                onClick={handleNext}
+                disabled={!isLearningStyleComplete()}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                {isLearningStyleComplete()
+                  ? "Review Answers"
+                  : "Complete All Questions"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card.Footer>
     </Card>
   );
 
   const renderTechnicalSkillsSection = () => (
-    <Card className="border-0 shadow-sm mx-auto" style={{ maxWidth: "800px" }}>
-      <Card.Header className="bg-warning text-dark text-center">
+    <Card className="border-0 shadow-sm mx-auto max-width-800">
+      <Card.Header className="bg-warning text-dark text-center section-header">
         <Card.Title className="mb-0 d-flex align-items-center justify-content-center">
           <Wrench size={20} className="me-2" />
           Technical Skills
         </Card.Title>
       </Card.Header>
       <Card.Body className="p-4">
-        <div className="text-center">
+        {/* Progress Info */}
+        <div className="text-center question-text-container">
           <Form.Group>
-            <Form.Label className="h5 mb-4 text-dark d-block">
+            <Form.Label className="h5 mb-4 text-dark d-block question-text">
               Select the skills you have experience with:
             </Form.Label>
-            <div className="d-grid gap-3 mx-auto" style={{ maxWidth: "600px" }}>
-              {currentQuestions.map((skill, index) => (
-                <Form.Check
-                  key={skill._id}
-                  type="checkbox"
-                  id={`skill-${skill._id}`}
-                  label={skill.questionText}
-                  checked={!!formData.technicalSkills[skill.questionText]}
-                  onChange={(e) =>
-                    handleChange(
-                      "technicalSkills",
-                      skill.questionText,
-                      e.target.checked,
-                      skill.program
-                    )
-                  }
-                  className="p-3 border rounded hover-shadow text-start"
-                />
-              ))}
-            </div>
           </Form.Group>
         </div>
+
+        {/* Scrollable Choices Only */}
+        <div className="choices-container">
+          <div className="d-grid gap-3 mx-auto max-width-600">
+            {currentQuestions.map((skill, index) => (
+              <Form.Check
+                key={skill._id}
+                type="checkbox"
+                id={`skill-${skill._id}`}
+                label={skill.questionText}
+                checked={!!formData.technicalSkills[skill.questionText]}
+                onChange={(e) =>
+                  handleChange(
+                    "technicalSkills",
+                    skill.questionText,
+                    e.target.checked,
+                    skill.program
+                  )
+                }
+                className="p-3 border rounded hover-shadow text-start form-option"
+              />
+            ))}
+          </div>
+        </div>
       </Card.Body>
+
+      {/* Navigation - Keep this fixed at bottom */}
+      <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
+        <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
+          <div className="order-2 order-md-1">
+            {currentSection > 0 && (
+              <Button
+                variant="outline-secondary"
+                onClick={handlePrevious}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                ← Previous Section
+              </Button>
+            )}
+          </div>
+
+          <div className="order-1 order-md-2 mb-2 mb-md-0">
+            <Badge bg="light" text="dark" className="fs-6 p-2">
+              Section {currentSection + 1} of {sections.length}
+            </Badge>
+          </div>
+
+          <div className="order-3 order-md-3">
+            {currentSection < sections.length - 1 ? (
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                Next Section →
+              </Button>
+            ) : (
+              <Button
+                variant={isLearningStyleComplete() ? "success" : "secondary"}
+                onClick={handleNext}
+                disabled={!isLearningStyleComplete()}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                {isLearningStyleComplete()
+                  ? "Review Answers"
+                  : "Complete All Questions"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card.Footer>
     </Card>
   );
 
   const renderCareerInterestSection = () => (
-    <Card className="border-0 shadow-sm mx-auto" style={{ maxWidth: "800px" }}>
-      <Card.Header className="bg-info text-white text-center">
+    <Card className="border-0 shadow-sm mx-auto max-width-800">
+      <Card.Header className="bg-info text-white text-center section-header">
         <Card.Title className="mb-0 d-flex align-items-center justify-content-center">
           <Eye size={20} className="me-2" />
           Career Interest
@@ -657,11 +846,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       </Card.Header>
       <Card.Body className="p-4">
         {/* Progress Info */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row gap-2">
           <Badge bg="info" className="fs-6">
             Question {currentQuestionIndex + 1} of {currentQuestions.length}
           </Badge>
-          <div className="d-flex gap-2 align-items-center">
+          <div className="d-flex gap-2 align-items-center flex-wrap justify-content-center">
             <Button
               variant="outline-info"
               size="sm"
@@ -669,24 +858,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
               }
               disabled={currentQuestionIndex === 0}
+              className="progress-nav-btn"
             >
               <ChevronLeft size={16} />
+              Previous Question
             </Button>
-            <div className="d-flex gap-1 align-items-center mx-2">
-              {currentQuestions.map((_, index) => (
-                <Button
-                  key={index}
-                  variant={
-                    index === currentQuestionIndex ? "info" : "outline-info"
-                  }
-                  size="sm"
-                  className="px-2 py-1"
-                  onClick={() => setCurrentQuestionIndex(index)}
-                >
-                  {index + 1}
-                </Button>
-              ))}
-            </div>
+
             <Button
               variant="outline-info"
               size="sm"
@@ -696,58 +873,118 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 }
               }}
               disabled={currentQuestionIndex === currentQuestions.length - 1}
+              className="progress-nav-btn"
             >
               <ChevronRight size={16} />
+              Next Question
             </Button>
           </div>
         </div>
 
         <ProgressBar
-          now={((currentQuestionIndex + 1) / currentQuestions.length) * 100}
+          now={calculateProgress(currentQuestions, "careerInterest")}
           className="mb-4"
           variant="info"
           style={{ height: "8px" }}
+          label={`${calculateProgress(
+            currentQuestions,
+            "careerInterest"
+          ).toFixed(1)}%`}
         />
 
-        <div className="text-center">
+        {/* Question Text - Keep this fixed */}
+        <div className="text-center question-text-container">
           <Form.Group>
-            <Form.Label className="h4 mb-4 text-dark d-block">
+            <Form.Label className="h4 mb-4 text-dark d-block question-text">
               {currentQuestion?.questionText || "Loading question..."}
             </Form.Label>
-            <div className="d-grid gap-3 mx-auto" style={{ maxWidth: "600px" }}>
-              {[1, 2, 3, 4, 5].map((val, index) => (
-                <Form.Check
-                  key={val}
-                  type="radio"
-                  name={`career-question-${currentQuestionIndex}`}
-                  id={`career-${currentQuestionIndex}-${val}`}
-                  label={`${val} - ${choiceLabels[val]}`}
-                  checked={
-                    formData.careerInterest[
-                      currentQuestion?.questionText || ""
-                    ] === val
-                  }
-                  onChange={() =>
-                    handleChange(
-                      "careerInterest",
-                      currentQuestion?.questionText || "",
-                      val,
-                      currentQuestion?.program
-                    )
-                  }
-                  className="p-3 border rounded hover-shadow text-start"
-                />
-              ))}
-            </div>
           </Form.Group>
         </div>
+
+        {/* Scrollable Choices Only */}
+        <div className="choices-container">
+          <div className="d-grid gap-3 mx-auto max-width-600">
+            {[1, 2, 3, 4, 5].map((val, index) => (
+              <Form.Check
+                key={val}
+                type="radio"
+                name={`career-question-${currentQuestionIndex}`}
+                id={`career-${currentQuestionIndex}-${val}`}
+                label={`${val} - ${choiceLabels[val]}`}
+                checked={
+                  formData.careerInterest[
+                    currentQuestion?.questionText || ""
+                  ] === val
+                }
+                onChange={() =>
+                  handleChange(
+                    "careerInterest",
+                    currentQuestion?.questionText || "",
+                    val,
+                    currentQuestion?.program
+                  )
+                }
+                className="p-3 border rounded hover-shadow text-start form-option"
+              />
+            ))}
+          </div>
+        </div>
       </Card.Body>
+
+      {/* Navigation - Keep this fixed at bottom */}
+      <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
+        <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
+          <div className="order-2 order-md-1">
+            {currentSection > 0 && (
+              <Button
+                variant="outline-secondary"
+                onClick={handlePrevious}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                ← Previous Section
+              </Button>
+            )}
+          </div>
+
+          <div className="order-1 order-md-2 mb-2 mb-md-0">
+            <Badge bg="light" text="dark" className="fs-6 p-2">
+              Section {currentSection + 1} of {sections.length}
+            </Badge>
+          </div>
+
+          <div className="order-3 order-md-3">
+            {currentSection < sections.length - 1 ? (
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                Next Section →
+              </Button>
+            ) : (
+              <Button
+                variant={isLearningStyleComplete() ? "success" : "secondary"}
+                onClick={handleNext}
+                disabled={!isLearningStyleComplete()}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                {isLearningStyleComplete()
+                  ? "Review Answers"
+                  : "Complete All Questions"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card.Footer>
     </Card>
   );
 
   const renderLearningStyleSection = () => (
-    <Card className="border-0 shadow-sm mx-auto" style={{ maxWidth: "800px" }}>
-      <Card.Header className="bg-success text-white text-center">
+    <Card className="border-0 shadow-sm mx-auto max-width-800">
+      <Card.Header className="bg-success text-white text-center section-header">
         <Card.Title className="mb-0 d-flex align-items-center justify-content-center">
           <Eye size={20} className="me-2" />
           Learning Style
@@ -755,11 +992,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       </Card.Header>
       <Card.Body className="p-4">
         {/* Progress Info */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row gap-2">
           <Badge bg="success" className="fs-6">
             Question {currentQuestionIndex + 1} of {currentQuestions.length}
           </Badge>
-          <div className="d-flex gap-2 align-items-center">
+          <div className="d-flex gap-2 align-items-center flex-wrap justify-content-center">
             <Button
               variant="outline-success"
               size="sm"
@@ -767,26 +1004,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
               }
               disabled={currentQuestionIndex === 0}
+              className="progress-nav-btn"
             >
               <ChevronLeft size={16} />
             </Button>
-            <div className="d-flex gap-1 align-items-center mx-2">
-              {currentQuestions.map((_, index) => (
-                <Button
-                  key={index}
-                  variant={
-                    index === currentQuestionIndex
-                      ? "success"
-                      : "outline-success"
-                  }
-                  size="sm"
-                  className="px-2 py-1"
-                  onClick={() => setCurrentQuestionIndex(index)}
-                >
-                  {index + 1}
-                </Button>
-              ))}
-            </div>
+
             <Button
               variant="outline-success"
               size="sm"
@@ -796,6 +1018,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 }
               }}
               disabled={currentQuestionIndex === currentQuestions.length - 1}
+              className="progress-nav-btn"
             >
               <ChevronRight size={16} />
             </Button>
@@ -803,45 +1026,102 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </div>
 
         <ProgressBar
-          now={((currentQuestionIndex + 1) / currentQuestions.length) * 100}
+          now={calculateProgress(currentQuestions, "learningStyle")}
           className="mb-4"
           variant="success"
           style={{ height: "8px" }}
+          label={`${Math.round(
+            calculateProgress(currentQuestions, "learningStyle")
+          )}%`}
         />
 
-        <div className="text-center">
+        {/* Question Text - Keep this fixed */}
+        <div className="text-center question-text-container">
           <Form.Group>
-            <Form.Label className="h4 mb-4 text-dark d-block">
+            <Form.Label className="h4 mb-4 text-dark d-block question-text">
               {currentQuestion?.questionText || "Loading question..."}
             </Form.Label>
-            <div className="d-grid gap-3 mx-auto" style={{ maxWidth: "600px" }}>
-              {currentQuestion?.options?.map((opt, index) => (
-                <Form.Check
-                  key={opt}
-                  type="radio"
-                  name={`learning-question-${currentQuestionIndex}`}
-                  id={`learning-${currentQuestionIndex}-${index}`}
-                  label={opt}
-                  checked={
-                    formData.learningStyle[
-                      currentQuestion?.questionText || ""
-                    ] === opt
-                  }
-                  onChange={() =>
-                    handleChange(
-                      "learningStyle",
-                      currentQuestion?.questionText || "",
-                      opt,
-                      currentQuestion?.program
-                    )
-                  }
-                  className="p-3 border rounded hover-shadow text-start"
-                />
-              ))}
-            </div>
           </Form.Group>
         </div>
+
+        {/* Scrollable Choices Only */}
+        <div className="choices-container">
+          <div className="d-grid gap-3 mx-auto max-width-600">
+            {currentQuestion?.options?.map((opt, index) => (
+              <Form.Check
+                key={opt}
+                type="radio"
+                name={`learning-question-${currentQuestionIndex}`}
+                id={`learning-${currentQuestionIndex}-${index}`}
+                label={opt}
+                checked={
+                  formData.learningStyle[
+                    currentQuestion?.questionText || ""
+                  ] === opt
+                }
+                onChange={() =>
+                  handleChange(
+                    "learningStyle",
+                    currentQuestion?.questionText || "",
+                    opt,
+                    currentQuestion?.program
+                  )
+                }
+                className="p-3 border rounded hover-shadow text-start form-option"
+              />
+            ))}
+          </div>
+        </div>
       </Card.Body>
+
+      {/* Navigation - Keep this fixed at bottom */}
+      <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
+        <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
+          <div className="order-2 order-md-1">
+            {currentSection > 0 && (
+              <Button
+                variant="outline-secondary"
+                onClick={handlePrevious}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                ← Previous Section
+              </Button>
+            )}
+          </div>
+
+          <div className="order-1 order-md-2 mb-2 mb-md-0">
+            <Badge bg="light" text="dark" className="fs-6 p-2">
+              Section {currentSection + 1} of {sections.length}
+            </Badge>
+          </div>
+
+          <div className="order-3 order-md-3">
+            {currentSection < sections.length - 1 ? (
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                Next Section →
+              </Button>
+            ) : (
+              <Button
+                variant={isLearningStyleComplete() ? "success" : "secondary"}
+                onClick={handleNext}
+                disabled={!isLearningStyleComplete()}
+                size="lg"
+                className="w-100 w-md-auto"
+              >
+                {isLearningStyleComplete()
+                  ? "Review Answers"
+                  : "Complete All Questions"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card.Footer>
     </Card>
   );
 
@@ -946,7 +1226,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         <Row className="justify-content-center">
           <Col md={9} lg={8}>
             <div className="d-flex justify-content-center">
-              <div className="w-100" style={{ maxWidth: "900px" }}>
+              <div className="w-100 max-width-900">
                 {showReview ? (
                   renderReviewSection()
                 ) : (
@@ -956,93 +1236,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     {currentSection === 2 && renderCareerInterestSection()}
                     {currentSection === 3 && renderLearningStyleSection()}
                   </>
-                )}
-
-                {/* Navigation Buttons */}
-                {!showReview && (
-                  <Card.Footer className="bg-transparent border-0 mt-4">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        {currentSection > 0 && (
-                          <Button
-                            variant="outline-secondary"
-                            onClick={handlePrevious}
-                            size="lg"
-                          >
-                            Previous Section
-                          </Button>
-                        )}
-                      </div>
-                      <div>
-                        {currentSection < sections.length - 1 ? (
-                          <Button
-                            variant="primary"
-                            onClick={handleNext}
-                            size="lg"
-                          >
-                            Next Section
-                          </Button>
-                        ) : (
-                          <Button
-                            variant={
-                              isLearningStyleComplete()
-                                ? "success"
-                                : "secondary"
-                            }
-                            onClick={handleNext}
-                            disabled={!isLearningStyleComplete()}
-                            size="lg"
-                          >
-                            {isLearningStyleComplete()
-                              ? "Review Answers"
-                              : "Complete All Questions"}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Card.Footer>
-                )}
-
-                {/* Review Section Buttons */}
-                {showReview && (
-                  <Card.Footer className="bg-transparent border-0 mt-4">
-                    <div className="d-flex gap-3 justify-content-center flex-wrap">
-                      <Button
-                        variant="outline-secondary"
-                        onClick={() => setShowReview(false)}
-                        size="lg"
-                      >
-                        Back to Form
-                      </Button>
-                      <Button
-                        variant="outline-primary"
-                        onClick={saveAnswersLocally}
-                        size="lg"
-                      >
-                        <Download size={18} className="me-2" />
-                        Save Answers Locally
-                      </Button>
-                      <Button
-                        variant="success"
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        size="lg"
-                      >
-                        {loading ? (
-                          <>
-                            <Spinner
-                              animation="border"
-                              size="sm"
-                              className="me-2"
-                            />
-                            Submitting...
-                          </>
-                        ) : (
-                          "Submit Assessment"
-                        )}
-                      </Button>
-                    </div>
-                  </Card.Footer>
                 )}
               </div>
             </div>
@@ -1069,61 +1262,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </Button>
           <Button variant="danger" onClick={() => handleReset(sectionToReset)}>
             Yes, Reset
-          </Button>
-        </Modal.Footer>
-      </Modal>
-            
-      {/* Restore Confirmation Modal */}
-      <Modal
-        show={showRestoreModal}
-        onHide={() => setShowRestoreModal(false)}
-        centered
-      >
-        <Modal.Header closeButton className="bg-success text-white">
-          <Modal.Title className="w-100 text-center">
-            <span className="me-2">✅</span>
-            Progress Restored
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="text-center py-4">
-          <p className="fs-5 mb-3">Your previous answers have been restored!</p>
-          <p className="text-muted">
-            You can continue where you left off. All your progress has been
-            loaded.
-          </p>
-        </Modal.Body>
-        <Modal.Footer className="justify-content-center">
-          <Button
-            variant="success"
-            onClick={() => {
-              setShowRestoreModal(false);
-              // Show toast when user clicks Continue Assessment
-              toast.success(
-                "✅ Your previous answers have been restored - you can continue where you left off",
-                {
-                  position: "top-right",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  style: {
-                    backgroundColor: "rgba(34, 197, 94, 0.9)",
-                    backdropFilter: "blur(6px)",
-                    border: "2px solid #22c55e",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    fontSize: "14px",
-                    borderRadius: "8px",
-                    fontFamily: "Poppins",
-                  },
-                  transition: Bounce,
-                }
-              );
-            }}
-            size="lg"
-          >
-            Continue Assessment
           </Button>
         </Modal.Footer>
       </Modal>

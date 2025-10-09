@@ -1,6 +1,7 @@
 // hooks/useAssessmentQuestions.ts
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { BASE_URL } from "../config/constants";
 
 export interface BackendQuestions {
   academicAptitude: Array<{
@@ -43,7 +44,7 @@ export const useAssessmentQuestions = () => {
       try {
         console.log("Fetching questions from API...");
         const response = await axios.get(
-          "http://localhost:4000/api/questions" // Changed from /api/allQuestions to /api/questions
+          `${BASE_URL}/api/questions` // Changed from /api/allQuestions to /api/questions
         );
         console.log("API Response:", response.data);
 

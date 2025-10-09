@@ -80,6 +80,8 @@ const EvaluationForm = () => {
   // Convert flat answers to form data for the AssessmentForm
   const [restoredFormData, setRestoredFormData] =
     useState<AssessmentAnswers | null>(null);
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [hasShownRestoreModal, setHasShownRestoreModal] = useState(false);
 
   useEffect(() => {
     if (authUser && !currentUser) {
@@ -98,9 +100,13 @@ const EvaluationForm = () => {
     }
   }, []);
 
-  // Enhanced restoration logic
+  // Enhanced restoration logic with one-time modal
   useEffect(() => {
-    if (savedData && Object.keys(savedData).length > 0) {
+    if (
+      savedData &&
+      Object.keys(savedData).length > 0 &&
+      !hasShownRestoreModal
+    ) {
       console.log("📥 Recovery data available:", savedData);
 
       // Check if we already have answers to avoid overwriting current progress
@@ -108,44 +114,48 @@ const EvaluationForm = () => {
       const savedAnswersCount = Object.keys(savedData).length;
 
       if (savedAnswersCount > currentAnswersCount) {
-        const shouldRecover = window.confirm(
-          `We found ${savedAnswersCount} saved answers from your previous session. Would you like to restore them?`
+        console.log("🔄 Showing restore modal - saved answers are more recent");
+
+        // Update the store with the flat data
+        setStoreAnswer(savedData);
+
+        // Convert and store the form data for the AssessmentForm
+        const convertedFormData = convertStoreToFormData(savedData);
+        setRestoredFormData(convertedFormData);
+
+        // Show modal only once
+        setShowRestoreModal(true);
+        setHasShownRestoreModal(true);
+
+        console.log(
+          "✅ Prepared restoration data - Form data:",
+          convertedFormData
         );
-
-        if (shouldRecover) {
-          // Update the store with the flat data
-          setStoreAnswer(savedData);
-
-          // Convert and store the form data for the AssessmentForm
-          const convertedFormData = convertStoreToFormData(savedData);
-          setRestoredFormData(convertedFormData);
-
-          console.log(
-            "✅ Restored previous progress - Form data:",
-            convertedFormData
-          );
-        }
+      } else {
+        console.log(
+          "⏩ Skipping restoration - current progress is more recent"
+        );
       }
     }
-  }, [savedData, setStoreAnswer, answers]);
+  }, [savedData, setStoreAnswer, answers, hasShownRestoreModal]);
 
-  useEffect(() => {
-    const checkStorage = () => {
-      const userKey = authUser?.id
-        ? `evaluation-answers_${authUser.id}`
-        : "evaluation-answers_session";
-      const stored = localStorage.getItem(userKey);
-      console.log("📦 DEBUG - Storage check:", {
-        userKey,
-        hasData: !!stored,
-        data: stored ? JSON.parse(stored) : null,
-      });
-    };
+  const handleCloseRestoreModal = () => {
+    setShowRestoreModal(false);
+  };
 
-    checkStorage();
-    const interval = setInterval(checkStorage, 5000);
-    return () => clearInterval(interval);
-  }, [authUser]);
+  const handleAcceptRestoration = () => {
+    setShowRestoreModal(false);
+    console.log("✅ User accepted restoration");
+  };
+
+  const handleDeclineRestoration = () => {
+    setShowRestoreModal(false);
+    // Clear the restored data if user declines
+    setRestoredFormData(null);
+    // Also clear from store
+    setStoreAnswer({});
+    console.log("❌ User declined restoration - cleared restored data");
+  };
 
   // Conditional renders
   if (!isAuthenticated) {
@@ -309,6 +319,7 @@ const EvaluationForm = () => {
 
         const transformed: AssessmentResult = {
           success: true,
+          summary: parsed.summary,
           evaluation: parsed.result,
           recommendations: parsed.recommendation,
           recommendedProgram: parsed.recommendedCourse as ProgramType,
@@ -317,7 +328,7 @@ const EvaluationForm = () => {
           programScores: programScores,
           submissionDate: new Date().toISOString(),
         };
-
+        console.log(parsed.summary);
         console.log("💾 Setting result in store:", transformed);
         setResult(transformed);
 
@@ -328,7 +339,6 @@ const EvaluationForm = () => {
         localStorage.removeItem("evaluation-answers_session");
 
         // Enhanced backend save with better error handling
-        // Enhanced backend save in your handleSubmitAnswers function
         try {
           const saveResponse = await axios.post(
             `${BASE_URL}/api/save-evaluation`,
@@ -418,6 +428,65 @@ const EvaluationForm = () => {
         </div>
       )}
 
+      {/* One-Time Restore Confirmation Modal */}
+      <div className="restore-modal-container">
+        <div
+          className={`modal fade ${showRestoreModal ? "show" : ""}`}
+          style={{
+            display: showRestoreModal ? "block" : "none",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+          tabIndex={-1}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title w-100 text-center">
+                  <span className="me-2">✅</span>
+                  Continue Your Progress?
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={handleCloseRestoreModal}
+                ></button>
+              </div>
+              <div className="modal-body text-center py-4">
+                <p className="fs-5 mb-3">
+                  We found your previous assessment progress!
+                </p>
+                <p className="text-muted">
+                  You have unanswered questions from your last session. Would
+                  you like to continue where you left off?
+                </p>
+                <div className="mt-4">
+                  <span className="badge bg-info fs-6">
+                    {Object.keys(savedData || {}).length} answers saved
+                  </span>
+                </div>
+              </div>
+              <div className="modal-footer justify-content-center">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={handleDeclineRestoration}
+                >
+                  Start New
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleAcceptRestoration}
+                >
+                  Continue Progress
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {showRestoreModal && <div className="modal-backdrop fade show"></div>}
+      </div>
+
       <AssessmentForm
         currentUser={{
           _id: authUser?.id || "temp-id",
@@ -432,8 +501,10 @@ const EvaluationForm = () => {
         currentSectionIndex={currentSectionIndex}
         totalSections={sectionKeys.length}
         loading={loading}
-        restoredFormData={restoredFormData} // Pass the restored data to the form
+        restoredFormData={restoredFormData} 
       />
+
+      
     </div>
   );
 };

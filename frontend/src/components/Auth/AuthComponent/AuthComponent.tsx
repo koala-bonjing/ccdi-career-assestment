@@ -5,7 +5,11 @@ import LoginForm from '../LoginForm/LoginForm';
 import { useAuth } from "../../../context/AuthContext"
 import { useUserStore } from "../../../../store/useUserStore";
 
-const AuthComponent: React.FC = () => {
+interface AuthComponentProps {
+  initialMode: 'signup' | 'login'; // Restrict to specific values
+}
+
+const AuthComponent: React.FC<AuthComponentProps> = ({ initialMode }) => {
   const [isLogin, setIsLogin] = useState(true);
   const { login } = useAuth();
   const { setCurrentUser } = useUserStore();

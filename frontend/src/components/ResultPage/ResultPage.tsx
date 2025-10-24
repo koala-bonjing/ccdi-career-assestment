@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { ProgramLabels } from "../../types";
 import { getProgramTextColor } from "../../utils/colorUtils";
-import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import { useAuth } from "../../context/AuthContext";
 
@@ -103,7 +102,8 @@ const ResultsPage: React.FC = () => {
           </h3>
           <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
             <p className="text-lg text-gray-700 leading-relaxed">
-              {result.summary || "Based on your assessment, here are your results..."}
+              {result.summary ||
+                "Based on your assessment, here are your results..."}
             </p>
           </div>
         </div>
@@ -129,7 +129,9 @@ const ResultsPage: React.FC = () => {
             onClick={() => setShowDetailedExplanation(!showDetailedExplanation)}
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
           >
-            {showDetailedExplanation ? "Hide Detailed Explanation" : "Show Detailed Explanation"}
+            {showDetailedExplanation
+              ? "Hide Detailed Explanation"
+              : "Show Detailed Explanation"}
           </button>
         </div>
 
@@ -170,23 +172,30 @@ const ResultsPage: React.FC = () => {
             Program Compatibility
           </h3>
           <p className="text-gray-600 text-center mb-6">
-            This chart shows how well your skills and interests align with each program.
-            Higher percentages indicate better compatibility.
+            This chart shows how well your skills and interests align with each
+            program. Higher percentages indicate better compatibility.
           </p>
-          
+
           <div className="space-y-6">
             {Object.entries(ProgramLabels).map(
               ([programType, programLabel]) => {
-                const percentage = result.percent?.[programType as keyof typeof result.percent] || 0;
+                const percentage =
+                  result.percent?.[
+                    programType as keyof typeof result.percent
+                  ] || 0;
                 const isRecommended = programType === result.recommendedProgram;
-                
+
                 return (
                   <div key={programType} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <span className={`text-lg font-medium ${
-                          isRecommended ? 'text-green-600 font-bold' : 'text-gray-700'
-                        }`}>
+                        <span
+                          className={`text-lg font-medium ${
+                            isRecommended
+                              ? "text-green-600 font-bold"
+                              : "text-gray-700"
+                          }`}
+                        >
                           {programLabel}
                         </span>
                         {isRecommended && (
@@ -195,31 +204,44 @@ const ResultsPage: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <span className={`text-lg font-semibold ${
-                        isRecommended ? 'text-green-600' : 'text-gray-700'
-                      }`}>
+                      <span
+                        className={`text-lg font-semibold ${
+                          isRecommended ? "text-green-600" : "text-gray-700"
+                        }`}
+                      >
                         {percentage}%
                       </span>
                     </div>
-                    
+
                     <div className="w-full bg-gray-200 rounded-full h-4 relative">
                       <div
-                        className={`${getColorClass(programType)} h-4 rounded-full transition-all duration-1000 ease-out ${
-                          isRecommended ? 'ring-2 ring-green-400 ring-opacity-50' : ''
+                        className={`${getColorClass(
+                          programType
+                        )} h-4 rounded-full transition-all duration-1000 ease-out ${
+                          isRecommended
+                            ? "ring-2 ring-green-400 ring-opacity-50"
+                            : ""
                         }`}
                         style={{
                           width: `${percentage}%`,
                         }}
                       ></div>
                     </div>
-                    
+
                     {/* Compatibility Description */}
                     <p className="text-sm text-gray-500 mt-1">
                       {percentage >= 80 && "Excellent match with your profile"}
-                      {percentage >= 60 && percentage < 80 && "Strong compatibility with your skills"}
-                      {percentage >= 40 && percentage < 60 && "Moderate alignment with your interests"}
-                      {percentage >= 20 && percentage < 40 && "Some relevant aspects match"}
-                      {percentage < 20 && "Limited compatibility based on current profile"}
+                      {percentage >= 60 &&
+                        percentage < 80 &&
+                        "Strong compatibility with your skills"}
+                      {percentage >= 40 &&
+                        percentage < 60 &&
+                        "Moderate alignment with your interests"}
+                      {percentage >= 20 &&
+                        percentage < 40 &&
+                        "Some relevant aspects match"}
+                      {percentage < 20 &&
+                        "Limited compatibility based on current profile"}
                     </p>
                   </div>
                 );

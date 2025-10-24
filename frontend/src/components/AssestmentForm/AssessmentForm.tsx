@@ -1,3 +1,4 @@
+// src/components/AssestmentForm/AssessmentForm.tsx
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -26,10 +27,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Rocket,
 } from "lucide-react";
 import { categoryTitles, sections, choiceLabels } from "../../config/constants";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
-import ProgressSideBar from "../ProgressSideBar/ProgressSideBar";
 import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
 import { saveAnswersAsDocument } from "../../hooks/saveAsDocsFile";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
@@ -40,19 +41,32 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   onSubmit,
   loading,
   restoredFormData,
+  onStartNew,
 }) => {
-  const { updateAnswer } = useEvaluationStore();
+  const { updateAnswer, clearAllAnswers } = useEvaluationStore();
   const {
     questions,
     loading: questionsLoading,
     error,
   } = useAssessmentQuestions();
 
+  // Simple form data initialization
   const [formData, setFormData] = useState<AssessmentAnswers>(() => {
     if (restoredFormData) {
-      console.log("🔄 Initializing form with restored data:", restoredFormData);
+      console.log("🔄 Using restored form data");
       return restoredFormData;
     }
+
+    // Try to load from localStorage as fallback
+    try {
+      const saved = localStorage.getItem("evaluation-answers");
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error("Error loading from localStorage:", error);
+    }
+
     return {
       academicAptitude: {},
       technicalSkills: {},
@@ -62,11 +76,17 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   });
 
   const [showResetModal, setShowResetModal] = useState(false);
-  const [sectionToReset] = useState<keyof AssessmentAnswers | null>(null);
-  const [currentSection, setCurrentSection] = useState(0);
+  const [currentSection, setCurrentSection] = useState(() => {
+    // Load current section from localStorage or default to 0
+    try {
+      const savedSection = localStorage.getItem("currentAssessmentSection");
+      return savedSection ? parseInt(savedSection) : 0;
+    } catch {
+      return 0;
+    }
+  });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showReview, setShowReview] = useState(false);
-  const [completedSections, setCompletedSections] = useState<number[]>([]);
   const [programScores, setProgramScores] = useState({
     BSCS: 0,
     BSIT: 0,
@@ -74,12 +94,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     EE: 0,
   });
 
-  const [answeredQuestions, setAnsweredQuestions] = useState({
-    academicAptitude: [] as string[],
-    technicalSkills: [] as string[],
-    careerInterest: [] as string[],
-    learningStyle: [] as string[],
-  });
+  // Auto-save to localStorage whenever formData or currentSection changes
+  useEffect(() => {
+    localStorage.setItem("evaluation-answers", JSON.stringify(formData));
+    localStorage.setItem("currentAssessmentSection", currentSection.toString());
+  }, [formData, currentSection]);
 
   const section = sections[currentSection];
 
@@ -103,27 +122,19 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const currentQuestions = getCurrentQuestions();
   const currentQuestion = currentQuestions[currentQuestionIndex];
 
-  // Check if a specific question is answered
-  const isQuestionAnswered = (
-    section: keyof AssessmentAnswers,
-    questionText: string
-  ) => {
-    return answeredQuestions[section].includes(questionText);
-  };
+  // Simple progress calculation
+  const calculateProgress = (section: keyof AssessmentAnswers) => {
+    const sectionQuestions = getCurrentQuestions();
+    if (!sectionQuestions.length) return 0;
 
-  // Calculate progress based on actual answered questions
-  const calculateProgress = (
-    questions: any[],
-    section: keyof AssessmentAnswers
-  ) => {
-    if (!questions.length) return 0;
-
-    const answeredCount = questions.filter((q) =>
-      isQuestionAnswered(section, q.questionText)
+    const answeredCount = sectionQuestions.filter(
+      (q) =>
+        formData[section][q.questionText] !== undefined &&
+        formData[section][q.questionText] !== null &&
+        formData[section][q.questionText] !== ""
     ).length;
 
-    const progress = (answeredCount / questions.length) * 100;
-    return parseFloat(progress.toFixed(0)); // Convert back to number with 1 decimal
+    return Math.round((answeredCount / sectionQuestions.length) * 100);
   };
 
   const handleChange = (
@@ -140,15 +151,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       },
     }));
 
-    // Track answered questions
-    setAnsweredQuestions((prev) => ({
-      ...prev,
-      [section]: [...new Set([...prev[section], questionText])],
-    }));
-
     const storeKey = `${section}.${questionText}`;
     updateAnswer(storeKey, value);
-    console.log("📝 Updated store with:", { storeKey, value });
 
     if (typeof value === "number" && value >= 1 && value <= 5 && program) {
       setProgramScores((prev) => {
@@ -174,36 +178,39 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     );
   };
 
-  const handleReset = (section?: keyof AssessmentAnswers) => {
-    if (section) {
-      setFormData((prev) => ({
-        ...prev,
-        [section]: {},
-      }));
-      setAnsweredQuestions((prev) => ({
-        ...prev,
-        [section]: [],
-      }));
-      if (section === "academicAptitude") {
-        setCurrentQuestionIndex(0);
-      }
-    } else {
-      setFormData({
-        academicAptitude: {},
-        technicalSkills: {},
-        careerInterest: {},
-        learningStyle: {},
-      });
-      setAnsweredQuestions({
-        academicAptitude: [],
-        technicalSkills: [],
-        careerInterest: [],
-        learningStyle: [],
-      });
-      setCurrentQuestionIndex(0);
-      setProgramScores({ BSCS: 0, BSIT: 0, BSIS: 0, EE: 0 });
+  // Simple reset function
+  const handleStartNewAssessment = () => {
+    // Reset all state
+    setFormData({
+      academicAptitude: {},
+      technicalSkills: {},
+      careerInterest: {},
+      learningStyle: {},
+    });
+
+    setCurrentSection(0);
+    setCurrentQuestionIndex(0);
+    setShowReview(false);
+    setProgramScores({
+      BSCS: 0,
+      BSIT: 0,
+      BSIS: 0,
+      EE: 0,
+    });
+
+    // Clear storage
+    localStorage.removeItem("evaluation-answers");
+    localStorage.removeItem("currentAssessmentSection");
+
+    // Clear store
+    clearAllAnswers();
+
+    // Call parent if provided
+    if (onStartNew) {
+      onStartNew();
     }
-    setShowResetModal(false);
+
+    console.log("🆕 Started new assessment - all data cleared");
   };
 
   const saveAnswersLocally = () => {
@@ -348,8 +355,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         return;
       }
 
-      setCompletedSections((prev) => [...prev, currentSection]);
-
       if (currentSection < sections.length - 1) {
         setCurrentSection((prev) => prev + 1);
         setCurrentQuestionIndex(0);
@@ -374,7 +379,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         programScores,
         recommendedProgram: getRecommendedProgram(programScores),
       };
-      onSubmit(submissionData);
+      onSubmit(submissionData); // This should match the interface
     }
   };
 
@@ -428,6 +433,20 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
     return value?.toString() || "Not answered";
   };
+
+  // Reset button component
+  const renderResetButton = () => (
+    <div className="text-center mt-3">
+      <Button
+        variant="outline-danger"
+        size="sm"
+        onClick={() => setShowResetModal(true)}
+      >
+        <Rocket size={16} className="me-1" />
+        Start New Assessment
+      </Button>
+    </div>
+  );
 
   const renderReviewSection = () => {
     const getQuestionsBySection = (sectionKey: string) => {
@@ -531,7 +550,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             })}
           </div>
 
-          {/* SUBMIT BUTTONS - ADDED HERE */}
+          {/* SUBMIT BUTTONS */}
           <div className="text-center mt-4 p-3 bg-light rounded">
             <h5 className="mb-3">Ready to submit your assessment?</h5>
             <div className="d-flex gap-3 justify-content-center flex-wrap">
@@ -582,6 +601,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               </Button>
             </div>
           </div>
+
+          {/* Reset Button in Review */}
+          {renderResetButton()}
         </Card.Body>
       </Card>
     );
@@ -596,7 +618,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </Card.Title>
       </Card.Header>
       <Card.Body className="p-4">
-        {/* Progress Info - Keep this fixed */}
+        {/* Progress Info */}
         <div className="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row gap-2">
           <Badge bg="primary" className="fs-6">
             Question {currentQuestionIndex + 1} of {currentQuestions.length}
@@ -634,17 +656,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
         {/* Progress Bar */}
         <ProgressBar
-          now={calculateProgress(currentQuestions, "academicAptitude")}
+          now={calculateProgress("academicAptitude")}
           className="mb-4"
           variant="primary"
           style={{ height: "8px" }}
-          label={`${calculateProgress(
-            currentQuestions,
-            "academicAptitude"
-          ).toFixed(0)}%`}
+          label={`${calculateProgress("academicAptitude")}%`}
         />
 
-        {/* Question Text - Keep this fixed */}
+        {/* Question Text */}
         <div className="text-center question-text-container">
           <Form.Group>
             <Form.Label className="h4 mb-4 text-dark d-block question-text">
@@ -653,7 +672,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </Form.Group>
         </div>
 
-        {/* Scrollable Choices Only */}
+        {/* Choices */}
         <div className="choices-container">
           <div className="d-grid gap-3 mx-auto max-width-600">
             {[1, 2, 3, 4, 5].map((val, index) => (
@@ -691,7 +710,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </div>
       </Card.Body>
 
-      {/* Navigation - Keep this fixed at bottom */}
+      {/* Navigation */}
       <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
         <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
           <div className="order-2 order-md-1">
@@ -738,6 +757,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             )}
           </div>
         </div>
+
+        {/* Reset Button */}
+        {renderResetButton()}
       </Card.Footer>
     </Card>
   );
@@ -760,7 +782,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </Form.Group>
         </div>
 
-        {/* Scrollable Choices Only */}
+        {/* Choices */}
         <div className="choices-container">
           <div className="d-grid gap-3 mx-auto max-width-600">
             {currentQuestions.map((skill, index) => (
@@ -785,7 +807,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </div>
       </Card.Body>
 
-      {/* Navigation - Keep this fixed at bottom */}
+      {/* Navigation */}
       <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
         <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
           <div className="order-2 order-md-1">
@@ -832,6 +854,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             )}
           </div>
         </div>
+
+        {/* Reset Button */}
+        {renderResetButton()}
       </Card.Footer>
     </Card>
   );
@@ -882,17 +907,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </div>
 
         <ProgressBar
-          now={calculateProgress(currentQuestions, "careerInterest")}
+          now={calculateProgress("careerInterest")}
           className="mb-4"
           variant="info"
           style={{ height: "8px" }}
-          label={`${calculateProgress(
-            currentQuestions,
-            "careerInterest"
-          ).toFixed(1)}%`}
+          label={`${calculateProgress("careerInterest")}%`}
         />
 
-        {/* Question Text - Keep this fixed */}
+        {/* Question Text */}
         <div className="text-center question-text-container">
           <Form.Group>
             <Form.Label className="h4 mb-4 text-dark d-block question-text">
@@ -901,7 +923,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </Form.Group>
         </div>
 
-        {/* Scrollable Choices Only */}
+        {/* Choices */}
         <div className="choices-container">
           <div className="d-grid gap-3 mx-auto max-width-600">
             {[1, 2, 3, 4, 5].map((val, index) => (
@@ -931,7 +953,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </div>
       </Card.Body>
 
-      {/* Navigation - Keep this fixed at bottom */}
+      {/* Navigation */}
       <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
         <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
           <div className="order-2 order-md-1">
@@ -978,6 +1000,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             )}
           </div>
         </div>
+
+        {/* Reset Button */}
+        {renderResetButton()}
       </Card.Footer>
     </Card>
   );
@@ -1026,16 +1051,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </div>
 
         <ProgressBar
-          now={calculateProgress(currentQuestions, "learningStyle")}
+          now={calculateProgress("learningStyle")}
           className="mb-4"
           variant="success"
           style={{ height: "8px" }}
-          label={`${Math.round(
-            calculateProgress(currentQuestions, "learningStyle")
-          )}%`}
+          label={`${calculateProgress("learningStyle")}%`}
         />
 
-        {/* Question Text - Keep this fixed */}
+        {/* Question Text */}
         <div className="text-center question-text-container">
           <Form.Group>
             <Form.Label className="h4 mb-4 text-dark d-block question-text">
@@ -1044,7 +1067,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </Form.Group>
         </div>
 
-        {/* Scrollable Choices Only */}
+        {/* Choices */}
         <div className="choices-container">
           <div className="d-grid gap-3 mx-auto max-width-600">
             {currentQuestion?.options?.map((opt, index) => (
@@ -1074,7 +1097,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </div>
       </Card.Body>
 
-      {/* Navigation - Keep this fixed at bottom */}
+      {/* Navigation */}
       <Card.Footer className="bg-transparent border-0 mt-4 navigation-container">
         <div className="navigation-buttons d-flex justify-content-between align-items-center flex-column flex-md-row gap-2">
           <div className="order-2 order-md-1">
@@ -1121,6 +1144,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             )}
           </div>
         </div>
+
+        {/* Reset Button */}
+        {renderResetButton()}
       </Card.Footer>
     </Card>
   );
@@ -1243,25 +1269,25 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </Row>
       </Container>
 
+      {/* Reset Confirmation Modal */}
       <Modal
         show={showResetModal}
         onHide={() => setShowResetModal(false)}
         centered
       >
         <Modal.Header closeButton className="text-center">
-          <Modal.Title className="w-100">Confirm Reset</Modal.Title>
+          <Modal.Title className="w-100">Start New Assessment?</Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
-          {sectionToReset
-            ? `Are you sure you want to reset the ${categoryTitles[sectionToReset]} section?`
-            : "Are you sure you want to reset ALL sections?"}
+          Are you sure you want to start a new assessment? All your current
+          progress will be lost.
         </Modal.Body>
         <Modal.Footer className="justify-content-center">
           <Button variant="secondary" onClick={() => setShowResetModal(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={() => handleReset(sectionToReset)}>
-            Yes, Reset
+          <Button variant="danger" onClick={handleStartNewAssessment}>
+            Start New Assessment
           </Button>
         </Modal.Footer>
       </Modal>

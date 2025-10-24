@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { AssessmentAnswers } from "../types";
 import { Brain, BookOpen, Cpu, Target } from "lucide-react";
 
-const BASE_URL = "http://192.168.1.41:4000";
+const BASE_URL = "http://localhost:4000";
 
 const categoryTitles: Record<string, string> = {
   academicAptitude: "Academic Aptitude",
@@ -129,9 +129,6 @@ const getSectionColorClasses = (section: string): string => {
       return "bg-gray-500";
   }
 };
-
-
-
 
 export {
   BASE_URL,

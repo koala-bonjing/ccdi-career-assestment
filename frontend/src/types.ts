@@ -63,7 +63,7 @@ export interface AssessmentResult {
 
 export interface EvaluationResult {
   result: string;
-  summary: string;  
+  summary: string;
   recommendation: string;
   recommendedCourse: ProgramType;
   percent: {
@@ -77,11 +77,17 @@ export interface EvaluationResult {
 export interface AssessmentFormProps {
   currentUser: User | null;
   setCurrentUser: (user: User) => void;
-  onSubmit: (answers: AssessmentAnswers) => void;
-  onNextSection: () => void;
-  onPrevSection: () => void;
-  currentSectionIndex: number;
-  totalSections: number;
+  onSubmit: (data: {
+    answers: AssessmentAnswers;
+    programScores: {
+      BSCS: number;
+      BSIT: number;
+      BSIS: number;
+      EE: number;
+    };
+    recommendedProgram: string;
+  }) => void;
   loading?: boolean;
   restoredFormData: AssessmentAnswers | null;
+  onStartNew: () => void;
 }

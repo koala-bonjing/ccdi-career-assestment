@@ -9,6 +9,7 @@ type EvaluationState = {
   answers: Record<string, boolean | number | string>;
   setAnswers: (answers: Record<string, boolean | number | string>) => void;
   updateAnswer: (key: string, value: boolean | number | string) => void;
+  clearAllAnswers: () => void; // ADD THIS
 
   result: AssessmentResult | null;
   setResult: (result: AssessmentResult | null) => void;
@@ -34,6 +35,14 @@ export const useEvaluationStore = create<EvaluationState>((set) => ({
   setAnswers: (answers) => set({ answers }),
   updateAnswer: (key, value) =>
     set((state) => ({ answers: { ...state.answers, [key]: value } })),
+  
+  // ADD THIS FUNCTION
+  clearAllAnswers: () => set({ 
+    answers: {},
+    result: null,
+    error: null,
+    currentSectionIndex: 0 
+  }),
 
   result: null,
   setResult: (result) => set({ result }),

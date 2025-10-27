@@ -1,7 +1,8 @@
+/* src/components/AssestmentForm/AssestmentForm.css */
 /* Bootstrap overrides and enhancements */
 .assessment-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%);
   font-family: "Poppins", sans-serif;
 }
 
@@ -94,28 +95,203 @@
   font-size: 1.1rem;
 }
 
-/* Review section styles */
-.review-content {
-  max-height: 70vh;
+/* Review Section Specific Styles */
+.review-card {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.review-answers-grid {
+  max-height: 60vh;
   overflow-y: auto;
+  padding-right: 10px;
 }
 
-.review-content::-webkit-scrollbar {
-  width: 6px;
+.review-answers-grid::-webkit-scrollbar {
+  width: 8px;
 }
 
-.review-content::-webkit-scrollbar-track {
+.review-answers-grid::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
 
-.review-content::-webkit-scrollbar-thumb {
+.review-answers-grid::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 10px;
 }
 
-.review-content::-webkit-scrollbar-thumb:hover {
+.review-answers-grid::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.review-section-card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  min-height: 400px; /* Ensure minimum height */
+}
+
+.review-section-card:hover {
+  border-color: #2b3176;
+  transform: translateY(-2px);
+}
+
+.review-section-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 300px;
+}
+
+/* Technical Skills Review Styles */
+.technical-skills-review {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 200px;
+}
+
+.skills-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+}
+
+.skills-badge-container {
+  flex: 1;
+  align-content: flex-start;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.skills-badge-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.skills-badge-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.skills-badge-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.skill-badge {
+  font-size: 0.85rem !important;
+  padding: 0.5rem 0.8rem !important;
+  margin: 0.25rem !important;
+  border-radius: 20px !important;
+  word-break: break-word;
+  max-width: 100%;
+  white-space: normal !important;
+  text-align: center;
+  line-height: 1.3;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  display: inline-block;
+}
+
+.skill-badge:hover {
+  transform: scale(1.05);
+  border-color: #ffffff;
+}
+
+/* Questions Review Styles */
+.review-questions-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 200px;
+}
+
+.questions-list {
+  flex: 1;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.questions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.questions-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.questions-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.question-answer-card {
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent !important;
+  min-height: 80px;
+}
+
+.question-answer-card:hover {
+  border-left-color: #2b3176 !important;
+  background-color: #f8f9fa !important;
+}
+
+.question-number {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  border-radius: 8px !important;
+  flex-shrink: 0;
+}
+
+.question-text {
+  font-size: 1.7rem;
+  line-height: 1.4;
+  word-break: break-word;
+  margin-bottom: 0.5rem;
+}
+
+.answer-badge {
+  font-size: 0.85rem !important;
+  padding: 0.5rem 0.8rem !important;
+  border-radius: 8px !important;
+  word-break: break-word;
+  max-width: 100%;
+  white-space: normal;
+  display: inline-block;
+  line-height: 1.3;
+}
+
+.action-section {
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%) !important;
+  border: 2px solid #e9ecef;
+  border-radius: 15px;
+}
+
+.action-buttons {
+  gap: 1rem;
+}
+
+.action-btn {
+  min-width: 200px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* List group customizations */
@@ -178,6 +354,51 @@
     padding: 1rem !important;
   }
 
+  /* Review section mobile optimizations */
+  .review-card .card-body {
+    padding: 1.5rem !important;
+  }
+
+  .review-answers-grid {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .review-section-card {
+    margin-bottom: 1rem;
+    min-height: 300px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .action-btn {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 0.5rem;
+  }
+
+  .question-number {
+    min-width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+
+  .skill-badge {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.7rem !important;
+  }
+
+  .skills-badge-container {
+    max-height: 200px;
+  }
+
+  .questions-list {
+    max-height: 300px;
+  }
+
   /* Better progress dots for mobile */
   .progress-dots-container {
     flex-wrap: wrap;
@@ -229,11 +450,6 @@
 
   .card-title {
     font-size: 1.2rem !important;
-  }
-
-  /* Review section mobile optimizations */
-  .review-content {
-    max-height: 60vh;
   }
 
   .badge.fs-6 {
@@ -291,6 +507,36 @@
   .form-check-input {
     width: 20px;
     height: 20px;
+  }
+
+  /* Review section mobile optimizations */
+  .review-card .card-header {
+    padding: 1rem !important;
+  }
+
+  .review-card .card-header .fs-2 {
+    font-size: 1.5rem !important;
+  }
+
+  .question-answer-card .card-body {
+    padding: 1rem !important;
+  }
+
+  .action-section {
+    padding: 1.5rem !important;
+  }
+
+  .action-section h4 {
+    font-size: 1.3rem;
+  }
+
+  .skills-badge-container {
+    max-height: 150px;
+  }
+
+  .skill-badge {
+    font-size: 0.75rem !important;
+    padding: 0.35rem 0.6rem !important;
   }
 
   /* Progress dots as circles with numbers */
@@ -356,31 +602,70 @@
   animation: fadeIn 0.5s ease-out;
 }
 
+/* Animation for review section */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.review-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
 /* Toast customizations */
 .Toastify__toast {
   border-radius: 10px;
   font-family: "Poppins", sans-serif;
 }
 
-/* Custom background for different sections */
+/* Custom background for different sections - Using CCDI Color Theme */
 .bg-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%) !important;
 }
 
 .bg-warning {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  background: linear-gradient(135deg, #ec2326 0%, #a41d31 100%) !important;
+  color: white !important;
 }
 
 .bg-info {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+  background: linear-gradient(135deg, #1c6cb3 0%, #2b3176 100%) !important;
 }
 
 .bg-success {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important;
+  background: linear-gradient(135deg, #a41d31 0%, #ec2326 100%) !important;
 }
 
 .bg-secondary {
-  background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%) !important;
+  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%) !important;
+}
+
+/* Button colors using CCDI theme */
+.btn-primary {
+  background: linear-gradient(135deg, #a41d31 0%, #ec2326 100%) !important;
+  border: none;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #ec2326 0%, #a41d31 100%) !important;
+  border: none;
+  color: white;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #a41d31 0%, #ec2326 100%) !important;
+  border: none;
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #1c6cb3 0%, #2b3176 100%) !important;
+  border: none;
 }
 
 /* Form check hover effects */
@@ -390,7 +675,7 @@
 }
 
 .form-check:hover {
-  background-color: rgba(13, 110, 253, 0.05);
+  background-color: rgba(43, 49, 118, 0.05);
   border-radius: 8px;
 }
 
@@ -505,7 +790,7 @@
 /* Enhanced focus states for accessibility */
 .btn:focus,
 .form-check-input:focus {
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(164, 29, 49, 0.25);
   outline: none;
 }
 
@@ -532,6 +817,16 @@
   animation: pulse 0.5s ease-in-out;
 }
 
+/* Empty state styling */
+.text-center.text-muted {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 150px;
+}
+
 /* Print styles */
 @media print {
   .assessment-container {
@@ -546,4 +841,21 @@
   .btn {
     display: none !important;
   }
+}
+
+/* Progress bar colors using CCDI theme */
+.progress-bar.bg-primary {
+  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%) !important;
+}
+
+.progress-bar.bg-warning {
+  background: linear-gradient(135deg, #ec2326 0%, #a41d31 100%) !important;
+}
+
+.progress-bar.bg-info {
+  background: linear-gradient(135deg, #1c6cb3 0%, #2b3176 100%) !important;
+}
+
+.progress-bar.bg-success {
+  background: linear-gradient(135deg, #a41d31 0%, #ec2326 100%) !important;
 }

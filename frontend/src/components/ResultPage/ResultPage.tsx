@@ -4,37 +4,124 @@ import { ProgramLabels } from "../../types";
 import { getProgramTextColor } from "../../utils/colorUtils";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import { useAuth } from "../../context/AuthContext";
-
+import {
+  Award,
+  BarChart3,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Target,
+  Users,
+  Cpu,
+  Zap,
+  Download,
+  FileText,
+} from "lucide-react";
+import { saveResultsAsDocument } from "../../hooks/saveResultsAsDocument";
+import "./ResultPage.css";
 const ResultsPage: React.FC = () => {
   const { result, loading, error } = useEvaluationStore();
   const [currentSection, setCurrentSection] = useState(0);
   const [showDetailedExplanation, setShowDetailedExplanation] = useState(false);
+  const [savingDocument, setSavingDocument] = useState(false);
   const { user: authUser } = useAuth();
+
+  const handleSaveAsDocument = async () => {
+    if (!result || !authUser) return;
+
+    setSavingDocument(true);
+    try {
+      await saveResultsAsDocument(result, authUser);
+      // Optional: Show success toast
+    } catch (error) {
+      console.error("Error saving document:", error);
+      // Optional: Show error toast
+    } finally {
+      setSavingDocument(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-xl text-gray-600">Loading results...</div>
+      <div
+        className="min-vh-100"
+        style={{
+          background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+          minHeight: "100vh",
+        }}
+      >
+        <NavigationBar />
+        <div className="d-flex justify-content-center align-items-center min-vh-100">
+          <div className="text-center text-white">
+            <div className="spinner-border mb-3" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <h3>Loading your results...</h3>
+            <p className="text-white-50">
+              Please wait while we analyze your assessment
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-xl text-red-600">Error: {error}</div>
+      <div
+        className="min-vh-100"
+        style={{
+          background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+          minHeight: "100vh",
+        }}
+      >
+        <NavigationBar />
+        <div className="d-flex justify-content-center align-items-center min-vh-100">
+          <div className="text-center text-white">
+            <div className="alert alert-danger">
+              <h4>Error Loading Results</h4>
+              <p>{error}</p>
+              <button
+                className="btn btn-outline-light"
+                onClick={() => window.location.reload()}
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <p className="text-xl text-gray-600 mb-4">No results yet.</p>
-          <p className="text-gray-500">
-            Please complete the assessment to see your results.
-          </p>
+      <div
+        className="min-vh-100"
+        style={{
+          background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+          minHeight: "100vh",
+        }}
+      >
+        <NavigationBar />
+        <div className="d-flex justify-content-center align-items-center min-vh-100">
+          <div className="text-center text-white">
+            <div className="card bg-white bg-opacity-10 border-0 p-5">
+              <div className="card-body">
+                <h3 className="text-white mb-3">No Results Yet</h3>
+                <p className="text-white-50 mb-4">
+                  Please complete the assessment to see your personalized
+                  results.
+                </p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => window.history.back()}
+                >
+                  Go Back to Assessment
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -48,10 +135,21 @@ const ResultsPage: React.FC = () => {
   ) {
     console.error("❌ Invalid result data:", result);
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <p className="text-xl text-red-600 mb-4">Invalid result data</p>
-          <p className="text-gray-500">Please try the assessment again.</p>
+      <div
+        className="min-vh-100"
+        style={{
+          background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+          minHeight: "100vh",
+        }}
+      >
+        <NavigationBar />
+        <div className="d-flex justify-content-center align-items-center min-vh-100">
+          <div className="text-center text-white">
+            <div className="alert alert-warning">
+              <h4>Invalid Result Data</h4>
+              <p>Please try the assessment again.</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -62,194 +160,486 @@ const ResultsPage: React.FC = () => {
   // Helper function to get color classes for progress bars
   const getColorClass = (programType: string) => {
     const colorMap: Record<string, string> = {
-      BSCS: "bg-blue-500",
-      BSIT: "bg-orange-500",
-      BSIS: "bg-purple-500",
-      EE: "bg-pink-500",
+      BSCS: "bg-primary",
+      BSIT: "bg-warning",
+      BSIS: "bg-info",
+      EE: "bg-success",
     };
-    return colorMap[programType] || "bg-gray-500";
+    return colorMap[programType] || "bg-secondary";
+  };
+
+  // Helper function to get program icons
+  const getProgramIcon = (programType: string) => {
+    const iconMap: Record<string, React.ReactNode> = {
+      BSCS: <Cpu size={20} />,
+      BSIT: <Zap size={20} />,
+      BSIS: <Users size={20} />,
+      EE: <Target size={20} />,
+    };
+    return iconMap[programType] || <BookOpen size={20} />;
   };
 
   return (
-    <div className="results-page max-w-4xl mx-auto p-6 font-poppins">
+    <div
+      className="min-vh-100"
+      style={{
+        background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+        minHeight: "100vh",
+        fontFamily: "'Poppins', sans-serif",
+      }}
+    >
       <NavigationBar />
 
-      {/* Main Results Card */}
-      <div className="bg-white/10 backdrop-blur-md shadow-xl rounded-2xl p-8 mb-6 border border-gray-200">
-        {/* Student Information */}
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-gray-800 mb-2">
-            Assessment Results
-          </h2>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 text-lg text-gray-600">
-            <p>
-              <strong>Name:</strong>{" "}
-              <span className={nameColorClass}>{authUser?.fullName}</span>
-            </p>
-            <p>
-              <strong>Preferred Course:</strong>{" "}
-              <span className="text-blue-600">
-                {authUser?.preferredCourse || "Not specified"}
-              </span>
-            </p>
-          </div>
-        </div>
+      <div className="container-fluid py-4">
+        <div className="row justify-content-center">
+          <div className="col-xxl-10 col-xl-12 col-lg-12">
+            {/* Action Buttons */}
+            <div className="text-center mb-4">
+              <button
+                onClick={handleSaveAsDocument}
+                disabled={savingDocument}
+                className="btn btn-lg px-5 py-3 fw-bold me-3"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "12px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 25px rgba(164, 29, 49, 0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                {savingDocument ? (
+                  <>
+                    <div
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    >
+                      <span className="visually-hidden">Saving...</span>
+                    </div>
+                    Saving Document...
+                  </>
+                ) : (
+                  <>
+                    <Download size={20} className="me-2" />
+                    Save as Document
+                  </>
+                )}
+              </button>
 
-        {/* Summary Section */}
-        <div className="mb-8">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-            Summary
-          </h3>
-          <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-            <p className="text-lg text-gray-700 leading-relaxed">
-              {result.summary ||
-                "Based on your assessment, here are your results..."}
-            </p>
-          </div>
-        </div>
-
-        {/* Recommended Program */}
-        <div className="text-center mb-8">
-          <h3 className="text-xl font-medium text-gray-600 mb-2">
-            Recommended Program
-          </h3>
-          <div className="inline-block bg-gradient-to-r from-green-400 to-green-600 text-white px-8 py-4 rounded-full shadow-lg">
-            <span className="text-3xl font-bold">
-              {ProgramLabels[result.recommendedProgram]}
-            </span>
-          </div>
-          <p className="text-gray-500 mt-2">
-            Best match based on your skills and interests
-          </p>
-        </div>
-
-        {/* Toggle Detailed Explanation */}
-        <div className="text-center mb-6">
-          <button
-            onClick={() => setShowDetailedExplanation(!showDetailedExplanation)}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
-          >
-            {showDetailedExplanation
-              ? "Hide Detailed Explanation"
-              : "Show Detailed Explanation"}
-          </button>
-        </div>
-
-        {/* Detailed Explanation (Collapsible) */}
-        {showDetailedExplanation && (
-          <div className="space-y-6 animate-fadeIn">
-            {/* Evaluation */}
-            <div>
-              <h4 className="text-xl font-semibold text-blue-600 mb-3">
-                📊 Detailed Evaluation
-              </h4>
-              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-                <p className="text-gray-700 leading-relaxed">
-                  {result.evaluation}
-                </p>
-              </div>
+              <button
+                onClick={() => window.print()}
+                className="btn btn-lg px-5 py-3 fw-bold"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "12px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 25px rgba(28, 108, 179, 0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <FileText size={20} className="me-2" />
+                Print Results
+              </button>
             </div>
 
-            {/* Recommendations */}
-            <div>
-              <h4 className="text-xl font-semibold text-purple-600 mb-3">
-                💡 Personalized Recommendations
-              </h4>
-              <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-                <p className="text-gray-700 leading-relaxed">
-                  {result.recommendations}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Program Compatibility Chart */}
-      {result.percent && (
-        <div className="bg-white/10 backdrop-blur-md shadow-xl rounded-2xl p-8 border border-gray-200">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-2 text-center">
-            Program Compatibility
-          </h3>
-          <p className="text-gray-600 text-center mb-6">
-            This chart shows how well your skills and interests align with each
-            program. Higher percentages indicate better compatibility.
-          </p>
-
-          <div className="space-y-6">
-            {Object.entries(ProgramLabels).map(
-              ([programType, programLabel]) => {
-                const percentage =
-                  result.percent?.[
-                    programType as keyof typeof result.percent
-                  ] || 0;
-                const isRecommended = programType === result.recommendedProgram;
-
-                return (
-                  <div key={programType} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`text-lg font-medium ${
-                            isRecommended
-                              ? "text-green-600 font-bold"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {programLabel}
+            {/* Main Results Card */}
+            <div
+              className="card border-0 shadow-lg mb-4"
+              style={{
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(10px)",
+                borderRadius: "20px",
+              }}
+            >
+              <div className="card-body p-4 p-lg-5">
+                {/* Student Information */}
+                <div className="text-center mb-5">
+                  <div className="d-flex align-items-center justify-content-center mb-3">
+                    <Award size={40} className="text-primary me-3" />
+                    <h2
+                      className="card-title mb-0 fw-bold"
+                      style={{ color: "#2B3176", fontSize: "2.5rem" }}
+                    >
+                      Assessment Results
+                    </h2>
+                  </div>
+                  <div className="row justify-content-center g-3">
+                    <div className="col-md-6">
+                      <div className="bg-light rounded p-3">
+                        <strong style={{ color: "#2B3176" }}>
+                          Student Name:
+                        </strong>
+                        <br />
+                        <span className="fs-5" style={{ color: "#A41D31" }}>
+                          {authUser?.fullName || "Not specified"}
                         </span>
-                        {isRecommended && (
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold">
-                            RECOMMENDED
-                          </span>
-                        )}
                       </div>
-                      <span
-                        className={`text-lg font-semibold ${
-                          isRecommended ? "text-green-600" : "text-gray-700"
-                        }`}
-                      >
-                        {percentage}%
-                      </span>
                     </div>
-
-                    <div className="w-full bg-gray-200 rounded-full h-4 relative">
-                      <div
-                        className={`${getColorClass(
-                          programType
-                        )} h-4 rounded-full transition-all duration-1000 ease-out ${
-                          isRecommended
-                            ? "ring-2 ring-green-400 ring-opacity-50"
-                            : ""
-                        }`}
-                        style={{
-                          width: `${percentage}%`,
-                        }}
-                      ></div>
+                    <div className="col-md-6">
+                      <div className="bg-light rounded p-3">
+                        <strong style={{ color: "#2B3176" }}>
+                          Preferred Course:
+                        </strong>
+                        <br />
+                        <span className="fs-5" style={{ color: "#1C6CB3" }}>
+                          {authUser?.preferredCourse || "Not specified"}
+                        </span>
+                      </div>
                     </div>
+                  </div>
+                </div>
 
-                    {/* Compatibility Description */}
-                    <p className="text-sm text-gray-500 mt-1">
-                      {percentage >= 80 && "Excellent match with your profile"}
-                      {percentage >= 60 &&
-                        percentage < 80 &&
-                        "Strong compatibility with your skills"}
-                      {percentage >= 40 &&
-                        percentage < 60 &&
-                        "Moderate alignment with your interests"}
-                      {percentage >= 20 &&
-                        percentage < 40 &&
-                        "Some relevant aspects match"}
-                      {percentage < 20 &&
-                        "Limited compatibility based on current profile"}
+                {/* Summary Section */}
+                <div className="mb-5">
+                  <h3
+                    className="text-center mb-4 fw-bold"
+                    style={{ color: "#2B3176" }}
+                  >
+                    <BookOpen size={28} className="me-2" />
+                    Assessment Summary
+                  </h3>
+                  <div
+                    className="p-4 rounded"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
+                      border: "2px solid #2B3176",
+                    }}
+                  >
+                    <p className="fs-5 mb-0 text-dark text-center">
+                      {result.summary ||
+                        "Based on your comprehensive assessment, here are your personalized results and program recommendations..."}
                     </p>
                   </div>
-                );
-              }
+                </div>
+
+                {/* Recommended Program */}
+                <div className="text-center mb-5">
+                  <h3 className="mb-3" style={{ color: "#2B3176" }}>
+                    <Target size={24} className="me-2" />
+                    Recommended Program
+                  </h3>
+                  <div
+                    className="d-inline-block text-white px-5 py-3 rounded-pill shadow-lg"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                      border: "3px solid #2B3176",
+                    }}
+                  >
+                    <span className="fw-bold fs-2">
+                      {ProgramLabels[result.recommendedProgram]}
+                    </span>
+                  </div>
+                  <p className="text-muted mt-3 fs-5">
+                    Best match based on your skills, interests, and learning
+                    style
+                  </p>
+                </div>
+
+                {/* Toggle Detailed Explanation */}
+                <div className="text-center mb-4">
+                  <button
+                    onClick={() =>
+                      setShowDetailedExplanation(!showDetailedExplanation)
+                    }
+                    className="btn btn-lg px-5 py-3 fw-bold"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "12px",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 8px 25px rgba(28, 108, 179, 0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    {showDetailedExplanation ? (
+                      <>
+                        <ChevronUp size={20} className="me-2" />
+                        Hide Detailed Analysis
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown size={20} className="me-2" />
+                        Show Detailed Analysis
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Detailed Explanation (Collapsible) */}
+                {showDetailedExplanation && (
+                  <div className="row g-4 animate-fadeIn">
+                    {/* Evaluation */}
+                    <div className="col-lg-6">
+                      <div className="card border-0 h-100 shadow-sm">
+                        <div
+                          className="card-header py-3 text-white fw-bold"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+                            borderBottom: "3px solid #A41D31",
+                          }}
+                        >
+                          <BarChart3 size={20} className="me-2" />
+                          Detailed Evaluation
+                        </div>
+                        <div className="card-body p-4">
+                          <p
+                            className="text-dark mb-0"
+                            style={{ lineHeight: "1.6" }}
+                          >
+                            {result.evaluation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="col-lg-6">
+                      <div className="card border-0 h-100 shadow-sm">
+                        <div
+                          className="card-header py-3 text-white fw-bold"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                            borderBottom: "3px solid #2B3176",
+                          }}
+                        >
+                          <Target size={20} className="me-2" />
+                          Personalized Recommendations
+                        </div>
+                        <div className="card-body p-4">
+                          <p
+                            className="text-dark mb-0"
+                            style={{ lineHeight: "1.6" }}
+                          >
+                            {result.recommendations}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Program Compatibility Chart */}
+            {result.percent && (
+              <div
+                className="card border-0 shadow-lg"
+                style={{
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  borderRadius: "20px",
+                }}
+              >
+                <div className="card-body p-4 p-lg-5">
+                  <h3
+                    className="text-center mb-1 fw-bold"
+                    style={{ color: "#2B3176", fontSize: "2rem" }}
+                  >
+                    <BarChart3 size={32} className="me-3" />
+                    Program Compatibility
+                  </h3>
+                  <p className="text-center text-muted mb-4 fs-5">
+                    This chart shows how well your skills and interests align
+                    with each CCDI program
+                  </p>
+
+                  <div className="row g-4">
+                    {Object.entries(ProgramLabels).map(
+                      ([programType, programLabel]) => {
+                        const percentage =
+                          result.percent?.[
+                            programType as keyof typeof result.percent
+                          ] || 0;
+                        const isRecommended =
+                          programType === result.recommendedProgram;
+
+                        return (
+                          <div key={programType} className="col-lg-6">
+                            <div
+                              className="card border-0 h-100 shadow-sm"
+                              style={{
+                                borderLeft: `4px solid ${
+                                  programType === "BSCS"
+                                    ? "#2B3176"
+                                    : programType === "BSIT"
+                                    ? "#EC2326"
+                                    : programType === "BSIS"
+                                    ? "#1C6CB3"
+                                    : "#A41D31"
+                                }`,
+                              }}
+                            >
+                              <div className="card-body p-4">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                  <div className="d-flex align-items-center">
+                                    <span
+                                      className="me-2"
+                                      style={{
+                                        color:
+                                          programType === "BSCS"
+                                            ? "#2B3176"
+                                            : programType === "BSIT"
+                                            ? "#EC2326"
+                                            : programType === "BSIS"
+                                            ? "#1C6CB3"
+                                            : "#A41D31",
+                                      }}
+                                    >
+                                      {getProgramIcon(programType)}
+                                    </span>
+                                    <h5
+                                      className={`mb-0 fw-bold ${
+                                        isRecommended
+                                          ? "text-success"
+                                          : "text-dark"
+                                      }`}
+                                    >
+                                      {programLabel}
+                                    </h5>
+                                  </div>
+                                  <div className="text-end">
+                                    <span
+                                      className={`fw-bold fs-4 ${
+                                        isRecommended
+                                          ? "text-success"
+                                          : "text-dark"
+                                      }`}
+                                    >
+                                      {percentage}%
+                                    </span>
+                                    {isRecommended && (
+                                      <div
+                                        className="badge mt-1"
+                                        style={{
+                                          background:
+                                            "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                                          color: "white",
+                                        }}
+                                      >
+                                        RECOMMENDED
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div
+                                  className="progress mb-3"
+                                  style={{
+                                    height: "12px",
+                                    borderRadius: "10px",
+                                  }}
+                                >
+                                  <div
+                                    className={`progress-bar ${getColorClass(
+                                      programType
+                                    )}`}
+                                    style={{
+                                      width: `${percentage}%`,
+                                      borderRadius: "10px",
+                                      transition: "width 1s ease-in-out",
+                                    }}
+                                  ></div>
+                                </div>
+
+                                {/* Compatibility Description */}
+                                <p className="text-muted mb-0 small">
+                                  {percentage >= 80 &&
+                                    "🎯 Excellent match with your profile and career goals"}
+                                  {percentage >= 60 &&
+                                    percentage < 80 &&
+                                    "✅ Strong compatibility with your skills and interests"}
+                                  {percentage >= 40 &&
+                                    percentage < 60 &&
+                                    "📊 Moderate alignment with your assessment results"}
+                                  {percentage >= 20 &&
+                                    percentage < 40 &&
+                                    "ℹ️ Some relevant aspects match your profile"}
+                                  {percentage < 20 &&
+                                    "💡 Limited compatibility based on current assessment"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+
+                  {/* Legend */}
+                  <div
+                    className="mt-5 p-4 rounded"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
+                      border: "2px solid #2B3176",
+                    }}
+                  >
+                    <h5
+                      className="text-center mb-3 fw-bold"
+                      style={{ color: "#2B3176" }}
+                    >
+                      Compatibility Guide
+                    </h5>
+                    <div className="row text-center g-3">
+                      <div className="col-md-3">
+                        <div className="fw-bold text-success">80-100%</div>
+                        <small className="text-muted">Excellent Match</small>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="fw-bold text-primary">60-79%</div>
+                        <small className="text-muted">Strong Fit</small>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="fw-bold text-warning">40-59%</div>
+                        <small className="text-muted">Moderate Fit</small>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="fw-bold text-secondary">0-39%</div>
+                        <small className="text-muted">Limited Fit</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Custom CSS for animations */}
     </div>
   );
 };

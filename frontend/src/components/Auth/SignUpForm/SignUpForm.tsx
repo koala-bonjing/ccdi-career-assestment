@@ -1,7 +1,15 @@
 // src/components/Auth/SignupForm/SignupForm.tsx
 import React, { useState } from "react";
 import axios from "axios";
-import { Mail, Lock, User, Book, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Book,
+  CheckCircle,
+  AlertCircle,
+  Cpu,
+} from "lucide-react";
 import { BASE_URL } from "../../../config/constants";
 import "./SignUpForm.css";
 
@@ -106,11 +114,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     return (
       <div className="auth-container">
         <div className="auth-card">
-          <h2 className="auth-title">Verify Your Email</h2>
-          <p className="auth-subtitle">
-            We sent a 6-digit verification code to{" "}
-            <strong>{formData.email}</strong>
-          </p>
+          <div className="text-center mb-4">
+            <div className="d-flex align-items-center justify-content-center mb-3">
+              <Cpu size={32} className="text-primary me-2" />
+              <h2 className="auth-title mb-0">Verify Your Email</h2>
+            </div>
+            <p className="auth-subtitle">
+              We sent a 6-digit verification code to{" "}
+              <strong style={{ color: "#A41D31" }}>{formData.email}</strong>
+            </p>
+          </div>
 
           {message.text && (
             <div className={`message ${message.type}`}>
@@ -146,7 +159,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               disabled={loading || verificationCode.length !== 6}
               className="auth-button primary"
             >
-              {loading ? "Verifying..." : "Verify Email"}
+              {loading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                  ></span>
+                  Verifying...
+                </>
+              ) : (
+                "Verify Email"
+              )}
             </button>
 
             <div className="auth-links">
@@ -175,8 +198,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2 className="auth-title">Create Account</h2>
-        <p className="auth-subtitle">Sign up to start your career assessment</p>
+        <div className="text-center mb-4">
+          <div className="d-flex align-items-center justify-content-center mb-3">
+            <Cpu size={32} className="text-primary me-2" />
+            <h2 className="auth-title mb-0">Create Account</h2>
+          </div>
+          <p className="auth-subtitle">
+            Sign up to start your career assessment
+          </p>
+        </div>
 
         {message.text && (
           <div className={`message ${message.type}`}>
@@ -270,7 +300,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
             disabled={loading}
             className="auth-button primary"
           >
-            {loading ? "Creating Account..." : "Sign Up"}
+            {loading ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                ></span>
+                Creating Account...
+              </>
+            ) : (
+              "Sign Up"
+            )}
           </button>
 
           <div className="auth-links">

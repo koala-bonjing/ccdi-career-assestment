@@ -178,7 +178,8 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
       setAssessmentResult(result);
       
       if (result?.completed) {
-        // User has completed assessment, no need to show progress modal
+        // User has completed assessment, show results modal automatically
+        setShowResultsModal(true);
         setShowProgressModal(false);
       } else if (hasExistingProgress()) {
         setShowProgressModal(true);
@@ -286,7 +287,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
         </Modal.Body>
       </Modal>
 
-      {/* Results Available Modal */}
+      {/* Results Available Modal - Shows when user has already taken the test */}
       <Modal
         show={showResultsModal}
         onHide={() => setShowResultsModal(false)}

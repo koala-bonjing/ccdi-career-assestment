@@ -1,16 +1,17 @@
-/* styles/Auth/SignupForm.css */
+/* src/components/Auth/SignupForm/SignUpForm.css */
 .auth-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%);
   padding: 20px;
+  font-family: "Poppins", sans-serif;
 }
 
 .auth-card {
-  background: white;
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 40px;
   width: 100%;
@@ -22,17 +23,13 @@
 .auth-title {
   font-size: 28px;
   font-weight: 700;
-  color: #1a202c;
+  color: #2b3176;
   text-align: center;
   margin-bottom: 8px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .auth-subtitle {
-  color: #718096;
+  color: #6c757d;
   text-align: center;
   margin-bottom: 32px;
   font-size: 14px;
@@ -54,7 +51,7 @@
 .input-icon {
   position: absolute;
   left: 16px;
-  color: #a0aec0;
+  color: #6c757d;
   width: 18px;
   height: 18px;
   z-index: 10;
@@ -67,25 +64,26 @@
   border-radius: 12px;
   font-size: 14px;
   transition: all 0.3s ease;
-  background: #fafafa;
+  background: #f8f9fa;
   color: #2d3748;
+  font-family: "Poppins", sans-serif;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #2b3176;
   background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(43, 49, 118, 0.1);
   transform: translateY(-1px);
 }
 
 .input-field:hover {
-  border-color: #cbd5e0;
+  border-color: #1c6cb3;
   background: white;
 }
 
 .input-field::placeholder {
-  color: #a0aec0;
+  color: #6c757d;
 }
 
 /* Select dropdown styling */
@@ -119,8 +117,8 @@
 }
 
 .checkbox:checked {
-  background: #667eea;
-  border-color: #667eea;
+  background: #a41d31;
+  border-color: #a41d31;
 }
 
 .checkbox:checked::after {
@@ -136,7 +134,7 @@
 
 .checkbox:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 0 0 3px rgba(164, 29, 49, 0.2);
 }
 
 .checkbox-label {
@@ -148,8 +146,9 @@
 }
 
 .checkbox-label a {
-  color: #667eea;
+  color: #a41d31;
   text-decoration: none;
+  font-weight: 500;
 }
 
 .checkbox-label a:hover {
@@ -166,17 +165,20 @@
   transition: all 0.3s ease;
   text-transform: none;
   letter-spacing: normal;
+  font-family: "Poppins", sans-serif;
 }
 
 .auth-button.primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #a41d31 0%, #ec2326 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(164, 29, 49, 0.3);
+  border: none;
 }
 
 .auth-button.primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(164, 29, 49, 0.4);
+  background: linear-gradient(135deg, #ec2326 0%, #a41d31 100%);
 }
 
 .auth-button.primary:active:not(:disabled) {
@@ -195,7 +197,7 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #718096;
+  color: #6c757d;
   margin-top: 8px;
   flex-wrap: wrap;
 }
@@ -203,16 +205,17 @@
 .link-button {
   background: none;
   border: none;
-  color: #667eea;
+  color: #2b3176;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
   text-decoration: none;
   transition: color 0.2s ease;
+  font-family: "Poppins", sans-serif;
 }
 
 .link-button:hover:not(:disabled) {
-  color: #5a67d8;
+  color: #a41d31;
   text-decoration: underline;
 }
 
@@ -232,18 +235,19 @@
   font-weight: 500;
   margin-bottom: 20px;
   animation: slideIn 0.3s ease;
+  border: 1px solid;
 }
 
 .message.success {
-  background: #f0fff4;
-  color: #276749;
-  border: 1px solid #9ae6b4;
+  background: rgba(34, 197, 94, 0.1);
+  color: #166534;
+  border-color: #22c55e;
 }
 
 .message.error {
-  background: #fed7d7;
-  color: #c53030;
-  border: 1px solid #feb2b2;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: #ef4444;
 }
 
 @keyframes slideIn {
@@ -257,6 +261,13 @@
   }
 }
 
+/* Spinner styles */
+.spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+
 /* Responsive design */
 @media (max-width: 480px) {
   .auth-container {
@@ -264,28 +275,28 @@
     align-items: flex-start;
     padding-top: 40px;
   }
-  
+
   .auth-card {
     padding: 24px;
-    border-radius: 12px;
+    border-radius: 16px;
   }
-  
+
   .auth-title {
     font-size: 24px;
   }
-  
+
   .auth-subtitle {
     font-size: 13px;
   }
-  
+
   .input-field {
     padding: 14px 14px 14px 44px;
   }
-  
+
   .auth-button {
     padding: 14px 20px;
   }
-  
+
   .auth-links {
     flex-direction: column;
     gap: 4px;
@@ -314,58 +325,20 @@
 .checkbox:focus-visible,
 .link-button:focus-visible,
 .auth-button:focus-visible {
-  outline: 2px solid #667eea;
+  outline: 2px solid #2b3176;
   outline-offset: 2px;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .auth-card {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
-  
-  .auth-title {
-    color: #f7fafc;
-  }
-  
-  .auth-subtitle {
-    color: #cbd5e0;
-  }
-  
-  .input-field {
-    background: #4a5568;
-    border-color: #718096;
-    color: #f7fafc;
-  }
-  
-  .input-field:focus {
-    background: #2d3748;
-    border-color: #667eea;
-  }
-  
-  .input-field::placeholder {
-    color: #a0aec0;
-  }
-  
-  .checkbox-label {
-    color: #e2e8f0;
-  }
-  
-  .checkbox {
-    background: #4a5568;
-    border-color: #718096;
-  }
-  
-  .message.success {
-    background: #22543d;
-    color: #9ae6b4;
-    border-color: #38a169;
-  }
-  
-  .message.error {
-    background: #742a2a;
-    color: #feb2b2;
-    border-color: #e53e3e;
-  }
+/* CCDI Branding Enhancements */
+.text-primary {
+  color: #2b3176 !important;
+}
+
+/* Form validation styles */
+.input-field:invalid:not(:focus):not(:placeholder-shown) {
+  border-color: #ef4444;
+}
+
+.input-field:valid:not(:focus):not(:placeholder-shown) {
+  border-color: #22c55e;
 }

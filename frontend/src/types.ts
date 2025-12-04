@@ -22,22 +22,23 @@ export const ProgramLabels: Record<ProgramType, string> = {
   EE: "Technology Engineering (Electrical)",
 };
 
-export interface AssessmentAnswers {
-  academicAptitude: {
-    [question: string]: number;
-  };
-  technicalSkills: {
-    [question: string]: number;
-  };
-  careerInterest: {
-    [question: string]: number;
-  };
-  learningStyle: {
-    [question: string]: number;
-  };
+
+
+export interface Question {
+  _id: string;
+  questionText: string;
+  program?: string;
+  options?: string[];
 }
 
-// In your types.ts file
+export interface AssessmentQuestions {
+  academicAptitude: Question[];
+  technicalSkills: Question[];
+  careerInterest: Question[];
+  learningStyle: Question[];
+}
+
+
 
 export interface AssessmentResult {
   success: boolean;
@@ -90,4 +91,41 @@ export interface AssessmentFormProps {
   loading?: boolean;
   restoredFormData: AssessmentAnswers | null;
   onStartNew: () => void;
+}
+
+
+// src/types/assessment.ts
+export interface Question {
+  _id: string;
+  questionText: string;
+  program?: string;
+  options?: string[];
+}
+
+export interface AssessmentQuestions {
+  academicAptitude: Question[];
+  technicalSkills: Question[];
+  careerInterest: Question[];
+  learningStyle: Question[];
+}
+
+export interface AssessmentAnswers {
+  academicAptitude: Record<string, number>; // 1-5 for Likert scale
+  technicalSkills: Record<string, boolean>; // true/false for checkboxes
+  careerInterest: Record<string, number>; // 1-5 for Likert scale
+  learningStyle: Record<string, number>; // string for selected option
+}
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  preferredCourse: string;
+}
+
+export interface ProgramScores {
+  BSCS: number;
+  BSIT: number;
+  BSIS: number;
+  EE: number;
 }

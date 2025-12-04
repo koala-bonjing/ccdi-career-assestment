@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { ProgramLabels } from "../../types";
-import { getProgramTextColor } from "../../utils/colorUtils";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -19,19 +18,44 @@ import {
 } from "lucide-react";
 import { saveResultsAsDocument } from "../../hooks/saveResultsAsDocument";
 import "./ResultPage.css";
+
+// Define proper interfaces for the result data
+interface ProgramPercentages {
+  BSCS: number;
+  BSIT: number;
+  BSIS: number;
+  EE: number;
+}
+
+interface EvaluationResult {
+  recommendedProgram: string;
+  evaluation: string;
+  recommendations: string;
+  summary?: string;
+  percent?: ProgramPercentages;
+}
+
+interface AuthUser {
+  _id: string,
+  name: string,
+  fullName?: string;
+  preferredCourse?: string;
+  email?: string;
+  // Add other user properties as needed
+}
+
 const ResultsPage: React.FC = () => {
   const { result, loading, error } = useEvaluationStore();
-  const [currentSection, setCurrentSection] = useState(0);
-  const [showDetailedExplanation, setShowDetailedExplanation] = useState(false);
-  const [savingDocument, setSavingDocument] = useState(false);
+  const [showDetailedExplanation, setShowDetailedExplanation] = useState<boolean>(false);
+  const [savingDocument, setSavingDocument] = useState<boolean>(false);
   const { user: authUser } = useAuth();
 
-  const handleSaveAsDocument = async () => {
+  const handleSaveAsDocument = async (): Promise<void> => {
     if (!result || !authUser) return;
 
     setSavingDocument(true);
     try {
-      await saveResultsAsDocument(result, authUser);
+      await saveResultsAsDocument(result, authUser as AuthUser);
       // Optional: Show success toast
     } catch (error) {
       console.error("Error saving document:", error);
@@ -94,7 +118,21 @@ const ResultsPage: React.FC = () => {
     );
   }
 
-  if (!result) {
+  // Type guard to check if result is valid
+  const isValidResult = (result: unknown): result is EvaluationResult => {
+    return (
+      !!result &&
+      typeof result === 'object' &&
+      'recommendedProgram' in result &&
+      'evaluation' in result &&
+      'recommendations' in result &&
+      typeof (result as EvaluationResult).recommendedProgram === 'string' &&
+      typeof (result as EvaluationResult).evaluation === 'string' &&
+      typeof (result as EvaluationResult).recommendations === 'string'
+    );
+  };
+
+  if (!result || !isValidResult(result)) {
     return (
       <div
         className="min-vh-100"
@@ -108,10 +146,12 @@ const ResultsPage: React.FC = () => {
           <div className="text-center text-white">
             <div className="card bg-white bg-opacity-10 border-0 p-5">
               <div className="card-body">
-                <h3 className="text-white mb-3">No Results Yet</h3>
+                <h3 className="text-white mb-3">No Results Available</h3>
                 <p className="text-white-50 mb-4">
-                  Please complete the assessment to see your personalized
-                  results.
+                  {!result 
+                    ? "Please complete the assessment to see your personalized results."
+                    : "The assessment results are incomplete or invalid. Please try the assessment again."
+                  }
                 </p>
                 <button
                   className="btn btn-primary"
@@ -127,38 +167,8 @@ const ResultsPage: React.FC = () => {
     );
   }
 
-  // Additional safety checks
-  if (
-    !result.recommendedProgram ||
-    !result.evaluation ||
-    !result.recommendations
-  ) {
-    console.error("❌ Invalid result data:", result);
-    return (
-      <div
-        className="min-vh-100"
-        style={{
-          background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
-          minHeight: "100vh",
-        }}
-      >
-        <NavigationBar />
-        <div className="d-flex justify-content-center align-items-center min-vh-100">
-          <div className="text-center text-white">
-            <div className="alert alert-warning">
-              <h4>Invalid Result Data</h4>
-              <p>Please try the assessment again.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const nameColorClass = getProgramTextColor(result.recommendedProgram);
-
   // Helper function to get color classes for progress bars
-  const getColorClass = (programType: string) => {
+  const getColorClass = (programType: string): string => {
     const colorMap: Record<string, string> = {
       BSCS: "bg-primary",
       BSIT: "bg-warning",
@@ -169,7 +179,7 @@ const ResultsPage: React.FC = () => {
   };
 
   // Helper function to get program icons
-  const getProgramIcon = (programType: string) => {
+  const getProgramIcon = (programType: string): React.ReactNode => {
     const iconMap: Record<string, React.ReactNode> = {
       BSCS: <Cpu size={20} />,
       BSIT: <Zap size={20} />,
@@ -177,6 +187,31 @@ const ResultsPage: React.FC = () => {
       EE: <Target size={20} />,
     };
     return iconMap[programType] || <BookOpen size={20} />;
+  };
+
+  // Safe percentage calculation with proper typing
+  const getPercentage = (programType: string): number => {
+    if (!result.percent) return 0;
+    
+    // Use type assertion to safely access the percentage
+    const programKey = programType as keyof ProgramPercentages;
+    const percentage = result.percent[programKey];
+    
+    return typeof percentage === 'number' ? Math.max(0, Math.min(100, percentage)) : 0;
+  };
+
+  // Get compatibility description
+  const getCompatibilityDescription = (percentage: number): string => {
+    if (percentage >= 80) return "🎯 Excellent match with your profile and career goals";
+    if (percentage >= 60) return "✅ Strong compatibility with your skills and interests";
+    if (percentage >= 40) return "📊 Moderate alignment with your assessment results";
+    if (percentage >= 20) return "ℹ️ Some relevant aspects match your profile";
+    return "💡 Limited compatibility based on current assessment";
+  };
+
+  // Type-safe program type checker
+  const isValidProgramType = (programType: string): programType is keyof typeof ProgramLabels => {
+    return programType in ProgramLabels;
   };
 
   return (
@@ -290,7 +325,7 @@ const ResultsPage: React.FC = () => {
                         </strong>
                         <br />
                         <span className="fs-5" style={{ color: "#A41D31" }}>
-                          {authUser?.fullName || "Not specified"}
+                          {(authUser as AuthUser)?.fullName || "Not specified"}
                         </span>
                       </div>
                     </div>
@@ -301,7 +336,7 @@ const ResultsPage: React.FC = () => {
                         </strong>
                         <br />
                         <span className="fs-5" style={{ color: "#1C6CB3" }}>
-                          {authUser?.preferredCourse || "Not specified"}
+                          {(authUser as AuthUser)?.preferredCourse || "Not specified"}
                         </span>
                       </div>
                     </div>
@@ -347,12 +382,14 @@ const ResultsPage: React.FC = () => {
                     }}
                   >
                     <span className="fw-bold fs-2">
-                      {ProgramLabels[result.recommendedProgram]}
+                      {isValidProgramType(result.recommendedProgram) 
+                        ? ProgramLabels[result.recommendedProgram] 
+                        : result.recommendedProgram
+                      }
                     </span>
                   </div>
                   <p className="text-muted mt-3 fs-5">
-                    Best match based on your skills, interests, and learning
-                    style
+                    Best match based on your skills, interests, and learning style
                   </p>
                 </div>
 
@@ -478,10 +515,7 @@ const ResultsPage: React.FC = () => {
                   <div className="row g-4">
                     {Object.entries(ProgramLabels).map(
                       ([programType, programLabel]) => {
-                        const percentage =
-                          result.percent?.[
-                            programType as keyof typeof result.percent
-                          ] || 0;
+                        const percentage = getPercentage(programType);
                         const isRecommended =
                           programType === result.recommendedProgram;
 
@@ -576,19 +610,7 @@ const ResultsPage: React.FC = () => {
 
                                 {/* Compatibility Description */}
                                 <p className="text-muted mb-0 small">
-                                  {percentage >= 80 &&
-                                    "🎯 Excellent match with your profile and career goals"}
-                                  {percentage >= 60 &&
-                                    percentage < 80 &&
-                                    "✅ Strong compatibility with your skills and interests"}
-                                  {percentage >= 40 &&
-                                    percentage < 60 &&
-                                    "📊 Moderate alignment with your assessment results"}
-                                  {percentage >= 20 &&
-                                    percentage < 40 &&
-                                    "ℹ️ Some relevant aspects match your profile"}
-                                  {percentage < 20 &&
-                                    "💡 Limited compatibility based on current assessment"}
+                                  {getCompatibilityDescription(percentage)}
                                 </p>
                               </div>
                             </div>
@@ -638,8 +660,6 @@ const ResultsPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Custom CSS for animations */}
     </div>
   );
 };

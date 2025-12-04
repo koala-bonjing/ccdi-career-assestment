@@ -6,15 +6,22 @@ import { useAuth } from "../../../context/AuthContext"
 import { useUserStore } from "../../../../store/useUserStore";
 
 interface AuthComponentProps {
-  initialMode: 'signup' | 'login'; // Restrict to specific values
+  initialMode: 'signup' | 'login';
+}
+
+interface UserData {
+  id: string;
+  fullName: string;
+  email: string;
+  preferredCourse: string;
 }
 
 const AuthComponent: React.FC<AuthComponentProps> = ({ initialMode }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState<boolean>(initialMode === 'login');
   const { login } = useAuth();
   const { setCurrentUser } = useUserStore();
 
-  const handleLoginSuccess = (userData: any) => {
+  const handleLoginSuccess = (userData: UserData): void => {
     // Update both auth context and user store
     login(userData);
     setCurrentUser({

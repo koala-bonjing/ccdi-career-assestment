@@ -10,12 +10,19 @@ interface AuthPageProps {
   initialMode?: 'login' | 'signup';
 }
 
+interface UserData {
+  id: string;
+  fullName: string;
+  email: string;
+  preferredCourse: string;
+}
+
 const AuthPage: React.FC<AuthPageProps> = ({ initialMode = 'login' }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLoginSuccess = (user: any) => {
+  const handleLoginSuccess = (user: UserData) => {
     login(user);
     navigate('/welcome'); // Redirect to welcome screen after successful login
   };

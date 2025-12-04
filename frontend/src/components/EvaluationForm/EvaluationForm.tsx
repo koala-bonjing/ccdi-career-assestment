@@ -1,6 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useEffect, useState } from "react";
-import type { EvaluationResult } from "../../types";
+import type { 
+  EvaluationResult, 
+  AssessmentResult, 
+  ProgramType, 
+  AssessmentAnswers, 
+  User,
+  ProgramScores 
+} from "../../types";
 import { BASE_URL } from "../../config/constants";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
@@ -10,13 +17,15 @@ import AssessmentForm from "../AssestmentForm/AssessmentForm";
 import ResultsPage from "../ResultPage/ResultPage";
 import WelcomeScreenComponent from "../WelcomeScreen/WelcomePage";
 import AuthComponent from "../Auth/AuthComponent/AuthComponent";
-import type {
-  AssessmentResult,
-  ProgramType,
-  AssessmentAnswers,
-} from "../../types";
 import LoadingSpinner from "../LoadingSpinner/index";
 import axios from "axios";
+
+interface SubmissionData {
+  answers: AssessmentAnswers;
+  programScores: ProgramScores;
+  recommendedProgram: string;
+}
+
 
 const genAI = new GoogleGenerativeAI(
   import.meta.env.REACT_APP_GEMINI_API_KEY ||
@@ -37,26 +46,23 @@ const EvaluationForm = () => {
 
   const { isAuthenticated, user: authUser } = useAuth();
 
-  // Simple state management - no complex hooks
-  const [restoredFormData, setRestoredFormData] =
-    useState<AssessmentAnswers | null>(null);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [restoredFormData, setRestoredFormData] = useState<AssessmentAnswers | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
 
-  // Simple data loading on mount
   useEffect(() => {
     if (isAuthenticated) {
       loadSavedData();
     }
   }, [isAuthenticated]);
 
-  const loadSavedData = () => {
+  const loadSavedData = (): void => {
     try {
       const savedAnswers = localStorage.getItem("evaluation-answers");
       if (savedAnswers) {
-        const parsed = JSON.parse(savedAnswers);
+        const parsed: AssessmentAnswers = JSON.parse(savedAnswers);
         console.log("📥 Loaded saved answers:", parsed);
 
-        // Convert to form data structure
         const formData: AssessmentAnswers = {
           academicAptitude: parsed.academicAptitude || {},
           technicalSkills: parsed.technicalSkills || {},
@@ -66,7 +72,6 @@ const EvaluationForm = () => {
 
         setRestoredFormData(formData);
 
-        // Also update the store
         const flatData = flattenAnswers(formData);
         setStoreAnswer(flatData);
       }
@@ -77,21 +82,33 @@ const EvaluationForm = () => {
     }
   };
 
-  const flattenAnswers = (nested: AssessmentAnswers): Record<string, any> => {
-    const flat: Record<string, any> = {};
+  const flattenAnswers = (nested: AssessmentAnswers): Record<string, string | number | boolean> => {
+    const flat: Record<string, string | number | boolean> = {};
 
-    Object.entries(nested).forEach(([section, questions]) => {
-      Object.entries(questions).forEach(([question, value]) => {
-        flat[`${section}.${question}`] = value;
-      });
+    // Academic Aptitude (numbers)
+    Object.entries(nested.academicAptitude).forEach(([question, value]) => {
+      flat[`academicAptitude.${question}`] = value;
+    });
+
+    // Technical Skills (booleans)
+    Object.entries(nested.technicalSkills).forEach(([question, value]) => {
+      flat[`technicalSkills.${question}`] = value;
+    });
+
+    // Career Interest (numbers)
+    Object.entries(nested.careerInterest).forEach(([question, value]) => {
+      flat[`careerInterest.${question}`] = value;
+    });
+
+    // Learning Style (numbers)
+    Object.entries(nested.learningStyle).forEach(([question, value]) => {
+      flat[`learningStyle.${question}`] = value;
     });
 
     return flat;
   };
 
-  // Handle starting new assessment
-  const handleStartNew = () => {
-    // Clear all data
+  const handleStartNew = (): void => {
     localStorage.removeItem("evaluation-answers");
     localStorage.removeItem("currentAssessmentSection");
     clearAllAnswers();
@@ -105,40 +122,7 @@ const EvaluationForm = () => {
     console.log("🆕 Started new assessment");
   };
 
-  // Simple conditional renders
-  if (!isAuthenticated) {
-    return (
-      <div className="evaluation-form">
-        <ToastContainer />
-        <AuthComponent />
-      </div>
-    );
-  }
-
-  if (showWelcome) {
-    return <WelcomeScreenComponent onStartNew={handleStartNew} />;
-  }
-
-  if (result) {
-    return (
-      <div className="evaluation-form">
-        <ToastContainer />
-        <ResultsPage />
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="evaluation-form">
-        <ToastContainer />
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  // Format answers for AI (keep your existing formatAnswers function)
-  const formatAnswers = (answers: Record<string, any>) => {
+  const formatAnswers = (answers: Record<string, string | number | boolean>): string => {
     return Object.entries(answers)
       .map(([question, value]) => {
         if (typeof value === "number") {
@@ -149,19 +133,19 @@ const EvaluationForm = () => {
         }
         return `- ${question}: ${value}`;
       })
-      .filter(Boolean)
+      .filter((line): line is string => line !== null)
       .join("\n");
   };
 
-  const handleSubmitAnswers = async (submissionData: any) => {
+  const handleSubmitAnswers = async (submissionData: SubmissionData): Promise<void> => {
     console.log("🚀 Submitting assessment...");
 
-    const { answers, programScores, recommendedProgram } = submissionData;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { answers, programScores } = submissionData;
     setLoading(true);
     setError(null);
 
     try {
-      // Auto-save the answers before submission
       localStorage.setItem("evaluation-answers", JSON.stringify(answers));
 
       const flatAnswers = flattenAnswers(answers);
@@ -181,9 +165,7 @@ const EvaluationForm = () => {
 
         STUDENT INFORMATION:
         - Name: ${authUser?.fullName || "Student"}
-        - Preferred Course Interest: ${
-          authUser?.preferredCourse || "Not specified"
-        }
+        - Preferred Course Interest: ${authUser?.preferredCourse || "Not specified"}
 
         STUDENT ANSWERS:
         ${formatted}
@@ -214,7 +196,7 @@ const EvaluationForm = () => {
       const aiResponse = await model.generateContent(prompt);
       const raw = aiResponse.response.text();
 
-      let cleanedResponse = raw.replace(/```json|```/g, "").trim();
+      const cleanedResponse = raw.replace(/```json|```/g, "").trim();
       const parsed: EvaluationResult = JSON.parse(cleanedResponse);
 
       const transformed: AssessmentResult = {
@@ -236,11 +218,9 @@ const EvaluationForm = () => {
 
       setResult(transformed);
 
-      // Clear saved data after successful submission
       localStorage.removeItem("evaluation-answers");
       localStorage.removeItem("currentAssessmentSection");
 
-      // Try to save to backend (optional)
       try {
         await axios.post(`${BASE_URL}/api/save-evaluation`, {
           userId: authUser?.id,
@@ -252,34 +232,69 @@ const EvaluationForm = () => {
           percent: parsed.percent,
           programScores: programScores,
         });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (saveError) {
         console.warn("⚠️ Failed to save to backend, but continuing...");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Evaluation error:", err);
-      setError(
-        `Failed to generate evaluation: ${err.message || "Please try again."}`
-      );
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : "Please try again.";
+      setError(`Failed to generate evaluation: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="evaluation-form">
+        <ToastContainer />
+        <AuthComponent initialMode={"login"} />
+      </div>
+    );
+  }
+
+  if (showWelcome) {
+    return <WelcomeScreenComponent onStartNew={handleStartNew} />;
+  }
+
+  if (result) {
+    return (
+      <div className="evaluation-form">
+        <ToastContainer />
+        <ResultsPage />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="evaluation-form">
+        <ToastContainer />
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  const currentUser: User = {
+    _id: authUser?.id || "temp-id",
+    name: authUser?.fullName || "Student",
+    email: authUser?.email || "",
+    preferredCourse: authUser?.preferredCourse || "Undecided",
+  };
+
   return (
     <div className="evaluation-form">
-
+      <ToastContainer />
       <AssessmentForm
-        currentUser={{
-          _id: authUser?.id || "temp-id",
-          name: authUser?.fullName || "Student",
-          email: authUser?.email || "",
-          preferredCourse: authUser?.preferredCourse || "Undecided",
-        }}
-        setCurrentUser={() => {}} // You can remove this if not needed
+        currentUser={currentUser}
+        setCurrentUser={() => {}} // Optional: remove if not used
         onSubmit={handleSubmitAnswers}
         loading={loading}
         restoredFormData={restoredFormData}
-        onStartNew={handleStartNew} // Add this prop
+        onStartNew={handleStartNew}
       />
     </div>
   );

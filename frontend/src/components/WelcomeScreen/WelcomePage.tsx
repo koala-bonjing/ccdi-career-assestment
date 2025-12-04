@@ -25,7 +25,6 @@ import {
   BarChart3,
   Timer,
   History,
-  Rocket,
   X,
   Sparkles,
   ArrowRight,
@@ -52,6 +51,13 @@ interface AssessmentResult {
   completionDate?: string;
 }
 
+interface AssessmentAnswers {
+  academicAptitude: Record<string, number | boolean>;
+  technicalSkills: Record<string, number | boolean>;
+  careerInterest: Record<string, number | boolean>;
+  learningStyle: Record<string, number | boolean>;
+}
+
 function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
   const { hideWelcome } = useWelcomeScreen();
   const { user, isAuthenticated } = useAuth();
@@ -66,16 +72,17 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
     setIndex(selectedIndex);
   };
 
-  const hasExistingProgress = () => {
+  const hasExistingProgress = (): boolean => {
     try {
       const savedAnswers = localStorage.getItem("evaluation-answers");
       if (!savedAnswers) return false;
 
-      const answers = JSON.parse(savedAnswers);
+      const answers: AssessmentAnswers = JSON.parse(savedAnswers);
       return Object.values(answers).some(
-        (section: any) => Object.keys(section).length > 0
+        (section: Record<string, number | boolean>) => Object.keys(section).length > 0
       );
     } catch (error) {
+      console.error("Error checking existing progress:", error);
       return false;
     }
   };
@@ -93,7 +100,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
         // Try to get score data if available
         const scoreData = localStorage.getItem("assessment-score");
         if (scoreData) {
-          const scoreInfo = JSON.parse(scoreData);
+          const scoreInfo: { score: number; totalQuestions: number } = JSON.parse(scoreData);
           result.score = scoreInfo.score;
           result.totalQuestions = scoreInfo.totalQuestions;
         }
@@ -101,7 +108,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
         // Try to get recommendations if available
         const recommendations = localStorage.getItem("assessment-recommendations");
         if (recommendations) {
-          const recData = JSON.parse(recommendations);
+          const recData: { recommendedPaths: string[]; strengths: string[] } = JSON.parse(recommendations);
           result.recommendedPaths = recData.recommendedPaths;
           result.strengths = recData.strengths;
         }
@@ -115,8 +122,10 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
     }
   };
 
-  const handleStartAssessment = () => {
-    if (assessmentResult?.completed) {
+  const handleStartAssessment = (): void => {
+    const result = checkAssessmentCompletion();
+    
+    if (result?.completed) {
       // If already completed, show results modal
       setShowResultsModal(true);
     } else if (hasExistingProgress()) {
@@ -126,7 +135,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
     }
   };
 
-  const startNewAssessment = () => {
+  const startNewAssessment = (): void => {
     if (onStartNew) {
       onStartNew();
     } else {
@@ -141,18 +150,18 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
     navigate("/assessment");
   };
 
-  const continueAssessment = () => {
+  const continueAssessment = (): void => {
     hideWelcome();
     navigate("/assessment");
   };
 
-  const viewResults = () => {
+  const viewResults = (): void => {
     setShowResultsModal(false);
     hideWelcome();
     navigate("/results");
   };
 
-  const retakeAssessment = () => {
+  const retakeAssessment = (): void => {
     // Clear all assessment data
     localStorage.removeItem("evaluation-answers");
     localStorage.removeItem("currentAssessmentSection");
@@ -166,7 +175,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
     startNewAssessment();
   };
 
-  const continueToResults = () => {
+  const continueToResults = (): void => {
     setShowResultsModal(false);
     hideWelcome();
     navigate("/results");
@@ -483,7 +492,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
                         <div className="completion-badge mt-3">
                           <Badge bg="success" className="modern-completion-badge">
                             <Award size={14} className="me-1" />
-                            Assessment Completed • {assessmentResult.completionDate}
+                            Assessment Completed • {assessmentResult?.completionDate}
                           </Badge>
                         </div>
                       )}
@@ -495,7 +504,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
                     <div className="results-section mb-5">
                       <Row className="g-4">
                         {/* Score Card */}
-                        {assessmentResult.score !== undefined && (
+                        {assessmentResult?.score !== undefined && (
                           <Col md={6}>
                             <Card className="result-card h-100">
                               <Card.Body className="text-center p-4">
@@ -525,7 +534,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
                         )}
 
                         {/* Recommended Paths */}
-                        {assessmentResult.recommendedPaths && assessmentResult.recommendedPaths.length > 0 && (
+                        {assessmentResult?.recommendedPaths && assessmentResult.recommendedPaths.length > 0 && (
                           <Col md={6}>
                             <Card className="result-card h-100">
                               <Card.Body className="p-4">
@@ -552,7 +561,7 @@ function WelcomeScreenComponent({ onStartNew }: WelcomeScreenComponentProps) {
                         )}
 
                         {/* Strengths */}
-                        {assessmentResult.strengths && assessmentResult.strengths.length > 0 && (
+                        {assessmentResult?.strengths && assessmentResult.strengths.length > 0 && (
                           <Col md={12}>
                             <Card className="result-card">
                               <Card.Body className="p-4">

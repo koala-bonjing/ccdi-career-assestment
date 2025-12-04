@@ -14,27 +14,23 @@ import {
   Shield,
 } from "lucide-react";
 import { BASE_URL } from "../../../config/constants";
+import type { LoginFormProps, FormData, Message } from "./types/login";
 import { useNavigate } from "react-router-dom";
-
-interface LoginFormProps {
-  onSwitchToSignup: () => void;
-  onLoginSuccess: (user: any) => void;
-}
 
 const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToSignup,
   onLoginSuccess,
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const [loading, setLoading] = useState<boolean>(false);
+  const [message, setMessage] = useState<Message>({ type: "", text: "" });
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setMessage({ type: "", text: "" });
@@ -47,14 +43,29 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       // Call the success handler which will update auth context and navigate
       onLoginSuccess(response.data.user);
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Login failed",
-      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setMessage({
+          type: "error",
+          text: error.response?.data?.message || "Login failed",
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: "Login failed",
+        });
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
@@ -243,13 +254,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   </span>
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     className="form-control border-start-0"
                     placeholder="Enter your email"
                     value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
@@ -269,13 +279,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   </span>
                   <input
                     id="password"
+                    name="password"
                     type="password"
                     className="form-control border-start-0"
                     placeholder="Enter your password"
                     value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
@@ -292,12 +301,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   border: "none",
                   transition: "all 0.3s ease",
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.currentTarget.style.background =
                     "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)";
                   e.currentTarget.style.transform = "translateY(-2px)";
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.currentTarget.style.background =
                     "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)";
                   e.currentTarget.style.transform = "translateY(0)";

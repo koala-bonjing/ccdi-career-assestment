@@ -4,13 +4,11 @@ import {
   Packer,
   Paragraph,
   TextRun,
-  HeadingLevel,
   AlignmentType,
   Table,
   TableCell,
   TableRow,
   WidthType,
-  ShadingType,
 } from "docx";
 import { saveAs } from "file-saver";
 import type { User } from "../types";

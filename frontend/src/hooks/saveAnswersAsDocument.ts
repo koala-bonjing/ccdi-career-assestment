@@ -1,33 +1,45 @@
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
 import { Bounce, toast } from "react-toastify";
-import { categoryTitles } from "../../src/config/constants";
+import { categoryTitles } from "../config/constants";
+import type { AssessmentAnswers, User, ProgramScores } from "../types";
+
+interface SaveAnswersParams {
+  formData: AssessmentAnswers;
+  programScores: ProgramScores;
+  currentSection: number;
+  sections: string[];
+  currentUser: User | null;
+}
+
+interface AnswerLabels {
+  [key: number]: string;
+}
 
 /**
  * Save answers as a Word document (.docx)
  */
-export const saveAnswersAsDocument = async (
-  formData: any,
-  programScores: any,
-  currentSection: number,
-  sections: string[],
-  currentUser: any // Add currentUser parameter
-) => {
+export const saveAnswersAsDocument = async ({
+  formData,
+  currentUser,
+}: SaveAnswersParams): Promise<void> => {
   try {
     const timestamp = new Date().toISOString();
-    const sectionTitle = categoryTitles[sections[currentSection]];
 
     // Helper function to format answers for display
-    const formatAnswers = (answers: any) => {
-      const paragraphs = [];
+    const formatAnswers = (answers: AssessmentAnswers): Paragraph[] => {
+      const paragraphs: Paragraph[] = [];
 
-      // Process each section (academicAptitude, technicalSkills, etc.)
+      // Process each section
       for (const [sectionKey, sectionData] of Object.entries(answers)) {
+        const typedSectionKey = sectionKey as keyof AssessmentAnswers;
+        const sectionTitle = categoryTitles[typedSectionKey] || typedSectionKey;
+
         paragraphs.push(
           new Paragraph({
             children: [
               new TextRun({
-                text: `${categoryTitles[sectionKey] || sectionKey}:`,
+                text: `${sectionTitle}:`,
                 bold: true,
                 size: 24,
               }),
@@ -37,33 +49,47 @@ export const saveAnswersAsDocument = async (
         );
 
         // Process each question in the section
-        for (const [question, answer] of Object.entries(
-          sectionData as object
-        )) {
+        for (const [question, answer] of Object.entries(sectionData)) {
           let answerText = "";
 
-          // Format the answer based on its type
-          if (typeof answer === "boolean") {
+          // Format the answer based on its type and section
+          if (typedSectionKey === "technicalSkills") {
+            // Boolean answers for technical skills
             answerText = answer ? "Yes" : "No";
-          } else if (typeof answer === "number") {
-            // For numeric answers (Likert scale)
-            const labels =
-              sectionKey === "careerInterest"
-                ? [
-                    "Strongly Matches",
-                    "Matches",
-                    "Neutral",
-                    "Partially Matches",
-                    "Does Not Match",
-                  ]
-                : [
-                    "Strongly Disagree",
-                    "Disagree",
-                    "Neutral",
-                    "Agree",
-                    "Strongly Agree",
-                  ];
-            answerText = labels[answer - 1] || `Rating: ${answer}`;
+          } else if (
+            typedSectionKey === "academicAptitude" ||
+            typedSectionKey === "careerInterest" ||
+            typedSectionKey === "learningStyle"
+          ) {
+            // Numeric answers (Likert scale) for all three sections
+            const labels: AnswerLabels = {
+              1:
+                typedSectionKey === "careerInterest"
+                  ? "Strongly Matches"
+                  : "Strongly Agree", // ✅ Fixed: 1 = Strongly Agree
+              2: typedSectionKey === "careerInterest" ? "Matches" : "Agree", // ✅ Fixed: 2 = Agree
+              3: "Neutral",
+              4:
+                typedSectionKey === "careerInterest"
+                  ? "Partially Matches"
+                  : "Disagree", // ✅ Fixed: 4 = Disagree
+              5:
+                typedSectionKey === "careerInterest"
+                  ? "Does Not Match"
+                  : "Strongly Disagree", // ✅ Fixed: 5 = Strongly Disagree
+            };
+
+            // Ensure the answer is a number and within valid range
+            const numericAnswer = Number(answer);
+            if (
+              !isNaN(numericAnswer) &&
+              numericAnswer >= 1 &&
+              numericAnswer <= 5
+            ) {
+              answerText = labels[numericAnswer];
+            } else {
+              answerText = `Rating: ${answer}`;
+            }
           } else {
             answerText = String(answer || "Not answered");
           }
@@ -76,7 +102,7 @@ export const saveAnswersAsDocument = async (
                   size: 20,
                 }),
               ],
-              indent: { left: 400 }, // Indent for better readability
+              indent: { left: 400 },
               spacing: { after: 50 },
             })
           );
@@ -93,6 +119,10 @@ export const saveAnswersAsDocument = async (
 
       return paragraphs;
     };
+
+    // Debug: Log the actual form data to see what's being saved
+    console.log("📋 Form Data being saved:", formData);
+    console.log("🎯 Learning Style answers:", formData.learningStyle);
 
     // Build the document
     const doc = new Document({
@@ -114,10 +144,7 @@ export const saveAnswersAsDocument = async (
               children: [
                 new TextRun({
                   text: `Student Name: ${
-                    currentUser?.name ||
-                    currentUser?.username ||
-                    currentUser?.email ||
-                    "Not specified"
+                    currentUser?.name || currentUser?.email || "Not specified"
                   }`,
                   bold: true,
                   size: 24,
@@ -132,7 +159,18 @@ export const saveAnswersAsDocument = async (
                   size: 22,
                 }),
               ],
-              spacing: { after: 200 },
+              spacing: { after: 100 },
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Preferred Course: ${
+                    currentUser?.preferredCourse || "Not specified"
+                  }`,
+                  size: 22,
+                }),
+              ],
+              spacing: { after: 100 },
             }),
             new Paragraph({
               children: [
@@ -144,18 +182,8 @@ export const saveAnswersAsDocument = async (
               ],
               spacing: { after: 200 },
             }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `Current Section: ${sectionTitle}`,
-                  bold: true,
-                  size: 26,
-                }),
-              ],
-              spacing: { after: 300 },
-            }),
 
-            // --- Answers Section ---
+            // Answers Section
             new Paragraph({
               children: [
                 new TextRun({
@@ -174,12 +202,10 @@ export const saveAnswersAsDocument = async (
 
     // Generate and trigger download
     const blob = await Packer.toBlob(doc);
-    saveAs(
-      blob,
-      `assessment-${currentUser?.name || currentUser?.username || "student"}-${
-        timestamp.split("T")[0]
-      }.docx`
-    );
+    const fileName = `assessment-${currentUser?.name || "student"}-${
+      timestamp.split("T")[0]
+    }.docx`;
+    saveAs(blob, fileName);
 
     // Success toast
     toast.success("Document saved successfully!", {

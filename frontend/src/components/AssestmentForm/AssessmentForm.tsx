@@ -1,5 +1,5 @@
 // src/components/AssestmentForm/AssessmentForm.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, type JSX } from "react";
 import {
   Container,
   Row,
@@ -12,13 +12,17 @@ import {
   Alert,
   Spinner,
   Badge,
-  ListGroup,
 } from "react-bootstrap";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./AssestmentForm.css";
-import type { User, AssessmentAnswers, AssessmentFormProps } from "../../types";
+import type {
+  AssessmentAnswers,
+  AssessmentFormProps,
+  Question,
+  User,
+} from "../../types";
 import {
   BookOpen,
   Wrench,
@@ -32,14 +36,26 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { categoryTitles, sections, choiceLabels } from "../../config/constants";
+import { useAssessmentValidation } from "../../hooks/useAssessmentValidation";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
 import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
-import { saveAnswersAsDocument } from "../../hooks/saveAsDocsFile";
+import { saveAnswersAsDocument } from "../../hooks/saveAnswersAsDocument";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
+
+interface ProgramScores {
+  BSCS: number;
+  BSIT: number;
+  BSIS: number;
+  EE: number;
+}
+
+interface SectionColors {
+  bg: string;
+  text: string;
+}
 
 const AssessmentForm: React.FC<AssessmentFormProps> = ({
   currentUser,
-  setCurrentUser,
   onSubmit,
   loading,
   restoredFormData,
@@ -52,14 +68,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     error,
   } = useAssessmentQuestions();
 
-  // Simple form data initialization
   const [formData, setFormData] = useState<AssessmentAnswers>(() => {
     if (restoredFormData) {
       console.log("🔄 Using restored form data");
       return restoredFormData;
     }
 
-    // Try to load from localStorage as fallback
     try {
       const saved = localStorage.getItem("evaluation-answers");
       if (saved) {
@@ -77,9 +91,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     };
   });
 
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [currentSection, setCurrentSection] = useState(() => {
-    // Load current section from localStorage or default to 0
+  const [showResetModal, setShowResetModal] = useState<boolean>(false);
+  const [currentSection, setCurrentSection] = useState<number>(() => {
     try {
       const savedSection = localStorage.getItem("currentAssessmentSection");
       return savedSection ? parseInt(savedSection) : 0;
@@ -87,16 +100,15 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       return 0;
     }
   });
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showReview, setShowReview] = useState(false);
-  const [programScores, setProgramScores] = useState({
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [showReview, setShowReview] = useState<boolean>(false);
+  const [programScores, setProgramScores] = useState<ProgramScores>({
     BSCS: 0,
     BSIT: 0,
     BSIS: 0,
     EE: 0,
   });
 
-  // Auto-save to localStorage whenever formData or currentSection changes
   useEffect(() => {
     localStorage.setItem("evaluation-answers", JSON.stringify(formData));
     localStorage.setItem("currentAssessmentSection", currentSection.toString());
@@ -104,7 +116,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const section = sections[currentSection];
 
-  const getCurrentQuestions = () => {
+  const getCurrentQuestions = (): Question[] => {
     if (!questions) return [];
 
     switch (section) {
@@ -124,79 +136,69 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const currentQuestions = getCurrentQuestions();
   const currentQuestion = currentQuestions[currentQuestionIndex];
 
-  // Simple progress calculation
-  const calculateProgress = (section: keyof AssessmentAnswers) => {
+  const calculateProgress = (sectionKey: keyof AssessmentAnswers): number => {
     const sectionQuestions = getCurrentQuestions();
     if (!sectionQuestions.length) return 0;
 
-    if (section === "technicalSkills") {
-      // For technical skills, progress is based on number of selected skills
-      const selectedCount = Object.values(formData[section]).filter(
+    if (sectionKey === "technicalSkills") {
+      const selectedCount = Object.values(formData[sectionKey]).filter(
         (val) => val === true
       ).length;
       return Math.round((selectedCount / sectionQuestions.length) * 100);
     } else {
-      // For other sections, progress is based on answered questions
-      const answeredCount = sectionQuestions.filter(
-        (q) =>
-          formData[section][q.questionText] !== undefined &&
-          formData[section][q.questionText] !== null &&
-          formData[section][q.questionText] !== ""
-      ).length;
+      const answeredCount = sectionQuestions.filter((q) => {
+        const answer = formData[sectionKey][q.questionText];
+        return typeof answer === "number" && answer >= 1 && answer <= 5;
+      }).length;
       return Math.round((answeredCount / sectionQuestions.length) * 100);
     }
   };
 
-  // Get count of selected technical skills
-  const getSelectedSkillsCount = () => {
+  const getSelectedSkillsCount = (): number => {
     return Object.values(formData.technicalSkills).filter((val) => val === true)
       .length;
   };
 
   const handleChange = (
-    section: keyof AssessmentAnswers,
+    sectionKey: keyof AssessmentAnswers,
     questionText: string,
-    value: string | boolean | number,
+    value: number | boolean,
     program?: string
-  ) => {
+  ): void => {
     setFormData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
+      [sectionKey]: {
+        ...prev[sectionKey],
         [questionText]: value,
       },
     }));
 
-    const storeKey = `${section}.${questionText}`;
+    const storeKey = `${sectionKey}.${questionText}`;
     updateAnswer(storeKey, value);
 
     if (typeof value === "number" && value >= 1 && value <= 5 && program) {
       setProgramScores((prev) => {
         const newScores = { ...prev };
         const scoreToAdd = (value - 1) * 2;
-        newScores[program as keyof typeof programScores] += scoreToAdd;
+        newScores[program as keyof ProgramScores] += scoreToAdd;
         return newScores;
       });
     }
   };
 
-  const isLearningStyleComplete = () => {
+  const isLearningStyleComplete = (): boolean => {
     if (section !== "learningStyle") return true;
 
     const learningAnswers = formData.learningStyle;
     const learningQuestions = questions?.learningStyle || [];
 
-    return learningQuestions.every(
-      (question) =>
-        learningAnswers[question.questionText] !== undefined &&
-        learningAnswers[question.questionText] !== null &&
-        learningAnswers[question.questionText] !== ""
-    );
+    return learningQuestions.every((question) => {
+      const answer = learningAnswers[question.questionText];
+      return typeof answer === "number" && answer >= 1 && answer <= 5;
+    });
   };
 
-  // Simple reset function
-  const handleStartNewAssessment = () => {
-    // Reset all state
+  const handleStartNewAssessment = (): void => {
     setFormData({
       academicAptitude: {},
       technicalSkills: {},
@@ -214,14 +216,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       EE: 0,
     });
 
-    // Clear storage
     localStorage.removeItem("evaluation-answers");
     localStorage.removeItem("currentAssessmentSection");
 
-    // Clear store
     clearAllAnswers();
 
-    // Call parent if provided
     if (onStartNew) {
       onStartNew();
     }
@@ -229,125 +228,15 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     console.log("🆕 Started new assessment - all data cleared");
   };
 
-  const saveAnswersLocally = () => {
-    try {
-      const timestamp = new Date().toISOString();
-      const dataToSave = {
-        answers: formData,
-        programScores,
-        timestamp: timestamp,
-        section: categoryTitles[sections[currentSection]],
-        currentSection: currentSection,
-      };
+  const { validateSection } = useAssessmentValidation({
+    formData,
+    section: sections[currentSection],
+    currentQuestions,
+    setCurrentQuestionIndex,
+    categoryTitles,
+  });
 
-      const blob = new Blob([JSON.stringify(dataToSave, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `assessment-answers-${timestamp.split("T")[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast.success("Answers saved successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-        style: {
-          backgroundColor: "rgba(34, 197, 94, 0.3)",
-          backdropFilter: "blur(6px)",
-          border: "2px solid #22c55e",
-          color: "#fff",
-          fontWeight: "bold",
-          fontSize: "14px",
-          borderRadius: "8px",
-          fontFamily: "Poppins",
-        },
-        transition: Bounce,
-      });
-    } catch (error) {
-      toast.error("Failed to save answers. Please try again.", {
-        position: "top-right",
-        autoClose: 3000,
-        style: {
-          backgroundColor: "rgba(239, 68, 68, 0.3)",
-          backdropFilter: "blur(6px)",
-          border: "2px solid #ef4444",
-          color: "#fff",
-          fontWeight: "bold",
-          fontSize: "14px",
-          borderRadius: "8px",
-          fontFamily: "Poppins",
-        },
-        transition: Bounce,
-      });
-    }
-  };
-
-  const validateSection = (): boolean => {
-    const answers = formData[section];
-
-    if (
-      section === "academicAptitude" ||
-      section === "careerInterest" ||
-      section === "learningStyle"
-    ) {
-      const firstUnansweredIndex = currentQuestions.findIndex(
-        (q) =>
-          answers[q.questionText] === undefined ||
-          answers[q.questionText] === ""
-      );
-
-      if (firstUnansweredIndex !== -1) {
-        const sectionName = categoryTitles[section];
-        toast.warning(`Please answer all ${sectionName} questions.`, {
-          position: "top-right",
-          autoClose: 3000,
-          style: {
-            backgroundColor: "rgba(33, 150, 243, 0.3)",
-            backdropFilter: "blur(6px)",
-            border: "2px solid #2196F3",
-            color: "#fff",
-            fontWeight: "bold",
-            fontSize: "14px",
-            borderRadius: "8px",
-            fontFamily: "Poppins",
-          },
-          transition: Bounce,
-        });
-
-        setCurrentQuestionIndex(firstUnansweredIndex);
-        return false;
-      }
-    }
-
-    if (section === "technicalSkills") {
-      const hasAtLeastOne = Object.values(answers).some((val) => val === true);
-      if (!hasAtLeastOne) {
-        toast.warning("Please select at least one Technical Skill.", {
-          position: "top-right",
-          style: {
-            backgroundColor: "rgba(255, 140, 0, 0.35)",
-            color: "#fff",
-            border: "2px solid rgba(255, 120, 0, 0.7)",
-            borderRadius: "10px",
-            fontWeight: "500",
-            fontFamily: "Poppins",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            boxShadow: "0 4px 20px rgba(255, 120, 0, 0.4)",
-          },
-        });
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  const handleNext = () => {
+  const handleNext = (): void => {
     if (validateSection()) {
       if (currentSection === 3 && !isLearningStyleComplete()) {
         toast.warning(
@@ -380,14 +269,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = (): void => {
     if (currentSection > 0) {
       setCurrentSection((prev) => prev - 1);
       setCurrentQuestionIndex(0);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     if (validateSection()) {
       const submissionData = {
@@ -395,11 +284,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         programScores,
         recommendedProgram: getRecommendedProgram(programScores),
       };
-      onSubmit(submissionData); // This should match the interface
+      onSubmit(submissionData);
     }
   };
 
-  const getRecommendedProgram = (scores: typeof programScores) => {
+  const getRecommendedProgram = (scores: ProgramScores): string => {
     const entries = Object.entries(scores);
     const highest = entries.reduce((max, current) =>
       current[1] > max[1] ? current : max
@@ -407,20 +296,24 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     return highest[0];
   };
 
-  const navigateToSection = (sectionIndex: number) => {
+  const navigateToSection = (sectionIndex: number): void => {
     setCurrentSection(sectionIndex);
     setCurrentQuestionIndex(0);
     setShowReview(false);
   };
-
+  
   const getAnswerLabel = (
-    section: keyof AssessmentAnswers,
-    question: string,
-    value: any
+    sectionKey: keyof AssessmentAnswers,
+    _question: string,
+    value: number | boolean | null | undefined
   ): string => {
-    if (section === "academicAptitude" || section === "careerInterest") {
+    if (
+      sectionKey === "academicAptitude" ||
+      sectionKey === "careerInterest" ||
+      sectionKey === "learningStyle"
+    ) {
       const labels =
-        section === "careerInterest"
+        sectionKey === "careerInterest"
           ? [
               "Strongly Matches",
               "Matches",
@@ -429,29 +322,31 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               "Does Not Match",
             ]
           : [
-              "Strongly Disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly Agree",
+              "Strongly Agree", // Value 1
+              "Agree", // Value 2
+              "Neutral", // Value 3
+              "Disagree", // Value 4
+              "Strongly Disagree", // Value 5
             ];
 
-      return labels[value - 1] || "Not Answered";
+      if (typeof value === "number" && value >= 1 && value <= 5) {
+        // Use direct mapping - no inversion needed
+        return labels[value - 1];
+      }
+      return "Not Answered";
     }
 
-    if (section === "technicalSkills") {
-      return value ? "Yes" : "No";
+    if (sectionKey === "technicalSkills") {
+      if (typeof value === "boolean") {
+        return value ? "Yes" : "No";
+      }
+      return "No";
     }
 
-    if (section === "learningStyle") {
-      return value || "Not answered";
-    }
-
-    return value?.toString() || "Not answered";
+    return "Not answered";
   };
 
-  // Reset button component
-  const renderResetButton = () => (
+  const renderResetButton = (): JSX.Element => (
     <div className="text-center mt-4">
       <Button
         variant="outline-danger"
@@ -465,9 +360,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     </div>
   );
 
-  const renderReviewSection = () => {
-    const getQuestionsBySection = (sectionKey: string) => {
+  const renderReviewSection = (): JSX.Element => {
+    const getQuestionsBySection = (sectionKey: string): Question[] => {
       if (!questions) return [];
+
       switch (sectionKey) {
         case "academicAptitude":
           return questions.academicAptitude || [];
@@ -482,72 +378,105 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       }
     };
 
+    const sectionColors: SectionColors[] = [
+      {
+        bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+        text: "white",
+      },
+      {
+        bg: "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)",
+        text: "white",
+      },
+      {
+        bg: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
+        text: "white",
+      },
+      {
+        bg: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+        text: "white",
+      },
+    ];
+
     return (
       <Card className="border-0 shadow-lg review-card">
-        <Card.Header 
+        <Card.Header
           className="text-white text-center py-4"
           style={{
             background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
-            borderBottom: "3px solid #A41D31"
+            borderBottom: "3px solid #A41D31",
           }}
         >
           <Card.Title className="mb-0 d-flex align-items-center justify-content-center fs-2 fw-bold">
             <Eye size={32} className="me-3" />
             Review Your Answers
           </Card.Title>
-          <p className="mb-0 mt-2 opacity-75">Please review all your answers before submitting</p>
+          <p className="mb-0 mt-2 opacity-75">
+            Please review all your answers before submitting
+          </p>
         </Card.Header>
-        
+
         <Card.Body className="p-4 p-lg-5">
-          {/* Progress Summary */}
           <Row className="mb-5">
             <Col md={8} className="mx-auto">
-              <Card 
+              <Card
                 className="border-0"
                 style={{
-                  background: "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
-                  border: "2px solid #2B3176"
+                  background:
+                    "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
+                  border: "2px solid #2B3176",
                 }}
               >
                 <Card.Body className="text-center p-4">
-                  <h5 
-                    className="fw-bold mb-3"
-                    style={{ color: "#2B3176" }}
-                  >
+                  <h5 className="fw-bold mb-3" style={{ color: "#2B3176" }}>
                     Assessment Progress Summary
                   </h5>
                   <Row className="g-3">
-                    {sections.map((sectionKey, index) => {
-                      const sectionQuestions = getQuestionsBySection(sectionKey);
-                      const answeredCount = sectionQuestions.filter(
-                        q => formData[sectionKey][q.questionText] !== undefined && 
-                             formData[sectionKey][q.questionText] !== "" && 
-                             formData[sectionKey][q.questionText] !== null
-                      ).length;
+                    {sections.map((sectionKey) => {
+                      const sectionQuestions =
+                        getQuestionsBySection(sectionKey);
+                      const answeredCount = sectionQuestions.filter((q) => {
+                        const answer = formData[sectionKey][q.questionText];
+                        if (
+                          sectionKey === "academicAptitude" ||
+                          sectionKey === "careerInterest" ||
+                          sectionKey === "learningStyle"
+                        ) {
+                          return (
+                            typeof answer === "number" &&
+                            answer >= 1 &&
+                            answer <= 5
+                          );
+                        }
+                        if (sectionKey === "technicalSkills") {
+                          return answer === true;
+                        }
+                        return false;
+                      }).length;
                       const totalCount = sectionQuestions.length;
-                      
+
                       return (
                         <Col md={6} key={sectionKey}>
-                          <div 
+                          <div
                             className="d-flex justify-content-between align-items-center p-3 rounded"
                             style={{
                               background: "white",
-                              border: "2px solid #e9ecef"
+                              border: "2px solid #e9ecef",
                             }}
                           >
-                            <span 
+                            <span
                               className="fw-semibold"
                               style={{ color: "#2B3176" }}
                             >
                               {categoryTitles[sectionKey]}
                             </span>
-                            <Badge 
+                            <Badge
                               style={{
-                                background: answeredCount === totalCount 
-                                  ? "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)"
-                                  : "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
+                                background:
+                                  answeredCount === totalCount
+                                    ? "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)"
+                                    : "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
                                 color: "white",
-                                border: "none"
+                                border: "none",
                               }}
                               className="fs-6 p-2"
                             >
@@ -563,35 +492,39 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             </Col>
           </Row>
 
-          {/* Answers Grid */}
           <Row className="g-4 review-answers-grid">
             {sections.map((sectionKey, sectionIndex) => {
               const sectionQuestions = getQuestionsBySection(sectionKey);
-              const answeredQuestions = sectionQuestions.filter(
-                q => formData[sectionKey][q.questionText] !== undefined && 
-                     formData[sectionKey][q.questionText] !== "" && 
-                     formData[sectionKey][q.questionText] !== null
-              );
-              
-              // Define CCDI color themes for each section
-              const sectionColors = [
-                { bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)", text: "white" }, // Academic Aptitude
-                { bg: "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)", text: "white" }, // Technical Skills
-                { bg: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)", text: "white" }, // Career Interest
-                { bg: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)", text: "white" }  // Learning Style
-              ];
-              
+              const answeredQuestions = sectionQuestions.filter((q) => {
+                const answer = formData[sectionKey][q.questionText];
+                if (
+                  sectionKey === "academicAptitude" ||
+                  sectionKey === "careerInterest" ||
+                  sectionKey === "learningStyle"
+                ) {
+                  return (
+                    typeof answer === "number" && answer >= 1 && answer <= 5
+                  );
+                }
+                if (sectionKey === "technicalSkills") {
+                  return answer === true;
+                }
+                return false;
+              });
+
               const currentColor = sectionColors[sectionIndex];
-              
+
               return (
                 <Col xl={6} lg={12} key={sectionKey}>
                   <Card className="h-100 shadow-sm review-section-card">
-                    <Card.Header 
+                    <Card.Header
                       className="d-flex justify-content-between align-items-center py-3"
                       style={{
                         background: currentColor.bg,
                         color: currentColor.text,
-                        borderBottom: `3px solid ${sectionIndex === 1 ? '#2B3176' : '#EC2326'}`
+                        borderBottom: `3px solid ${
+                          sectionIndex === 1 ? "#2B3176" : "#EC2326"
+                        }`,
                       }}
                     >
                       <h5 className="mb-0 fw-bold">
@@ -605,34 +538,36 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         style={{
                           background: "rgba(255, 255, 255, 0.9)",
                           color: "#2B3176",
-                          border: "2px solid rgba(255, 255, 255, 0.5)"
+                          border: "2px solid rgba(255, 255, 255, 0.5)",
                         }}
                       >
                         <Edit size={16} className="me-1" />
                         Edit
                       </Button>
                     </Card.Header>
-                    
+
                     <Card.Body className="p-3 p-md-4 review-section-body">
                       {sectionKey === "technicalSkills" ? (
                         <div className="technical-skills-review">
-                          <h6 
+                          <h6
                             className="fw-bold mb-3 text-center"
                             style={{ color: "#2B3176" }}
                           >
-                            Selected Technical Skills ({answeredQuestions.length})
+                            Selected Technical Skills (
+                            {answeredQuestions.length})
                           </h6>
                           {answeredQuestions.length > 0 ? (
                             <div className="skills-container">
                               <div className="d-flex flex-wrap gap-2 justify-content-center skills-badge-container">
                                 {answeredQuestions.map((skill) => (
-                                  <Badge 
-                                    key={skill._id} 
+                                  <Badge
+                                    key={skill._id}
                                     className="skill-badge"
                                     style={{
-                                      background: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                                      background:
+                                        "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
                                       color: "white",
-                                      border: "2px solid #2B3176"
+                                      border: "2px solid #2B3176",
                                     }}
                                   >
                                     {skill.questionText}
@@ -641,18 +576,20 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               </div>
                             </div>
                           ) : (
-                            <div 
+                            <div
                               className="text-center py-3"
                               style={{ color: "#6c757d" }}
                             >
                               <AlertCircle size={32} className="mb-2" />
-                              <p className="mb-0">No technical skills selected</p>
+                              <p className="mb-0">
+                                No technical skills selected
+                              </p>
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className="review-questions-container">
-                          <h6 
+                          <h6
                             className="fw-bold mb-3 text-center"
                             style={{ color: "#2B3176" }}
                           >
@@ -661,40 +598,52 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                           {answeredQuestions.length > 0 ? (
                             <div className="questions-list">
                               {answeredQuestions.map((question, qIndex) => {
-                                const answer = formData[sectionKey][question.questionText];
+                                const answer =
+                                  formData[sectionKey][question.questionText];
                                 return (
-                                  <Card 
-                                    key={question._id} 
+                                  <Card
+                                    key={question._id}
                                     className="mb-3 border-0 question-answer-card"
                                     style={{
-                                      background: "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
-                                      borderLeft: `4px solid ${sectionIndex === 0 ? '#2B3176' : sectionIndex === 1 ? '#EC2326' : sectionIndex === 2 ? '#1C6CB3' : '#A41D31'}`
+                                      background:
+                                        "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
+                                      borderLeft: `4px solid ${
+                                        sectionIndex === 0
+                                          ? "#2B3176"
+                                          : sectionIndex === 1
+                                          ? "#EC2326"
+                                          : sectionIndex === 2
+                                          ? "#1C6CB3"
+                                          : "#A41D31"
+                                      }`,
                                     }}
                                   >
                                     <Card.Body className="p-3">
                                       <div className="d-flex align-items-start">
-                                        <Badge 
+                                        <Badge
                                           className="me-3 mt-1 flex-shrink-0 question-number"
                                           style={{
-                                            background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
-                                            color: "white"
+                                            background:
+                                              "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+                                            color: "white",
                                           }}
                                         >
                                           {qIndex + 1}
                                         </Badge>
                                         <div className="flex-grow-1">
-                                          <p 
+                                          <p
                                             className="fw-semibold mb-2 question-text"
                                             style={{ color: "#2B3176" }}
                                           >
                                             {question.questionText}
                                           </p>
-                                          <Badge 
+                                          <Badge
                                             className="answer-badge"
                                             style={{
-                                              background: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
+                                              background:
+                                                "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
                                               color: "white",
-                                              border: "1px solid #A41D31"
+                                              border: "1px solid #A41D31",
                                             }}
                                           >
                                             {getAnswerLabel(
@@ -711,12 +660,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                               })}
                             </div>
                           ) : (
-                            <div 
+                            <div
                               className="text-center py-4"
                               style={{ color: "#6c757d" }}
                             >
                               <AlertCircle size={32} className="mb-2" />
-                              <p className="mb-0">No questions answered in this section</p>
+                              <p className="mb-0">
+                                No questions answered in this section
+                              </p>
                             </div>
                           )}
                         </div>
@@ -728,27 +679,21 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             })}
           </Row>
 
-          {/* Action Section */}
-          <div 
+          <div
             className="text-center mt-5 p-4 rounded action-section"
             style={{
               background: "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
-              border: "3px solid #2B3176"
+              border: "3px solid #2B3176",
             }}
           >
-            <h4 
-              className="mb-3"
-              style={{ color: "#2B3176" }}
-            >
+            <h4 className="mb-3" style={{ color: "#2B3176" }}>
               Ready to Submit Your Assessment?
             </h4>
-            <p 
-              className="mb-4"
-              style={{ color: "#6c757d" }}
-            >
-              Please ensure all answers are correct before submitting. You can edit any section by clicking the "Edit" button.
+            <p className="mb-4" style={{ color: "#6c757d" }}>
+              Please ensure all answers are correct before submitting. You can
+              edit any section by clicking the "Edit" button.
             </p>
-            
+
             <div className="d-flex gap-3 justify-content-center flex-wrap action-buttons">
               <Button
                 variant="outline-secondary"
@@ -758,7 +703,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 style={{
                   border: "2px solid #6c757d",
                   color: "#6c757d",
-                  background: "white"
+                  background: "white",
                 }}
               >
                 ← Back to Assessment
@@ -769,12 +714,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 disabled={loading}
                 className="px-4 py-2 action-btn"
                 style={{
-                  background: loading 
+                  background: loading
                     ? "linear-gradient(135deg, #6c757d 0%, #495057 100%)"
                     : "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
                   color: "white",
                   border: "none",
-                  opacity: loading ? 0.7 : 1
+                  opacity: loading ? 0.7 : 1,
                 }}
               >
                 {loading ? (
@@ -800,19 +745,19 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 variant="outline-primary"
                 size="lg"
                 onClick={() => {
-                  saveAnswersAsDocument(
+                  saveAnswersAsDocument({
                     formData,
                     programScores,
                     currentSection,
                     sections,
-                    currentUser
-                  );
+                    currentUser: currentUser as User,
+                  });
                 }}
                 className="px-4 py-2 action-btn"
                 style={{
                   background: "white",
                   color: "#2B3176",
-                  border: "2px solid #2B3176"
+                  border: "2px solid #2B3176",
                 }}
               >
                 <Download size={20} className="me-2" />
@@ -821,21 +766,19 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             </div>
           </div>
 
-          {/* Reset Button */}
           {renderResetButton()}
         </Card.Body>
       </Card>
     );
   };
 
-  // Common section layout component to reduce repetition
   const renderQuestionSection = (
     sectionType: keyof AssessmentAnswers,
     sectionTitle: string,
     icon: React.ReactNode,
     variant: string,
     renderQuestions: () => React.ReactNode
-  ) => (
+  ): JSX.Element => (
     <Card className="border-0 shadow-lg w-100">
       <Card.Header className={`bg-${variant} text-white text-center py-4`}>
         <Card.Title className="mb-0 d-flex align-items-center justify-content-center fs-2">
@@ -844,7 +787,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </Card.Title>
       </Card.Header>
       <Card.Body className="p-5">
-        {/* Progress Info */}
         <Row className="align-items-center mb-4">
           <Col md={4}>
             <Badge bg={variant} className="fs-6 p-3">
@@ -902,7 +844,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </Col>
         </Row>
 
-        {/* Progress Bar */}
         <ProgressBar
           now={calculateProgress(sectionType)}
           className="mb-5"
@@ -910,7 +851,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           style={{ height: "12px" }}
         />
 
-        {/* Question Content */}
         {sectionType !== "technicalSkills" && (
           <div className="text-center mb-5">
             <Form.Group>
@@ -921,11 +861,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </div>
         )}
 
-        {/* Questions */}
         {renderQuestions()}
       </Card.Body>
 
-      {/* Navigation */}
       <Card.Footer className="bg-transparent border-0 py-4">
         <Row className="align-items-center">
           <Col md={4}>
@@ -971,13 +909,12 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           </Col>
         </Row>
 
-        {/* Reset Button */}
         {renderResetButton()}
       </Card.Footer>
     </Card>
   );
 
-  const renderAcademicAptitudeSection = () =>
+  const renderAcademicAptitudeSection = (): JSX.Element =>
     renderQuestionSection(
       "academicAptitude",
       "Academic Aptitude",
@@ -987,7 +924,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         <div className="row justify-content-center">
           <div className="col-lg-8">
             <div className="d-grid gap-3">
-              {[1, 2, 3, 4, 5].map((val, index) => (
+              {[1, 2, 3, 4, 5].map((val) => (
                 <Form.Check
                   key={val}
                   type="radio"
@@ -1028,7 +965,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       )
     );
 
-  const renderTechnicalSkillsSection = () =>
+  const renderTechnicalSkillsSection = (): JSX.Element =>
     renderQuestionSection(
       "technicalSkills",
       "Technical Skills",
@@ -1048,14 +985,14 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               </p>
             </div>
             <div className="d-grid gap-3">
-              {currentQuestions.map((skill, index) => (
+              {currentQuestions.map((skill) => (
                 <Form.Check
                   key={skill._id}
                   type="checkbox"
                   id={`skill-${skill._id}`}
                   label={<span className="fs-5">{skill.questionText}</span>}
                   checked={!!formData.technicalSkills[skill.questionText]}
-                  onChange={(e) =>
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     handleChange(
                       "technicalSkills",
                       skill.questionText,
@@ -1072,7 +1009,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       )
     );
 
-  const renderCareerInterestSection = () =>
+  const renderCareerInterestSection = (): JSX.Element =>
     renderQuestionSection(
       "careerInterest",
       "Career Interest",
@@ -1082,7 +1019,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         <div className="row justify-content-center">
           <div className="col-lg-8">
             <div className="d-grid gap-3">
-              {[1, 2, 3, 4, 5].map((val, index) => (
+              {[1, 2, 3, 4, 5].map((val) => (
                 <Form.Check
                   key={val}
                   type="radio"
@@ -1115,7 +1052,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       )
     );
 
-  const renderLearningStyleSection = () =>
+  const renderLearningStyleSection = (): JSX.Element =>
     renderQuestionSection(
       "learningStyle",
       "Learning Style",
@@ -1125,23 +1062,35 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         <div className="row justify-content-center">
           <div className="col-lg-8">
             <div className="d-grid gap-3">
-              {currentQuestion?.options?.map((opt, index) => (
+              {[1, 2, 3, 4, 5].map((val) => (
                 <Form.Check
-                  key={opt}
+                  key={val}
                   type="radio"
                   name={`learning-question-${currentQuestionIndex}`}
-                  id={`learning-${currentQuestionIndex}-${index}`}
-                  label={<span className="fs-5">{opt}</span>}
+                  id={`learning-${currentQuestionIndex}-${val}`}
+                  label={
+                    <span className="fs-5">
+                      {
+                        [
+                          "Strongly Agree",
+                          "Agree",
+                          "Neutral",
+                          "Disagree",
+                          "Strongly Disagree",
+                        ][val - 1]
+                      }
+                    </span>
+                  }
                   checked={
                     formData.learningStyle[
                       currentQuestion?.questionText || ""
-                    ] === opt
+                    ] === val
                   }
                   onChange={() =>
                     handleChange(
                       "learningStyle",
                       currentQuestion?.questionText || "",
-                      opt,
+                      val,
                       currentQuestion?.program
                     )
                   }
@@ -1277,7 +1226,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         </Row>
       </Container>
 
-      {/* Reset Confirmation Modal */}
       <Modal
         show={showResetModal}
         onHide={() => setShowResetModal(false)}

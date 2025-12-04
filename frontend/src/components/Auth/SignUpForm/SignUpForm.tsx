@@ -11,26 +11,28 @@ import {
   Cpu,
 } from "lucide-react";
 import { BASE_URL } from "../../../config/constants";
+import type {
+  SignupFormProps,
+  FormData,
+  Message,
+  Course,
+} from "./types/sign-up";
 import "./SignUpForm.css";
-
-interface SignupFormProps {
-  onSwitchToLogin: () => void;
-}
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const [step, setStep] = useState<"signup" | "verify">("signup");
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     password: "",
     preferredCourse: "Undecided",
     agreeToTerms: false,
   });
-  const [verificationCode, setVerificationCode] = useState("");
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const [verificationCode, setVerificationCode] = useState<string>("");
+  const [message, setMessage] = useState<Message>({ type: "", text: "" });
 
-  const courses = [
+  const courses: Course[] = [
     { value: "Undecided", label: "I'm not sure yet" },
     { value: "BSCS", label: "Computer Science (BSCS)" },
     { value: "BSIT", label: "Information Technology (BSIT)" },
@@ -38,7 +40,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     { value: "EE", label: "Electrical Engineering (EE)" },
   ];
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setMessage({ type: "", text: "" });
@@ -59,17 +61,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       );
       setMessage({ type: "success", text: response.data.message });
       setStep("verify");
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Signup failed",
-      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setMessage({
+          type: "error",
+          text: error.response?.data?.message || "Signup failed",
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: "Signup failed",
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerification = async (e: React.FormEvent) => {
+  const handleVerification = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setMessage({ type: "", text: "" });
@@ -80,31 +89,44 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       });
       setMessage({ type: "success", text: response.data.message });
       setTimeout(() => {
-        // After successful verification, switch to login
         onSwitchToLogin();
       }, 2000);
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Verification failed",
-      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setMessage({
+          type: "error",
+          text: error.response?.data?.message || "Verification failed",
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: "Verification failed",
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResendCode = async () => {
+  const handleResendCode = async (): Promise<void> => {
     setLoading(true);
     try {
       const response = await axios.post(`${BASE_URL}/api/auth/resend-code`, {
         email: formData.email,
       });
       setMessage({ type: "success", text: response.data.message });
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Failed to resend code",
-      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setMessage({
+          type: "error",
+          text: error.response?.data?.message || "Failed to resend code",
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: "Failed to resend code",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -143,7 +165,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                 type="text"
                 placeholder="Enter 6-digit code"
                 value={verificationCode}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setVerificationCode(
                     e.target.value.replace(/\D/g, "").slice(0, 6)
                   )
@@ -226,7 +248,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               type="text"
               placeholder="Full Name"
               value={formData.fullName}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, fullName: e.target.value })
               }
               required
@@ -240,7 +262,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               type="email"
               placeholder="Email Address"
               value={formData.email}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, email: e.target.value })
               }
               required
@@ -254,7 +276,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               type="password"
               placeholder="Password (min. 6 characters)"
               value={formData.password}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               minLength={6}
@@ -267,12 +289,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
             <Book className="input-icon" />
             <select
               value={formData.preferredCourse}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                 setFormData({ ...formData, preferredCourse: e.target.value })
               }
               className="input-field"
             >
-              {courses.map((course) => (
+              {courses.map((course: Course) => (
                 <option key={course.value} value={course.value}>
                   {course.label}
                 </option>
@@ -285,7 +307,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               type="checkbox"
               id="agreeToTerms"
               checked={formData.agreeToTerms}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, agreeToTerms: e.target.checked })
               }
               className="checkbox"

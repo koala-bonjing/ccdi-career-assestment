@@ -3,59 +3,67 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { BASE_URL } from "../config/constants";
 
+export interface Question {
+  _id: string;
+  questionText: string;
+  program: string;
+  weight: number;
+  options?: string[];
+}
+
 export interface BackendQuestions {
-  academicAptitude: Array<{
-    _id: string;
-    questionText: string;
-    program: string;
-    weight: number;
-    options: string[];
-  }>;
-  technicalSkills: Array<{
-    _id: string;
-    questionText: string;
-    program: string;
-    weight: number;
-    options: string[];
-  }>;
-  careerInterest: Array<{
-    _id: string;
-    questionText: string;
-    program: string;
-    weight: number;
-    options: string[];
-  }>;
-  learningStyle: Array<{
-    _id: string;
-    questionText: string;
-    program: string;
-    weight: number;
-    options: string[];
-  }>;
+  academicAptitude: Question[];
+  technicalSkills: Question[];
+  careerInterest: Question[];
+  learningStyle: Question[];
+}
+
+interface ApiQuestion {
+  _id: string;
+  questionText: string;
+  program: string;
+  weight: number;
+  options?: string[];
+  category?: string;
+}
+
+interface ApiResponse {
+  academicAptitude?: Question[];
+  technicalSkills?: Question[];
+  careerInterest?: Question[];
+  learningStyle?: Question[];
 }
 
 export const useAssessmentQuestions = () => {
   const [questions, setQuestions] = useState<BackendQuestions | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
+    const fetchQuestions = async (): Promise<void> => {
       try {
         console.log("Fetching questions from API...");
-        const response = await axios.get(
-          `${BASE_URL}/api/questions` // Changed from /api/allQuestions to /api/questions
-        );
-        console.log("API Response:", response.data);
+        const response = await axios.get<ApiResponse | ApiQuestion[]>(`${BASE_URL}/api/questions`);
 
-        // Check if response is already grouped by category (from your existing /api/questions endpoint)
-        if (response.data.academicAptitude) {
-          // If it's already in the grouped format, use it directly
-          console.log("Questions already grouped by category:", response.data);
-          setQuestions(response.data);
-        } else {
-          // If it's a flat array, transform it
-          console.log("Transforming flat array to grouped structure...");
+        // Check if response is already grouped by category
+        const responseData = response.data;
+        const hasGroupedStructure = 
+          'academicAptitude' in responseData ||
+          'technicalSkills' in responseData ||
+          'careerInterest' in responseData ||
+          'learningStyle' in responseData;
+
+        if (hasGroupedStructure && typeof responseData === 'object' && !Array.isArray(responseData)) {
+          // It's already in the grouped format
+          const groupedData = responseData as ApiResponse;
+          setQuestions({
+            academicAptitude: groupedData.academicAptitude || [],
+            technicalSkills: groupedData.technicalSkills || [],
+            careerInterest: groupedData.careerInterest || [],
+            learningStyle: groupedData.learningStyle || [],
+          });
+        } else if (Array.isArray(responseData)) {
+          // Transform flat array to grouped structure
           const transformedQuestions: BackendQuestions = {
             academicAptitude: [],
             technicalSkills: [],
@@ -63,20 +71,13 @@ export const useAssessmentQuestions = () => {
             learningStyle: [],
           };
 
-          response.data.forEach((question: any) => {
-            const questionData = {
+          responseData.forEach((question: ApiQuestion) => {
+            const questionData: Question = {
               _id: question._id,
               questionText: question.questionText,
               program: question.program,
               weight: question.weight,
-              options: question.options || [
-                // Add default options if not provided
-                "Strongly Disagree",
-                "Disagree",
-                "Neutral",
-                "Agree",
-                "Strongly Agree",
-              ],
+              options: question.options || undefined,
             };
 
             switch (question.category) {
@@ -97,12 +98,16 @@ export const useAssessmentQuestions = () => {
             }
           });
 
-          console.log("Transformed Questions:", transformedQuestions);
           setQuestions(transformedQuestions);
+        } else {
+          throw new Error("Invalid API response format");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to load questions:", err);
-        setError(err.message || "Failed to load questions");
+        const errorMessage = err instanceof Error 
+          ? err.message 
+          : "Failed to load questions";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }

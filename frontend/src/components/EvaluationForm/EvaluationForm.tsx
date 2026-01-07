@@ -216,7 +216,7 @@ const EvaluationForm = () => {
         recommendations: parsed.recommendation,
         recommendedProgram: parsed.recommendedCourse as ProgramType,
         user: {
-          _id: authUser?.id || "temp-id",
+          _id: authUser?._id || "temp-id",
           name: authUser?.fullName || "Student",
           email: authUser?.email || "",
           preferredCourse: authUser?.preferredCourse || "Undecided",
@@ -233,7 +233,7 @@ const EvaluationForm = () => {
 
       try {
         await axios.post(`${BASE_URL}/api/save-evaluation`, {
-          userId: authUser?.id,
+          userId: authUser?._id,
           userName: authUser?.fullName,
           userEmail: authUser?.email,
           evaluation: parsed.result,
@@ -285,7 +285,7 @@ const EvaluationForm = () => {
   }
 
   const currentUser: User = {
-    _id: authUser?.id || "temp-id",
+    _id: authUser?._id || "temp-id",
     name: authUser?.fullName || "Student",
     email: authUser?.email || "",
     preferredCourse: authUser?.preferredCourse || "Undecided",

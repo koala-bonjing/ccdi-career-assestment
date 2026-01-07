@@ -2,7 +2,7 @@
 .welcome-assessment-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  font-family: "Inter", "Poppins", sans-serif;
+  font-family: "Poppins", sans-serif;
   display: flex;
   flex-direction: column;
 }
@@ -82,10 +82,9 @@
 }
 
 .modern-user-badge {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background-color: #0d6efd !important;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 50px;
   font-weight: 500;
   font-size: 0.9rem;
   box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
@@ -449,4 +448,216 @@
 
 .results-actions {
   margin-top: 3rem;
+}
+
+.course-label {
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.course-name {
+  font-weight: 700;
+  font-size: 25px; /* slightly bigger & bolder */
+}
+
+/* 🔍 Mobile: Make it pop even more */
+@media (max-width: 576px) {
+  .course-badge {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 1rem !important;
+  }
+
+  .course-name {
+    font-size: 1.15rem !important;
+  }
+
+  .course-label {
+    font-size: 0.95rem;
+  }
+}
+/* 📱 Mobile-First Responsive Enhancements (add to bottom of file) */
+
+/* 🔹 Extra Small: Phones (<576px) */
+@media (max-width: 575.98px) {
+  /* Reduce padding/margins */
+  .welcome-main-content {
+    padding: 1.25rem 0;
+  }
+
+  .modern-header {
+    padding: 1.25rem 0;
+  }
+
+  .modern-header h1 {
+    font-size: 1.875rem; /* 30px → was 2rem (32px) */
+    line-height: 1.2;
+  }
+
+  .modern-header .lead {
+    font-size: 1rem; /* 16px */
+  }
+
+  /* Avatar smaller, but still visible */
+  .avatar-circle {
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 1.25rem;
+  }
+
+  /* 🔥 CRITICAL: Fix .course-badge overflow & height */
+  .course-badge {
+    height: auto !important;
+    min-height: 56px !important;
+    padding: 0.65rem 1.25rem !important;
+    font-size: 1rem !important;
+    gap: 0.4rem !important;
+  }
+
+  .course-name {
+    font-size: 1.125rem !important; /* 18px */
+    white-space: normal !important; /* allow line break if long */
+  }
+
+  .course-label {
+    font-size: 0.925rem !important;
+    white-space: normal !important;
+  }
+
+  /* Features: more compact */
+  .modern-feature-card {
+    padding: 1.25rem 0.75rem !important;
+  }
+
+  .feature-icon-wrapper {
+    width: 48px !important;
+    height: 48px !important;
+    margin-bottom: 1rem !important;
+    font-size: 1.25rem;
+  }
+
+  /* CTA: full-width, smaller padding */
+  .modern-cta-btn {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0.875rem 1.5rem !important;
+    font-size: 1rem !important;
+    justify-content: center !important;
+  }
+
+  /* Carousel: shorter & adaptive */
+  .modern-carousel-image {
+    height: 220px !important; /* was 300px */
+  }
+
+  .modern-carousel-caption {
+    padding: 1.25rem !important;
+  }
+
+  .modern-carousel-caption h5 {
+    font-size: 1.125rem !important;
+  }
+
+  .modern-carousel-caption p {
+    font-size: 0.875rem !important;
+  }
+
+  /* Modals: edge-to-edge */
+  .modern-modal .modal-dialog {
+    margin: 0.5rem !important;
+    max-width: none !important;
+  }
+
+  .modern-modal .modal-content {
+    border-radius: 16px !important;
+  }
+
+  .modern-modal-header {
+    padding: 1.5rem 1.5rem 0 !important;
+  }
+
+  .modern-modal-header .modal-icon-wrapper {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  /* Buttons */
+  .modern-btn-outline,
+  .modern-btn-primary {
+    width: 100% !important;
+    max-width: 300px !important;
+    margin: 0 auto 0.5rem !important;
+  }
+
+  /* Results cards */
+  .result-card .card-body {
+    padding: 1rem !important;
+  }
+
+  .score-display {
+    font-size: 1.75rem !important;
+  }
+}
+
+/* 🔹 Small Tablets (576px – 768px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .modern-header h1 {
+    font-size: 2.125rem; /* 34px */
+  }
+
+  .avatar-circle {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  .course-badge {
+    height: auto !important;
+    min-height: 60px !important;
+    padding: 0.75rem 1.5rem !important;
+    font-size: 1.125rem !important;
+  }
+
+  .course-name {
+    font-size: 1.375rem !important;
+  }
+
+  .modern-carousel-image {
+    height: 250px !important;
+  }
+
+  .modern-cta-btn {
+    width: 100% !important;
+    max-width: 400px !important;
+    padding: 1rem 2rem !important;
+  }
+  .modern-carousel-indicators .indicator {
+    width: 2px;
+    height: 2px;
+  }
+}
+
+/* 🔹 Prevent horizontal overflow on all mobile */
+@media (max-width: 767.98px) {
+  body,
+  html,
+  .welcome-assessment-container {
+    overflow-x: hidden !important;
+  }
+
+  /* Ensure no child exceeds viewport */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Touch-friendly tap targets */
+  .modern-progress-badge,
+  .modern-btn-outline,
+  .modern-btn-primary,
+  .indicator {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .modern-carousel-indicators {
+    display: none !important;
+  }
 }

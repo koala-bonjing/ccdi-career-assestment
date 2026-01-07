@@ -1,42 +1,66 @@
-// utils/emailServices.js
-const nodemailer = require("nodemailer");
+// utils/emailServices.js - Simplified for Primary Inbox
+const axios = require("axios");
 
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-};
-
-exports.sendVerificationCode = async (email, code) => {
+exports.sendVerificationCode = async (email, fullName, code) => {
   try {
-    const transporter = createTransporter();
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "CCDI Assessment - Verification Code",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">CCDI Career Assessment</h2>
-          <p>Thank you for signing up! Please use the verification code below to complete your registration:</p>
-          <div style="background: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0;">
-            <h1 style="color: #2563eb; margin: 0; font-size: 32px; letter-spacing: 5px;">${code}</h1>
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "CCDI Career Assessment Test",
+          email: "careerassessment.verifcode@gmail.com",
+        },
+        to: [
+          {
+            email: email,
+            name: fullName || "Student",
+          },
+        ],
+        subject: "Verify Your Email - CCDI Career Assessment",
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <p>Hello ${fullName || "there"},</p>
+            
+            <p>Thank you for signing up for the CCDI Career Assessment Platform.</p>
+            
+            <p>Your verification code is:</p>
+            
+            <div style="background-color: #f5f5f5; padding: 15px; margin: 20px 0; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">
+              ${code}
+            </div>
+            
+            <p>This code will expire in 10 minutes.</p>
+            
+            <p>If you didn't request this code, please ignore this email.</p>
+            
+            <p>Best regards,<br>
+            CCDI Sorsogon Team<br>
+            Computer Communication Development Institute</p>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            
+            <p style="font-size: 12px; color: #666;">
+              Need help? Visit <a href="https://www.ccdisorsogon.edu.ph" style="color: #0066cc;">www.ccdisorsogon.edu.ph</a>
+            </p>
           </div>
-          <p>This code will expire in 10 minutes.</p>
-          <p>If you didn't request this code, please ignore this email.</p>
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-          <p style="color: #6b7280; font-size: 14px;">CCDI Career Assessment System</p>
-        </div>
-      `,
-    };
+        `,
+      },
+      {
+        headers: {
+          accept: "application/json",
+          "api-key": process.env.BREVO_API_KEY,
+          "content-type": "application/json",
+        },
+      }
+    );
 
-    await transporter.sendMail(mailOptions);
+    console.log(`✅ ✉️ Verification email sent to ${email}`);
     return true;
   } catch (error) {
-    console.error("Email sending error:", error.message, error.stack);
+    console.error(
+      "❌ Brevo email error:",
+      error.response?.data || error.message
+    );
     return false;
   }
 };

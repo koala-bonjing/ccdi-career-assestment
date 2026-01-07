@@ -1,17 +1,18 @@
-import React, { useState } from "react";
-import { Navbar, Nav, Container, Modal, Button } from "react-bootstrap";
-import { LogOut, AlertTriangle, X } from "lucide-react";
+import { useState } from "react";
+import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import LOGO from "../../assets/logoCCDI.png";
 import "./NavigationBar.css";
+import { LogoutModal } from "../ui/modals/logout-modal";
 
 function NavigationBar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogoutClick = (e: any) => {
+  const handleLogoutClick = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setShowLogoutModal(true);
   };
@@ -26,20 +27,17 @@ function NavigationBar() {
     navigate("/welcome");
   };
 
-  const handleCancelLogout = () => {
-    setShowLogoutModal(false);
-  };
-
   return (
     <>
       <Navbar variant="dark" expand="lg" fixed="top" className="custom-navbar">
         <Container fluid>
+          {/* Brand: Responsive flex layout */}
           <Navbar.Brand
             href="#home"
             onClick={handleHome}
             className="d-flex align-items-center"
-            
           >
+            {/* Logo: shrink on sm/md */}
             <img
               src={LOGO}
               alt="CCDI Logo"
@@ -48,33 +46,48 @@ function NavigationBar() {
               className="me-2"
               style={{ objectFit: "contain" }}
             />
+
+            {/* Text: smaller & tighter spacing on mobile */}
             <div className="d-flex flex-column">
-              <span className="fw-bold fs-3">CCDI</span>
-              <span className="fw-light fs-5 font-poppins font-semibold">
+              <span className="fw-bold fs-5 fs-md-4 fs-lg-3 text-nowrap">
+                CCDI
+              </span>
+              <span
+                className="fw-light text-nowrap "
+                style={{
+                  fontSize: "clamp(0.7rem, 2.5vw, 1rem)", // responsive font
+                  lineHeight: 1.2,
+                  fontWeight: 400
+                }}
+              >
                 Career Assessment Test
               </span>
             </div>
           </Navbar.Brand>
 
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          {/* Toggle button — stays on same line */}
+          <Navbar.Toggle
+            aria-controls="basic-navbar-nav"
+            className="ms-auto" // pushes toggle to right
+          />
 
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto d-flex align-items-center">
               <Nav.Link
                 href="#home"
-                className="fw-semibold fs-5 mx-3 nav-link-custom"
+                className="fw-semibold fs-5 mx-2 mx-md-3 nav-link-custom"
               >
                 Courses
               </Nav.Link>
               <Nav.Link
                 href="#about"
-                className="fw-semibold fs-5 mx-3 nav-link-custom"
+                className="fw-semibold fs-5 mx-2 mx-md-3 nav-link-custom"
               >
                 About
               </Nav.Link>
               <Nav.Link
                 href="#contact"
-                className="fw-semibold fs-5 mx-3 nav-link-custom"
+                className="fw-semibold fs-5 mx-2 mx-md-3 nav-link-custom"
               >
                 Contact
               </Nav.Link>
@@ -83,7 +96,7 @@ function NavigationBar() {
                 <Nav.Link
                   as={Button}
                   onClick={handleLogoutClick}
-                  className="logout-link fw-semibold fs-5 mx-3"
+                  className="logout-link fw-semibold fs-5 mx-2 mx-md-3"
                 >
                   <LogOut size={18} className="me-1" />
                   Log Out
@@ -94,55 +107,11 @@ function NavigationBar() {
         </Container>
       </Navbar>
 
-      {/* Enhanced Logout Modal */}
-      <Modal
+      <LogoutModal
         show={showLogoutModal}
-        onHide={handleCancelLogout}
-        centered
-        className="logout-modal"
-      >
-        <Modal.Header className="border-0 pb-0 position-relative">
-          <div className="warning-icon-container mx-auto mb-3">
-            <div className="warning-icon-bg">
-              <AlertTriangle size={32} className="warning-icon" />
-            </div>
-          </div>
-          <Button
-            variant="link"
-            onClick={handleCancelLogout}
-            className="position-absolute top-0 end-0 p-2 close-btn"
-          >
-            <X size={20} />
-          </Button>
-        </Modal.Header>
-
-        <Modal.Body className="text-center pt-0">
-          <h4 className="fw-bold text-dark mb-3">Wait! Are you sure?</h4>
-          <p className="text-muted mb-4">
-            You're in the middle of a Test! You're about to log out of your
-            account.
-          </p>
-
-          <div className="d-flex flex-column flex-sm-row justify-content-center gap-3">
-            <Button
-              variant="outline-secondary"
-              onClick={handleCancelLogout}
-              className="flex-fill cancel-btn"
-              size="lg"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleConfirmLogout}
-              className="flex-fill confirm-btn"
-              size="lg"
-            >
-              Yes, Log Out
-            </Button>
-          </div>
-        </Modal.Body>
-      </Modal>
+        onHide={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+      />
 
       <div style={{ height: "76px" }}></div>
     </>

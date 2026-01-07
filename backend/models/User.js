@@ -23,7 +23,14 @@ const userSchema = new mongoose.Schema(
     },
     preferredCourse: {
       type: String,
-      enum: ["BSCS", "BSIT", "BSIS", "EE", "Undecided"],
+      enum: [
+        "Undecided",
+        "BSCS",
+        "BSIT",
+        "BSIS",
+        "BSET Electronics Technology",
+        "BSET Electrical Technology",
+      ],
       default: "Undecided",
     },
     isVerified: {

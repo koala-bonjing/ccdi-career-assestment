@@ -1,9 +1,11 @@
-/* src/components/AssestmentForm/AssestmentForm.css */
-/* Bootstrap overrides and enhancements */
 .assessment-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%);
-  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: "Inter", "Poppins", sans-serif;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .main-content {
@@ -17,6 +19,7 @@
   border-radius: 15px;
   transition: all 0.3s ease;
   margin: 0 auto;
+  
 }
 
 .card:hover {
@@ -254,7 +257,17 @@
   flex-shrink: 0;
 }
 
+/* 
+  Optional: Use fluid typography on question text for better scaling
+  Replace current .question-text with this if desired:
+*/
 .question-text {
+  /* font-size: clamp(1.1rem, 3vw, 1.7rem); */
+  /* line-height: 1.4; */
+  /* word-break: break-word; */
+  /* margin-bottom: 0.5rem; */
+
+  /* Current (non-clamp) version — kept for consistency */
   font-size: 1.7rem;
   line-height: 1.4;
   word-break: break-word;
@@ -549,31 +562,33 @@
     min-width: 36px;
     min-height: 36px;
   }
+
   .form-option {
     padding: 1rem 0.75rem !important;
     margin: 0.25rem 0;
     position: relative;
     cursor: pointer;
-    /* Ensure the div is clickable */
     display: block !important;
     width: 100% !important;
   }
+
   .form-option .form-check-input {
     position: absolute;
-    left: 15px; /* Slightly more space */
+    left: 15px;
     top: 50%;
     transform: translateY(-50%);
     margin-top: 0;
-    z-index: 2; /* Ensure it's above other elements */
+    z-index: 2;
   }
 
   .form-option .form-check-label {
     display: block !important;
     width: 100% !important;
-    padding-left: 40px !important; /* Increased space for radio button */
+    padding-left: 40px !important;
     cursor: pointer;
     margin: 0 !important;
   }
+
   /* Card adjustments for very small screens */
   .card {
     margin: 0 0.5rem;
@@ -583,6 +598,170 @@
   .container-fluid {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+  }
+
+  /* === ENHANCED COMPACT MODE (new additions) === */
+  /* Radio/Checkbox Options */
+  .form-option {
+    padding: 0.65rem 0.65rem !important;
+    font-size: 0.95rem !important;
+    margin: 0.2rem 0 !important;
+  }
+
+  .form-option .form-check-label {
+    padding-left: 36px !important;
+    font-size: 0.95rem !important;
+    line-height: 1.4;
+  }
+
+  .form-check-input {
+    width: 18px;
+    height: 18px;
+    left: 10px;
+  }
+
+  .form-check {
+    align-items: flex-start;
+  }
+
+  /* Section Header & Progress */
+  .card-header {
+    padding: 0.8rem 1rem !important;
+  }
+
+  .card-title {
+    font-size: 1.3rem !important;
+  }
+
+  .progress {
+    height: 5px !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* Navigation Buttons (bottom footer) */
+  .card-footer .btn {
+    padding: 0.6rem 0.9rem !important;
+    font-size: 0.95rem !important;
+    min-height: 42px;
+  }
+
+  .card-footer .btn-lg {
+    padding: 0.55rem 1rem !important;
+    font-size: 1rem !important;
+  }
+
+  /* Review Action Buttons */
+  .action-btn {
+    padding: 0.6rem 1rem !important;
+    font-size: 0.95rem !important;
+    min-height: 44px;
+    min-width: auto;
+    max-width: 100%;
+  }
+
+  .action-section .h4 {
+    font-size: 1.15rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .action-section p {
+    font-size: 0.95rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Question Text */
+  .question-text {
+    font-size: 1.15rem !important;
+    font-weight: 500;
+    margin-bottom: 0.4rem !important;
+  }
+
+  /* Badges */
+  .badge.fs-6 {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.825rem !important;
+  }
+
+  /* Skill Badges */
+  .skill-badge {
+    font-size: 0.78rem !important;
+    padding: 0.32rem 0.6rem !important;
+    min-width: 60px;
+  }
+
+  /* Question Number Badge */
+  .question-number {
+    min-width: 34px;
+    height: 34px;
+    font-size: 0.75rem !important;
+    padding: 0 !important;
+  }
+
+  /* Answer Badge */
+  .answer-badge {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.65rem !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Modal */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.1rem !important;
+  }
+
+  .modal-body {
+    font-size: 0.95rem !important;
+  }
+
+  .modal-footer .btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+/* Ultra-Compact Mode for Very Small Screens (e.g., iPhone SE) */
+@media (max-width: 375px) {
+  .form-option {
+    padding: 0.55rem 0.5rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .form-option .form-check-label {
+    padding-left: 34px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .question-text {
+    font-size: 1.05rem !important;
+  }
+
+  .card-header {
+    padding: 0.7rem 0.8rem !important;
+  }
+
+  .card-title {
+    font-size: 1.2rem !important;
+  }
+
+  .progress {
+    height: 4px !important;
+  }
+
+  .action-btn {
+    padding: 0.55rem 0.9rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .badge.fs-6,
+  .skill-badge,
+  .answer-badge {
+    font-size: 0.78rem !important;
   }
 }
 
@@ -858,4 +1037,72 @@
 
 .progress-bar.bg-success {
   background: linear-gradient(135deg, #a41d31 0%, #ec2326 100%) !important;
+}
+
+/* --- Mobile Form Layout Fixes --- */
+@media (max-width: 576px) {
+  /* Ensure container hugs screen with safe padding */
+  .main-content {
+    padding: 0.5rem 0 !important;
+  }
+
+  .container-fluid {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Prevent card overflow */
+  .card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Tighten question section */
+  .card-body {
+    padding: 1rem !important;
+  }
+
+  /* Ultra-compact choices */
+  .form-option {
+    padding: 10px 10px !important;
+    font-size: 0.875rem !important; /* ~14px */
+    margin: 0.15rem 0 !important;
+    border-radius: 10px !important;
+  }
+
+  .form-option .form-check-label {
+    padding-left: 32px !important; /* tighter radio spacing */
+    line-height: 1.35;
+  }
+
+  .form-check-input {
+    width: 16px;
+    height: 16px;
+    left: 8px;
+  }
+
+  /* Prevent horizontal scroll */
+  body,
+  html {
+    overflow-x: hidden;
+  }
+
+  /* Ensure centered flow doesn’t break */
+  .d-flex.justify-content-center > .w-100 {
+    max-width: 100% !important;
+  }
+
+  /* Reduce header/footer padding */
+  .card-header,
+  .card-footer {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Smaller progress bar */
+  .progress {
+    height: 4px !important;
+  }
 }

@@ -1,36 +1,32 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { useEffect, useState } from "react";
-import type { 
-  EvaluationResult, 
-  AssessmentResult, 
-  ProgramType, 
-  AssessmentAnswers, 
+import type {
+  EvaluationResult,
+  AssessmentResult,
+  ProgramType,
+  AssessmentAnswers,
   User,
-  ProgramScores 
+  ProgramScores,
 } from "../../types";
 import { BASE_URL } from "../../config/constants";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
 import { useAuth } from "../../context/AuthContext";
-import { ToastContainer } from "react-toastify";
-import AssessmentForm from "../AssestmentForm/AssessmentForm";
-import ResultsPage from "../ResultPage/ResultPage";
-import WelcomeScreenComponent from "../WelcomeScreen/WelcomePage";
+import AssessmentForm from "../AssestmentForm//assessment-form";
+import ResultsPage from "../../components/ResultPage/ResultPage";
+import WelcomeScreenComponent from "../../components/WelcomeScreen/WelcomePage";
 import AuthComponent from "../Auth/AuthComponent/AuthComponent";
-import LoadingSpinner from "../LoadingSpinner/index";
+import LoadingSpinner from "../ui/LoadingSpinner/index";
 import axios from "axios";
+import { ToastContainer } from "react-bootstrap";
 
-interface SubmissionData {
+export interface SubmissionData {
   answers: AssessmentAnswers;
   programScores: ProgramScores;
-  recommendedProgram: string;
+  recommendedProgram: ProgramType;
 }
 
-
-const genAI = new GoogleGenerativeAI(
-  import.meta.env.REACT_APP_GEMINI_API_KEY ||
-    "AIzaSyAnzBdIYWGwBR4p7V1_tTrHQkUZDiYFXZw"
-);
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 const EvaluationForm = () => {
   const { showWelcome } = useWelcomeScreen();
@@ -46,7 +42,9 @@ const EvaluationForm = () => {
 
   const { isAuthenticated, user: authUser } = useAuth();
 
-  const [restoredFormData, setRestoredFormData] = useState<AssessmentAnswers | null>(null);
+  const [restoredFormData, setRestoredFormData] = useState<
+    AssessmentAnswers | undefined
+  >(undefined);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hasLoaded, setHasLoaded] = useState<boolean>(false);
 
@@ -55,7 +53,6 @@ const EvaluationForm = () => {
       loadSavedData();
     }
   }, [isAuthenticated]);
-
   const loadSavedData = (): void => {
     try {
       const savedAnswers = localStorage.getItem("evaluation-answers");
@@ -82,7 +79,9 @@ const EvaluationForm = () => {
     }
   };
 
-  const flattenAnswers = (nested: AssessmentAnswers): Record<string, string | number | boolean> => {
+  const flattenAnswers = (
+    nested: AssessmentAnswers
+  ): Record<string, string | number | boolean> => {
     const flat: Record<string, string | number | boolean> = {};
 
     // Academic Aptitude (numbers)
@@ -122,7 +121,9 @@ const EvaluationForm = () => {
     console.log("🆕 Started new assessment");
   };
 
-  const formatAnswers = (answers: Record<string, string | number | boolean>): string => {
+  const formatAnswers = (
+    answers: Record<string, string | number | boolean>
+  ): string => {
     return Object.entries(answers)
       .map(([question, value]) => {
         if (typeof value === "number") {
@@ -137,7 +138,9 @@ const EvaluationForm = () => {
       .join("\n");
   };
 
-  const handleSubmitAnswers = async (submissionData: SubmissionData): Promise<void> => {
+  const handleSubmitAnswers = async (
+    submissionData: SubmissionData
+  ): Promise<void> => {
     console.log("🚀 Submitting assessment...");
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -160,38 +163,45 @@ const EvaluationForm = () => {
       });
 
       const prompt = `
-        You are a career/course evaluation assistant. 
-        Evaluate the following student's preferences carefully.
+      You are a career/course evaluation assistant for CCDI Sorsogon.
 
-        STUDENT INFORMATION:
-        - Name: ${authUser?.fullName || "Student"}
-        - Preferred Course Interest: ${authUser?.preferredCourse || "Not specified"}
+      AVAILABLE PROGRAMS (with descriptions):
+      - BSIT: Information Technology — focuses on IT infrastructure, networking, and system administration.
+      - BSCS: Computer Science — emphasizes algorithms, software development, and theoretical computing.
+      - BSIS: Information Systems — bridges business and technology through data, systems analysis, and project management.
+      - BSET Electronics Technology: Electronics Technology — teaches design, development, operation, and maintenance of electronic systems and devices (e.g., robotics, automation, embedded systems, communications).
+      - BSET Electrical Technology: Electrical Technology — teaches design, operation, and maintenance of electrical systems and equipment (e.g., power systems, industrial control, motors, electrical installation).
 
-        STUDENT ANSWERS:
-        ${formatted}
+      STUDENT INFORMATION:
+      - Name: ${authUser?.fullName || "Student"}
+      - Preferred Course Interest: ${
+        authUser?.preferredCourse || "Not specified"
+      }
 
-        For your response, provide:
+      STUDENT ANSWERS:
+      ${formatted}
 
-        1) A detailed evaluation summary
-        2) A recommended course (choose from BSIT, BSCS, BSIS, or EE)
-        3) A clear explanation of why this recommendation is best
-        4) A confidence percentage breakdown for each course
+      INSTRUCTIONS:
+      - Recommend **exactly one** program from: 
+        ["BSIT", "BSCS", "BSIS", "BSET Electronics Technology", "BSET Electrical Technology"]
+      - Avoid generic terms like "BSET" — always use the full program name.
+      - Your confidence percentages must sum to ~100%.
 
-        Respond ONLY with valid JSON in this format:
-        {
-          "summary": "<short summary>",
-          "result": "<detailed evaluation>",
-          "recommendation": "<why the recommended program fits best>",
-          "recommendedCourse": "<BSCS|BSIT|BSIS|EE>",
-          "percent": {
-            "BSIT": <0-100>,
-            "BSCS": <0-100>,
-            "BSIS": <0-100>,
-            "EE": <0-100>
-          }
+      Respond ONLY with valid JSON in this format:
+      {
+        "summary": "string",
+        "result": "string",
+        "recommendation": "string",
+        "recommendedCourse": "BSCS|BSIT|BSIS|BSET Electronics Technology|BSET Electrical Technology",
+        "percent": {
+          "BSIT": number,
+          "BSCS": number,
+          "BSIS": number,
+          "BSET Electronics Technology": number,
+          "BSET Electrical Technology": number
         }
+      }
       `;
-
       console.log("🤖 Sending request to AI...");
       const aiResponse = await model.generateContent(prompt);
       const raw = aiResponse.response.text();
@@ -232,15 +242,14 @@ const EvaluationForm = () => {
           percent: parsed.percent,
           programScores: programScores,
         });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (saveError) {
         console.warn("⚠️ Failed to save to backend, but continuing...");
       }
     } catch (err: unknown) {
       console.error("❌ Evaluation error:", err);
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : "Please try again.";
+      const errorMessage =
+        err instanceof Error ? err.message : "Please try again.";
       setError(`Failed to generate evaluation: ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -250,7 +259,6 @@ const EvaluationForm = () => {
   if (!isAuthenticated) {
     return (
       <div className="evaluation-form">
-        <ToastContainer />
         <AuthComponent initialMode={"login"} />
       </div>
     );
@@ -263,7 +271,6 @@ const EvaluationForm = () => {
   if (result) {
     return (
       <div className="evaluation-form">
-        <ToastContainer />
         <ResultsPage />
       </div>
     );
@@ -272,7 +279,6 @@ const EvaluationForm = () => {
   if (loading) {
     return (
       <div className="evaluation-form">
-        <ToastContainer />
         <LoadingSpinner />
       </div>
     );
@@ -290,7 +296,6 @@ const EvaluationForm = () => {
       <ToastContainer />
       <AssessmentForm
         currentUser={currentUser}
-        setCurrentUser={() => {}} // Optional: remove if not used
         onSubmit={handleSubmitAnswers}
         loading={loading}
         restoredFormData={restoredFormData}

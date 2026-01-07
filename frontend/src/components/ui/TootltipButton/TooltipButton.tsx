@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useTooltipStore } from "../../../store/useTooltipStore";
+import { useTooltipStore } from "../../../../store/useTooltipStore";
 import { Info } from "lucide-react";
 
 interface TooltipButtonProps {

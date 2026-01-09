@@ -1,0 +1,307 @@
+/* src/pages/ResultsPage/ResultPage.css */
+
+/* 🔹 Base font & smooth scrolling */
+:root {
+  --font-primary: "Poppins", "Inter", sans-serif;
+  --color-primary: #2b3176;
+  --color-secondary: #1c6cb3;
+  --color-accent-1: #a41d31;
+  --color-accent-2: #ec2326;
+}
+
+* {
+  font-family: var(--font-primary) !important;
+}
+
+body {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* 🔹 Fade-in animation for collapsible sections */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* 🔹 Button hover enhancements (already inlined, but backup) */
+.btn {
+  transition: all 0.3s ease !important;
+}
+.btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 🔹 Card enhancements */
+.card {
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+}
+.card-header {
+  font-weight: 600 !important;
+}
+
+/* 🔹 Progress bar tweaks (Bootstrap) */
+.progress {
+  overflow: hidden;
+  border-radius: 10px !important;
+}
+.progress-bar {
+  transition: width 1s ease-in-out;
+}
+
+/* 🔹 Badge readability */
+.badge {
+  font-weight: 600;
+}
+
+/* 🔹 Icons in cards — prevent color bleed */
+.card-body .me-2 svg {
+  flex-shrink: 0;
+}
+
+/* 🔹 Responsive spacing & layout */
+
+/* Small (mobile) */
+@media (max-width: 575.98px) {
+  .container-fluid.py-4 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  .card-body {
+    padding: 1.25rem !important;
+  }
+
+  .card-body.p-lg-5 {
+    padding: 1.25rem !important;
+  }
+
+  h2 {
+    font-size: 1.75rem !important;
+  }
+
+  h3 {
+    font-size: 1.35rem !important;
+  }
+
+  h5 {
+    font-size: 1.1rem !important;
+  }
+
+  .btn-lg {
+    padding: 0.6rem 1.2rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  p {
+    font-size: 1rem !important;
+  }
+
+  .summary-p {
+    font-size: 1rem !important;
+  }
+  /* Stack action buttons vertically on mobile */
+  .text-center.mb-4 > .btn {
+    display: block;
+    width: 90%;
+    margin: 0.5rem auto !important;
+  }
+
+  /* Student info: stack columns */
+  .student-info-row .col-md-6 {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Medium (tablet) */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .card-body {
+    padding: 1.5rem !important;
+  }
+
+  .btn-lg {
+    font-size: 1rem !important;
+  }
+
+  /* Keep action buttons side-by-side */
+  .text-center.mb-4 > .btn {
+    display: inline-block;
+    width: auto;
+  }
+}
+
+/* Large+ (desktop) */
+@media (min-width: 992px) {
+  .card-body {
+    padding: 2rem !important;
+  }
+
+  .card-body.p-lg-5 {
+    padding: 2.5rem !important;
+  }
+
+  h2 {
+    font-size: 2.25rem !important;
+  }
+
+  h3 {
+    font-size: 1.75rem !important;
+  }
+}
+
+/* 🔹 Print Styles — Optional but recommended */
+@media print {
+  body,
+  html {
+    background: white !important;
+    color: black !important;
+  }
+
+  .min-vh-100,
+  .container-fluid,
+  .row,
+  .col-xxl-10 {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide non-essential UI */
+  nav,
+  .btn:not(.btn-outline-primary) {
+    display: none !important;
+  }
+
+  /* White background, no transparency */
+  .card {
+    background: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  /* Ensure progress bars are visible in print */
+  .progress {
+    height: 8px !important;
+  }
+
+  /* Force colors for progress bars */
+  .progress-bar.bg-primary {
+    background-color: #0d6efd !important;
+  }
+  .progress-bar.bg-warning {
+    background-color: #ffc107 !important;
+  }
+  .progress-bar.bg-info {
+    background-color: #0dcaf0 !important;
+  }
+  .progress-bar.bg-success {
+    background-color: #198754 !important;
+  }
+  .progress-bar.bg-danger {
+    background-color: #dc3545 !important;
+  }
+
+  /* Hide interactive hints */
+  [data-toggle],
+  .badge:not(.bg-secondary) {
+    display: none !important;
+  }
+
+  /* Improve readability */
+  p,
+  li,
+  h3,
+  h4,
+  h5 {
+    color: black !important;
+  }
+
+  /* Add page breaks after major sections */
+  .card + .card {
+    page-break-before: always;
+  }
+}
+
+/* Inside ResultPage.css — under mobile media query */
+@media (max-width: 575.98px) {
+  .card-body > .row.g-4 .card {
+    min-height: auto !important;
+  }
+
+  /* Ensure long program names don’t break layout */
+  .card-body h5 {
+    word-break: break-word;
+    line-height: 1.3;
+  }
+}
+
+/* Modern Modal Base */
+.modern-modal .modal-content {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+}
+
+/* Header styling */
+.modern-modal-header {
+  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%);
+  color: white;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+.modern-modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Icon wrapper for consistency */
+.modal-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+/* Text styling */
+.modern-modal-text {
+  color: #495057;
+  line-height: 1.6;
+}
+
+/* Buttons */
+.modern-btn-outline {
+  border: 2px solid #1c6cb3 !important;
+  background: transparent !important;
+  color: #1c6cb3 !important;
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+.modern-btn-primary {
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+/* Warning background */
+.bg-light-warning {
+  background-color: #fff8e1;
+  border-left: 4px solid #ffc107;
+}

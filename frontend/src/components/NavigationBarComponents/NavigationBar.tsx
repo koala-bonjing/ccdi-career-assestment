@@ -10,6 +10,7 @@ import { LogoutModal } from "../ui/modals/logout-modal";
 function NavigationBar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { isAuthenticated, logout } = useAuth();
+
   const navigate = useNavigate();
 
   const handleLogoutClick = (e: { preventDefault: () => void }) => {
@@ -57,7 +58,7 @@ function NavigationBar() {
                 style={{
                   fontSize: "clamp(0.7rem, 2.5vw, 1rem)", // responsive font
                   lineHeight: 1.2,
-                  fontWeight: 400
+                  fontWeight: 400,
                 }}
               >
                 Career Assessment Test

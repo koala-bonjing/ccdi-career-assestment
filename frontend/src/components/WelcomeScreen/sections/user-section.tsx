@@ -2,12 +2,12 @@
 import { User, Target, Award } from "lucide-react";
 import { Badge } from "react-bootstrap";
 import type { User as AuthUser } from "../../../context/AuthContext"; // adjust path as needed
-import type { AssessmentResult } from "../types";
+import type { AssessmentDisplayResult } from "../../../types";
 
 interface UserSectionProps {
   user: AuthUser | null;
   hasCompleted: boolean;
-  assessmentResult: AssessmentResult | null;
+  assessmentResult: AssessmentDisplayResult | null;
 }
 
 export const UserSection = ({
@@ -35,10 +35,18 @@ export const UserSection = ({
       </Badge>
 
       {hasCompleted && assessmentResult?.completionDate && (
-        <div className="completion-badge mt-3">
-          <Badge bg="success" className="modern-completion-badge">
-            <Award size={14} className="me-1" />
-            Assessment Completed • {assessmentResult.completionDate}
+        <div className="recommendation-badge mt-3">
+          <Badge className="modern-user-badge h-20 w-auto d-inline-flex align-items-center">
+            <Award size={20} className="me-2" />
+            <span className="course-label mr-3 text-xl">
+              Recommended Program:
+            </span>
+            <strong
+              className="course-name text-4xl"
+              style={{ color: "#ffffffff" }}
+            >
+              {assessmentResult.recommendedProgram}
+            </strong>
           </Badge>
         </div>
       )}

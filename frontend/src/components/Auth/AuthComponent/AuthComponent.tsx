@@ -21,7 +21,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ initialMode }) => {
   const { login } = useAuth();
   const { setCurrentUser } = useUserStore();
 
-  const handleLoginSuccess = (userData: UserData): void => {
+  const handleLoginSuccess = (userData: User): void => {
     // Update both auth context and user store
     login(userData);
     setCurrentUser({

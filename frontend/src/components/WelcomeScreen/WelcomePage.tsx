@@ -4,6 +4,7 @@ import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
+import { useEvaluationStore } from "../../../store/useEvaluationStore"; // ✅ ADD THIS
 
 import { ToastContainer } from "react-bootstrap";
 import "./WelcomePage.css";
@@ -11,15 +12,14 @@ import "./WelcomePage.css";
 // Submodules
 import { ProgressToast } from "../ui/toast/progress-toast";
 import { ContinueProgressModal } from "../ui/modals/continue-progress-modal";
-import { ResultsModal } from "../ui/modals/result-modal";
 import { HeaderSection } from "./sections/header-section";
 import { UserSection } from "./sections/user-section";
-import { ResultsSection } from "./sections/result-section";
 import { FeaturesSection } from "./sections/feature-section";
 import { CtaSection } from "./sections/cta-section";
 import { CarouselSection } from "./sections/carousel-section";
 
 import { useAssessmentState } from "../../hooks/useAssessmentState";
+import { AssessmentCompletedModal } from "../ui/modals/assessment-completed-modal";
 
 type Props = {
   onStartNew?: () => void;
@@ -29,26 +29,23 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
   const { hideWelcome } = useWelcomeScreen();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { setResult } = useEvaluationStore(); // ✅ ADD THIS
 
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showProgressToast, setShowProgressToast] = useState(false);
-  const [showResultsModal, setShowResultsModal] = useState(false);
+  const [showCompletedModal, setShowCompletedModal] = useState(true);
 
   const {
     assessmentResult,
     hasProgress,
     hasCompleted,
     clearAssessmentStorage,
-    refetch,
   } = useAssessmentState();
 
   // Side effects on auth change
   useEffect(() => {
     if (isAuthenticated) {
-      if (hasCompleted) {
-        setShowResultsModal(true);
-        setShowProgressModal(false);
-      } else if (hasProgress) {
+      if (hasProgress && !hasCompleted) {
         setShowProgressModal(true);
         setShowProgressToast(true);
       }
@@ -87,28 +84,24 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
     navigate("/assessment");
   };
 
+  // ✅ FIX: Load result into store BEFORE navigating
   const viewResults = () => {
-    setShowResultsModal(false);
-    hideWelcome();
-    navigate("/results");
-  };
+    console.log("📊 viewResults called");
+    console.log("📊 assessmentResult:", assessmentResult);
 
-  const retakeAssessment = () => {
-    clearAssessmentStorage();
-    refetch();
-    setShowResultsModal(false);
-    startNewAssessment();
-  };
+    if (assessmentResult) {
+      console.log("✅ Loading result into evaluation store");
+      setResult(assessmentResult); // ✅ Load into store
+    } else {
+      console.log("❌ No assessmentResult found!");
+    }
 
-  const continueToResults = () => {
-    setShowResultsModal(false);
     hideWelcome();
     navigate("/results");
   };
 
   const handleStartAssessment = () => {
-    if (hasCompleted) setShowResultsModal(true);
-    else if (hasProgress) setShowProgressModal(true);
+    if (hasProgress) setShowProgressModal(true);
     else startNewAssessment();
   };
 
@@ -123,19 +116,19 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
         />
       </ToastContainer>
 
+      <AssessmentCompletedModal
+        assessmentResult={assessmentResult}
+        show={hasCompleted && showCompletedModal} // ✅
+        onHide={() => setShowCompletedModal(false)} // ✅ Now this works!
+        onViewResults={viewResults}
+        onRetake={startNewAssessment}
+      />
+
       <ContinueProgressModal
         show={showProgressModal}
         onHide={() => setShowProgressModal(false)}
         onContinue={continueAssessment}
         onStartNew={startNewAssessment}
-      />
-
-      <ResultsModal
-        show={showResultsModal}
-        onHide={() => setShowResultsModal(false)}
-        assessmentResult={assessmentResult!}
-        onRetake={retakeAssessment}
-        onViewResults={continueToResults}
       />
 
       <div className="welcome-main-content">
@@ -149,21 +142,15 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
                 assessmentResult={assessmentResult}
               />
 
-              {hasCompleted && assessmentResult ? (
-                <ResultsSection
-                  assessmentResult={assessmentResult}
-                  onViewResults={viewResults}
-                  onRetake={retakeAssessment}
+              <>
+                <FeaturesSection />
+                <CtaSection
+                  hasProgress={hasProgress}
+                  onStart={handleStartAssessment}
+                  hasCompleted={hasCompleted}
+                  onViewResults={viewResults} // ✅ Pass viewResults
                 />
-              ) : (
-                <>
-                  <FeaturesSection />
-                  <CtaSection
-                    hasProgress={hasProgress}
-                    onStart={handleStartAssessment}
-                  />
-                </>
-              )}
+              </>
 
               <CarouselSection />
             </div>

@@ -7,13 +7,13 @@ import WelcomeScreenComponent from "./components/WelcomeScreen/WelcomePage"; // 
 import EvaluationForm from "./components/EvaluationForm/EvaluationForm";
 import { Container } from "react-bootstrap"; // Fixed import - use react-bootstrap instead of lucide-react
 import { Spinner } from "react-bootstrap";
+import ResultsPage from "./components/ResultPage/result-page";
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { isAuthenticated, loading } = useAuth();
-
   if (loading) {
     return (
       <Container className="d-flex justify-content-center align-items-center min-vh-100">
@@ -73,6 +73,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Navigate to="/welcome" replace />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/results"
+        element={
+          <ProtectedRoute>
+            <ResultsPage />
           </ProtectedRoute>
         }
       />

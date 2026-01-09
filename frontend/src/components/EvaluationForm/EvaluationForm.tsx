@@ -13,7 +13,7 @@ import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
 import { useAuth } from "../../context/AuthContext";
 import AssessmentForm from "../AssestmentForm//assessment-form";
-import ResultsPage from "../../components/ResultPage/ResultPage";
+import ResultsPage from "../../components/ResultPage/result-page";
 import WelcomeScreenComponent from "../../components/WelcomeScreen/WelcomePage";
 import AuthComponent from "../Auth/AuthComponent/AuthComponent";
 import LoadingSpinner from "../ui/LoadingSpinner/index";
@@ -142,15 +142,35 @@ const EvaluationForm = () => {
     submissionData: SubmissionData
   ): Promise<void> => {
     console.log("🚀 Submitting assessment...");
+    console.log("👤 Current authUser:", authUser);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { answers, programScores } = submissionData;
+
+    // CRITICAL: Validate user authentication FIRST
+    if (!authUser) {
+      console.error("❌ No authenticated user found");
+      setError(
+        "You must be logged in to submit assessment. Please refresh and login again."
+      );
+      return;
+    }
+
+    if (!authUser._id) {
+      console.error("❌ User ID is missing from authUser:", authUser);
+      setError("User authentication error. Please logout and login again.");
+      return;
+    }
+
+    console.log("✅ User authenticated:", authUser._id);
+
     setLoading(true);
     setError(null);
 
     try {
+      // Save to localStorage
       localStorage.setItem("evaluation-answers", JSON.stringify(answers));
 
+      // Format and validate answers
       const flatAnswers = flattenAnswers(answers);
       const formatted = formatAnswers(flatAnswers);
 
@@ -158,6 +178,7 @@ const EvaluationForm = () => {
         throw new Error("No answers available to evaluate.");
       }
 
+      // AI Evaluation
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash-lite",
       });
@@ -173,9 +194,9 @@ const EvaluationForm = () => {
       - BSET Electrical Technology: Electrical Technology — teaches design, operation, and maintenance of electrical systems and equipment (e.g., power systems, industrial control, motors, electrical installation).
 
       STUDENT INFORMATION:
-      - Name: ${authUser?.fullName || "Student"}
+      - Name: ${authUser.fullName || authUser.name || "Student"}
       - Preferred Course Interest: ${
-        authUser?.preferredCourse || "Not specified"
+        authUser.preferredCourse || "Not specified"
       }
 
       STUDENT ANSWERS:
@@ -201,13 +222,22 @@ const EvaluationForm = () => {
           "BSET Electrical Technology": number
         }
       }
-      `;
+    `;
+
       console.log("🤖 Sending request to AI...");
       const aiResponse = await model.generateContent(prompt);
       const raw = aiResponse.response.text();
 
       const cleanedResponse = raw.replace(/```json|```/g, "").trim();
       const parsed: EvaluationResult = JSON.parse(cleanedResponse);
+
+      console.log("🤖 AI Response parsed:", parsed);
+
+      // Validate AI response
+      if (!parsed.recommendedCourse || !parsed.percent) {
+        console.error("❌ Invalid AI response:", parsed);
+        throw new Error("AI returned incomplete results");
+      }
 
       const transformed: AssessmentResult = {
         success: true,
@@ -216,10 +246,10 @@ const EvaluationForm = () => {
         recommendations: parsed.recommendation,
         recommendedProgram: parsed.recommendedCourse as ProgramType,
         user: {
-          _id: authUser?._id || "temp-id",
-          name: authUser?.fullName || "Student",
-          email: authUser?.email || "",
-          preferredCourse: authUser?.preferredCourse || "Undecided",
+          _id: authUser._id,
+          name: authUser.fullName || authUser.name || "Student",
+          email: authUser.email || "",
+          preferredCourse: authUser.preferredCourse || "Undecided",
         },
         percent: parsed.percent,
         programScores: programScores,
@@ -228,23 +258,38 @@ const EvaluationForm = () => {
 
       setResult(transformed);
 
+      // Clear localStorage
       localStorage.removeItem("evaluation-answers");
       localStorage.removeItem("currentAssessmentSection");
 
+      // Save to backend
       try {
-        await axios.post(`${BASE_URL}/api/save-evaluation`, {
-          userId: authUser?._id,
-          userName: authUser?.fullName,
-          userEmail: authUser?.email,
-          evaluation: parsed.result,
-          recommendations: parsed.recommendation,
+        const payload = {
+          userId: authUser._id,
+          userName: authUser.fullName || authUser.name || "Anonymous",
+          userEmail: authUser.email || "",
+          evaluation: parsed.result || "",
+          recommendations: parsed.recommendation || "",
           recommendedCourse: parsed.recommendedCourse,
           percent: parsed.percent,
-          programScores: programScores,
-        });
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          programScores: programScores || {},
+        };
+
+        console.log("📤 Saving to backend:", payload);
+
+        const response = await axios.post(
+          `${BASE_URL}/api/save-evaluation`,
+          payload
+        );
+
+        console.log("✅ Backend save successful:", response.data);
       } catch (saveError) {
-        console.warn("⚠️ Failed to save to backend, but continuing...");
+        console.error("⚠️ Backend save failed:", saveError);
+        if (axios.isAxiosError(saveError)) {
+          console.error("Response data:", saveError.response?.data);
+          console.error("Response status:", saveError.response?.status);
+        }
+        // Continue anyway since we have the result
       }
     } catch (err: unknown) {
       console.error("❌ Evaluation error:", err);
@@ -271,7 +316,7 @@ const EvaluationForm = () => {
   if (result) {
     return (
       <div className="evaluation-form">
-        <ResultsPage />
+        <ResultsPage result={result} />
       </div>
     );
   }

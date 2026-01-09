@@ -86,7 +86,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
 
         <div className="row justify-content-center">
           <div className="col-lg-10">
-            <div className="d-grid gap-3">
+            <div className="d-grid gap-3 ">
               {questions.map((skill) => (
                 <Form.Check
                   key={skill._id}

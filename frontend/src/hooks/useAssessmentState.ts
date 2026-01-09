@@ -1,17 +1,20 @@
 // src/components/WelcomeScreen/hooks/useAssessmentState.ts
-import { useEffect, useState } from 'react';
-import type { AssessmentResult, AssessmentDisplayResult, AssessmentAnswers, ProgramType } from '../types'; // ✅ adjust path
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import { BASE_URL } from "../config/constants";
+import type {
+  AssessmentResult,
+  AssessmentDisplayResult,
+  ProgramType,
+} from "../types";
 
-
-    
-
-// 🔹 Helper: derive display-friendly fields
+// 🔹 Derive display-ready data (used by WelcomeScreen UI)
 export const deriveDisplayData = (
   result: AssessmentResult | null
 ): AssessmentDisplayResult | null => {
   if (!result) return null;
 
-  // Map full program names → display labels
   const programLabels = [
     "BSIT",
     "BSCS",
@@ -20,29 +23,30 @@ export const deriveDisplayData = (
     "BSET Electrical Technology",
   ] as const;
 
-  // Get top 3 recommended paths (by percent)
   const sortedPrograms = programLabels
     .map((prog) => ({
       program: prog,
-      percent: result.percent[prog],
+      percent: result.percent[prog] ?? 0,
     }))
     .sort((a, b) => b.percent - a.percent);
 
   const topPaths = sortedPrograms
-    .filter(p => p.percent > 0)
+    .filter((p) => p.percent > 0)
     .slice(0, 3)
-    .map(p => p.program);
+    .map((p) => p.program);
 
   return {
     ...result,
     completed: result.success,
-    completionDate: result.submissionDate || new Date().toLocaleDateString(),
-    // 💡 Derive score: e.g., max percent → normalized score out of 100
-    // You can adjust logic (e.g. average of top 2, etc.)
-    score: Math.round(Math.max(...programLabels.map(p => result.percent[p]))),
-    totalQuestions: 50, // ✅ Replace with actual if known, or derive from answers
+    completionDate: result.submissionDate
+      ? new Date(result.submissionDate).toLocaleDateString()
+      : new Date().toLocaleDateString(),
+    score: Math.round(
+      Math.max(...programLabels.map((p) => result.percent[p] ?? 0))
+    ),
+    totalQuestions: 50,
     recommendedPaths: topPaths,
-    strengths: [  // ✅ Mock for now — replace with real logic (e.g. from evaluation text)
+    strengths: [
       "Analytical Thinking",
       "Problem Solving",
       "Technical Aptitude",
@@ -50,113 +54,108 @@ export const deriveDisplayData = (
   };
 };
 
-// 🔹 Helper: check raw localStorage for legacy or canonical data
-const getStoredAssessment = (): AssessmentResult | null => {
-  try {
-    // 🔹 Try canonical format first
-    const stored = localStorage.getItem('assessment-result');
-    if (stored) return JSON.parse(stored) as AssessmentResult;
-
-    // 🔹 Fallback: legacy format (for smooth migration)
-    const completed = localStorage.getItem('assessment-completed') === 'true';
-    if (!completed) return null;
-
-    const completionDate =
-      localStorage.getItem('assessment-completion-date') ||
-      new Date().toLocaleDateString();
-
-    const scoreData = localStorage.getItem('assessment-score');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { score = 85, totalQuestions = 50 } = scoreData
-      ? JSON.parse(scoreData)
-      : {};
-
-    const recData = localStorage.getItem('assessment-recommendations');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { recommendedPaths = ["BSIT", "BSCS"], strengths = [] } = recData
-      ? JSON.parse(recData)
-      : {};
-
-    // ⚠️ Fallback: synthetic canonical result
-    const percent = {
-      BSIT: 85,
-      BSCS: 78,
-      BSIS: 65,
-      "BSET Electronics Technology": 42,
-      "BSET Electrical Technology": 38,
-    };
-
-    return {
-      success: true,
-      summary: "Legacy assessment",
-      evaluation: "Completed via legacy flow",
-      recommendations: "See recommended paths",
-      recommendedProgram: recommendedPaths[0] as ProgramType, // ⚠️ safe assumption for migration
-      user: { _id: '', name: '', email: '' }, // placeholder
-      percent,
-      programScores: {
-        BSIT: score,
-        BSCS: 78,
-        BSIS: 65,
-        "BSET-E": 42,
-        "BSET-EL": 38,
-      },
-      submissionDate: completionDate,
-    };
-  } catch (error) {
-    console.error('Failed to parse stored assessment', error);
-    return null;
-  }
-};
-
+// 🔹 Check if user has unsaved progress
 const hasExistingProgress = (): boolean => {
   try {
-    const answers = localStorage.getItem('evaluation-answers');
+    const answers = localStorage.getItem("evaluation-answers");
     if (!answers) return false;
-    const parsed: AssessmentAnswers = JSON.parse(answers);
-    return Object.values(parsed).some(section => Object.keys(section).length > 0);
+    const parsed = JSON.parse(answers);
+    return Object.values(parsed).some(
+      (section: Record<string, unknown>) =>
+        section && typeof section === "object" && Object.keys(section).length > 0
+    );
   } catch (error) {
-    console.error('Error checking progress:', error);
+    console.error("Error checking progress:", error);
     return false;
   }
 };
 
 export const useAssessmentState = () => {
+  const { user } = useAuth();
   const [rawResult, setRawResult] = useState<AssessmentResult | null>(null);
   const [hasProgress, setHasProgress] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Derive display-ready version
-  const displayResult = deriveDisplayData(rawResult);
+  const checkAssessmentStatus = async () => {
+    try {
+      setLoading(true);
 
-  const clearAssessmentStorage = () => {
-    // Canonical key
-    localStorage.removeItem('assessment-result');
-    // Legacy keys (for migration)
-    [
-      'evaluation-answers',
-      'currentAssessmentSection',
-      'assessmentProgress',
-      'assessment-completed',
-      'assessment-score',
-      'assessment-recommendations',
-    ].forEach(key => localStorage.removeItem(key));
-  };
+      // ✅ Check localStorage for in-progress answers
+      setHasProgress(hasExistingProgress());
 
-  const refetch = () => {
-    const result = getStoredAssessment();
-    setRawResult(result);
-    setHasProgress(hasExistingProgress());
+      // ✅ Fetch completed evaluations from backend
+      if (user?._id) {
+        console.log("🔍 Checking for saved evaluations for user:", user._id);
+
+        const response = await axios.get(
+          `${BASE_URL}/api/get-evaluations/${user._id}`
+        );
+
+        if (response.data.success && response.data.data.length > 0) {
+          const latest = response.data.data[0];
+          console.log("✅ Found latest evaluation:", latest);
+
+          const result: AssessmentResult = {
+            success: true,
+            summary: latest.summary || latest.evaluation || "",
+            evaluation: latest.evaluation || "",
+            recommendations: latest.recommendations || "",
+            recommendedProgram: latest.recommendedCourse as ProgramType,
+            user: {
+              _id: user._id,
+              name: user.fullName || user.name || "Student",
+              email: user.email || "",
+              preferredCourse: user.preferredCourse || "Undecided",
+            },
+            percent: latest.percent || {},
+            programScores: latest.programScores || {},
+            submissionDate: latest.submissionDate || new Date().toISOString(),
+          };
+
+          setRawResult(result);
+          setHasCompleted(true);
+        } else {
+          console.log("ℹ️ No completed evaluations found");
+          setRawResult(null);
+          setHasCompleted(false);
+        }
+      } else {
+        setRawResult(null);
+        setHasCompleted(false);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching assessment status:", error);
+      setRawResult(null);
+      setHasCompleted(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    refetch();
-  }, []);
+    checkAssessmentStatus();
+  }, [user?._id]);
+
+  const clearAssessmentStorage = () => {
+    localStorage.removeItem("evaluation-answers");
+    localStorage.removeItem("currentAssessmentSection");
+    setHasProgress(false);
+  };
+
+  const refetch = () => {
+    checkAssessmentStatus();
+  };
+
+  // ✅ Derive display-ready object
+  const assessmentResult = deriveDisplayData(rawResult);
 
   return {
-    assessmentResult: displayResult, // ✅ now AssessmentDisplayResult | null
+    assessmentResult, // AssessmentDisplayResult | null
     hasProgress,
-    hasCompleted: displayResult?.completed ?? false,
+    hasCompleted,
+    loading,
     clearAssessmentStorage,
     refetch,
   };
-};
+};  

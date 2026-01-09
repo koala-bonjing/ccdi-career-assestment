@@ -15,6 +15,7 @@ import type { User } from "../types";
 import { Bounce, toast } from "react-toastify";
 
 interface ResultData {
+  
   recommendedProgram: string;
   evaluation: string;
   recommendations: string;
@@ -100,7 +101,7 @@ export const saveResultsAsDocument = async (result: ResultData, user: User) => {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: user.name || "Not specified",
+                              text: user.fullName || "Not specified",
                             }),
                           ],
                         }),

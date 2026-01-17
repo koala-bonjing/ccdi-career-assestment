@@ -66,14 +66,14 @@ export interface AssessmentQuestions {
   academicAptitude: Question[];
   technicalSkills: Question[];
   careerInterest: Question[];
-  learningStyle: Question[];
+  learningWorkStyle: Question[];
 }
 
 export interface AssessmentAnswers {
   academicAptitude: Record<string, number>; // 1–5
   technicalSkills: Record<string, boolean>; // true/false
   careerInterest: Record<string, number>; // 1–5
-  learningStyle: Record<string, number>; // 1–5 (or could be string if using labels — confirm your logic)
+  learningWorkStyle: Record<string, number>; // 1–5 (or could be string if using labels — confirm your logic)
 }
 
 // 🔹 EvaluationResult — AI’s raw JSON response shape
@@ -81,6 +81,7 @@ export interface EvaluationResult {
   result: string;
   summary: string;
   recommendation: string;
+  detailedEvaluation: string;
   recommendedCourse: ProgramType;
   percent: {
     BSIT: number;
@@ -97,6 +98,7 @@ export interface AssessmentResult {
   summary: string;
   evaluation: string;
   recommendations: string;
+  detailedEvaluation: string;
   recommendedProgram: ProgramType;
   user: User;
   percent: {

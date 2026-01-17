@@ -64,14 +64,14 @@ const getPercentage = (
 };
 
 const getProgressBarColor = (percentage: number): string => {
-  if (percentage >= 60) {
-    return "#08CB00"; // green (Bootstrap success)
-  } else if (percentage >= 50) {
-    return "#06D001";
-  } else if (percentage >= 30) {
-    return "#17a2b8"; // medium blue (Bootstrap info)
+  if (percentage >= 80) {
+    return "#08CB00"; // Vibrant green — matches "Excellent Match"
+  } else if (percentage >= 60) {
+    return "#1E90FF"; // Dodger blue or Bootstrap primary — for "Strong Fit"
+  } else if (percentage >= 40) {
+    return "#dc3545"; // Orange/amber — for "Moderate Fit" (more intuitive than warning yellow on progress bar)
   } else {
-    return "#dc3545"; // red (Bootstrap danger)
+    return "#dc3545"; // Red — for "Limited Fit"
   }
 };
 
@@ -79,6 +79,7 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
   percentages,
   recommendedProgram,
 }) => {
+  const maxPercentage = Math.max(...Object.values(percentages));
   return (
     <div
       className="card border-0 shadow-lg"
@@ -175,7 +176,10 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
                         role="progressbar"
                         style={{
                           width: `${percentage}%`,
-                          backgroundColor: getProgressBarColor(percentage),
+                          backgroundColor:
+                            percentage === maxPercentage
+                              ? "#08CB00"
+                              : getProgressBarColor(percentage),
                           borderRadius: "8px",
                           transition:
                             "width 1s ease-in-out, background-color 0.3s ease",

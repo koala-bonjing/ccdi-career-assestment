@@ -13,7 +13,9 @@ const CompatibilityLegend: React.FC = () => {
       </h5>
       <div className="row text-center g-3">
         <div className="col-md-3">
-          <div className="fw-bold text-success">80-100%</div>
+          <div className="fw-bold" style={{ color: "#08CB00" }}>
+            80-100%
+          </div>
           <small className="text-muted">Excellent Match</small>
         </div>
         <div className="col-md-3">
@@ -21,7 +23,7 @@ const CompatibilityLegend: React.FC = () => {
           <small className="text-muted">Strong Fit</small>
         </div>
         <div className="col-md-3">
-          <div className="fw-bold text-warning">40-59%</div>
+          <div className="fw-bold text-danger">40-59%</div>
           <small className="text-muted">Moderate Fit</small>
         </div>
         <div className="col-md-3">

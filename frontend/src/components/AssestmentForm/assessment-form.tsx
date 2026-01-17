@@ -53,7 +53,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             academicAptitude: {},
             technicalSkills: {},
             careerInterest: {},
-            learningStyle: {},
+            learningWorkStyle: {},
           };
     } catch (e) {
       console.error("LS error", e);
@@ -61,7 +61,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         academicAptitude: {},
         technicalSkills: {},
         careerInterest: {},
-        learningStyle: {},
+        learningWorkStyle: {},
       };
     }
   });
@@ -172,7 +172,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       academicAptitude: {},
       technicalSkills: {},
       careerInterest: {},
-      learningStyle: {},
+      learningWorkStyle: {},
     });
     setCurrentSection(0);
     setShowReview(false);
@@ -247,7 +247,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           )}
           {currentSection === 3 && (
             <LearningStyleSection
-              questions={questions.learningStyle}
+              questions={questions.learningWorkStyle}
               formData={formData}
               onChange={handleChange}
               onNext={handleNext}

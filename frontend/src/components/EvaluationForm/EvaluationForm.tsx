@@ -64,7 +64,7 @@ const EvaluationForm = () => {
           academicAptitude: parsed.academicAptitude || {},
           technicalSkills: parsed.technicalSkills || {},
           careerInterest: parsed.careerInterest || {},
-          learningStyle: parsed.learningStyle || {},
+          learningWorkStyle: parsed.learningWorkStyle || {},
         };
 
         setRestoredFormData(formData);
@@ -100,7 +100,7 @@ const EvaluationForm = () => {
     });
 
     // Learning Style (numbers)
-    Object.entries(nested.learningStyle).forEach(([question, value]) => {
+    Object.entries(nested.learningWorkStyle).forEach(([question, value]) => {
       flat[`learningStyle.${question}`] = value;
     });
 
@@ -115,7 +115,7 @@ const EvaluationForm = () => {
       academicAptitude: {},
       technicalSkills: {},
       careerInterest: {},
-      learningStyle: {},
+      learningWorkStyle: {},
     });
 
     console.log("🆕 Started new assessment");
@@ -180,50 +180,67 @@ const EvaluationForm = () => {
 
       // AI Evaluation
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-3-flash-preview",
       });
 
       const prompt = `
-      You are a career/course evaluation assistant for CCDI Sorsogon.
+        You are a career guidance assistant for CCDI Sorsogon, helping students identify the most suitable technology program based on their aptitudes, interests, and circumstances.
 
-      AVAILABLE PROGRAMS (with descriptions):
-      - BSIT: Information Technology — focuses on IT infrastructure, networking, and system administration.
-      - BSCS: Computer Science — emphasizes algorithms, software development, and theoretical computing.
-      - BSIS: Information Systems — bridges business and technology through data, systems analysis, and project management.
-      - BSET Electronics Technology: Electronics Technology — teaches design, development, operation, and maintenance of electronic systems and devices (e.g., robotics, automation, embedded systems, communications).
-      - BSET Electrical Technology: Electrical Technology — teaches design, operation, and maintenance of electrical systems and equipment (e.g., power systems, industrial control, motors, electrical installation).
+        AVAILABLE PROGRAMS:
+        1. BSCS (Computer Science) — Focuses on software development, algorithms, theoretical computing, and mathematics. Prepares students for software engineering, AI/ML, and research roles.
+        2. BSIT (Information Technology) — Focuses on IT infrastructure, networking, system administration, and cybersecurity. Prepares students for network admin, IT support, and security roles.
+        3. BSIS (Information Systems) — Bridges business and technology through data analysis, systems analysis, and IT project management. Prepares students for business analyst and IT consulting roles.
+        4. BSET Electronics Technology — Focuses on electronic systems, circuits, microcontrollers, robotics, automation, and embedded systems. Prepares students for electronics technician and design roles.
+        5. BSET Electrical Technology — Focuses on electrical power systems, motors, transformers, industrial control, PLC programming, and electrical installation. Prepares students for electrical technician and industrial roles.
 
-      STUDENT INFORMATION:
-      - Name: ${authUser.fullName || authUser.name || "Student"}
-      - Preferred Course Interest: ${
-        authUser.preferredCourse || "Not specified"
-      }
+        STUDENT PROFILE:
+        - Name: ${authUser.fullName || authUser.name || "Student"}
+        - Initially Interested In: ${authUser.preferredCourse || "Not specified"}
 
-      STUDENT ANSWERS:
-      ${formatted}
+        STUDENT ASSESSMENT RESPONSES:
+        ${formatted}
 
-      INSTRUCTIONS:
-      - Recommend **exactly one** program from: 
-        ["BSIT", "BSCS", "BSIS", "BSET Electronics Technology", "BSET Electrical Technology"]
-      - Avoid generic terms like "BSET" — always use the full program name.
-      - Your confidence percentages must sum to ~100%.
+        EVALUATION CRITERIA:
+        Analyze the student's responses across these dimensions:
+        - Academic Aptitude: Math skills, theoretical vs. practical preference, learning style
+        - Technical Interests: Software vs. hardware, systems vs. applications, business vs. pure tech
+        - Career Goals: Desired work environment, job type, industry preferences
+        - Logistics & Resources: Financial capacity, time availability, equipment access, physical requirements
 
-      Respond ONLY with valid JSON in this format:
-      {
-        "summary": "string",
-        "result": "string",
-        "recommendation": "string",
-        "recommendedCourse": "BSCS|BSIT|BSIS|BSET Electronics Technology|BSET Electrical Technology",
-        "percent": {
-          "BSIT": number,
-          "BSCS": number,
-          "BSIS": number,
-          "BSET Electronics Technology": number,
-          "BSET Electrical Technology": number
+        RESPONSE REQUIREMENTS:
+        1. **recommendedCourse**: Must be EXACTLY one of: "BSCS", "BSIT", "BSIS", "BSET Electronics Technology", "BSET Electrical Technology"
+        2. **summary**: 2-3 sentences highlighting the student's strongest aptitudes and interests
+        3. **result**: A clear statement of your primary recommendation and why it's the best fit (3-4 sentences)
+        4. **detailedEvaluation**: A comprehensive analysis (4-6 sentences) covering:
+          - How their academic strengths align with the recommended program
+          - How their technical interests match the program's focus
+          - How their career goals fit the typical career paths
+          - Any logistical considerations (resources, time, financial factors)
+          - Brief mention of why other programs were less suitable
+        5. **percent**: Confidence distribution across ALL five programs that sums to exactly 100
+
+        IMPORTANT GUIDELINES:
+        - Base your recommendation on the ASSESSMENT DATA, not just their initial preference
+        - If their answers strongly indicate a different program than their preference, recommend the better fit and explain why
+        - Be specific about program names — never use generic terms like "BSET" alone
+        - Ensure percentages are realistic (top choice typically 40-70%, not 95%+)
+        - Consider the whole student profile, not just one dimension
+
+        Respond ONLY with valid JSON (no markdown, no explanation):
+        {
+          "summary": "string",
+          "result": "string",
+          "detailedEvaluation": "string",
+          "recommendedCourse": "BSCS|BSIT|BSIS|BSET Electronics Technology|BSET Electrical Technology",
+          "percent": {
+            "BSCS": number,
+            "BSIT": number,
+            "BSIS": number,
+            "BSET Electronics Technology": number,
+            "BSET Electrical Technology": number
+          }
         }
-      }
-    `;
-
+        `;
       console.log("🤖 Sending request to AI...");
       const aiResponse = await model.generateContent(prompt);
       const raw = aiResponse.response.text();
@@ -244,6 +261,7 @@ const EvaluationForm = () => {
         summary: parsed.summary,
         evaluation: parsed.result,
         recommendations: parsed.recommendation,
+        detailedEvaluation: parsed.detailedEvaluation,
         recommendedProgram: parsed.recommendedCourse as ProgramType,
         user: {
           _id: authUser._id,

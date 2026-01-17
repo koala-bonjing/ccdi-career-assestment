@@ -24,6 +24,7 @@ import { useEvaluationStore } from "../../../store/useEvaluationStore"; // ✅ A
 
 import "./result-page.css";
 import type { AssessmentResult } from "../../types";
+import { useResultsHydration } from "../../hooks/useResultHydaration";
 
 interface ResultsPageProps {
   result?: AssessmentResult; // Make it optional
@@ -37,7 +38,10 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   // ✅ Get result from multiple sources
   const { assessmentResult } = useAssessmentState();
   const { result: storeResult } = useEvaluationStore();
-  
+
+  // Hydrate Data on Mount
+  useResultsHydration();
+
   // ✅ Priority: prop > store > assessment state
   const result = propResult || storeResult || assessmentResult;
 
@@ -54,7 +58,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   // ✅ NOW check if result exists from ANY source
   if (!result) {
     console.log("❌ No result found from any source - showing NoResultsView");
-    return <NoResultsView />
+    return <NoResultsView />;
   }
 
   // Handler for saving document
@@ -121,7 +125,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 />
                 {showDetailed && (
                   <DetailedExplanationSection
-                    evaluation={result.evaluation}
+                    evaluation={result.detailedEvaluation}
                     recommendations={result.recommendations}
                   />
                 )}

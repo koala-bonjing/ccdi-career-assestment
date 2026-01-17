@@ -15,7 +15,7 @@ export interface BackendQuestions {
   academicAptitude: Question[];
   technicalSkills: Question[];
   careerInterest: Question[];
-  learningStyle: Question[];
+  learningWorkStyle: Question[];
 }
 
 interface ApiQuestion {
@@ -31,7 +31,7 @@ interface ApiResponse {
   academicAptitude?: Question[];
   technicalSkills?: Question[];
   careerInterest?: Question[];
-  learningStyle?: Question[];
+  learningWorkStyle?: Question[];
 }
 
 export const useAssessmentQuestions = () => {
@@ -43,24 +43,30 @@ export const useAssessmentQuestions = () => {
     const fetchQuestions = async (): Promise<void> => {
       try {
         console.log("Fetching questions from API...");
-        const response = await axios.get<ApiResponse | ApiQuestion[]>(`${BASE_URL}/api/questions`);
+        const response = await axios.get<ApiResponse | ApiQuestion[]>(
+          `${BASE_URL}/api/questions`
+        );
 
         // Check if response is already grouped by category
         const responseData = response.data;
-        const hasGroupedStructure = 
-          'academicAptitude' in responseData ||
-          'technicalSkills' in responseData ||
-          'careerInterest' in responseData ||
-          'learningStyle' in responseData;
+        const hasGroupedStructure =
+          "academicAptitude" in responseData ||
+          "technicalSkills" in responseData ||
+          "careerInterest" in responseData ||
+          "learningWorkStyle" in responseData;
 
-        if (hasGroupedStructure && typeof responseData === 'object' && !Array.isArray(responseData)) {
+        if (
+          hasGroupedStructure &&
+          typeof responseData === "object" &&
+          !Array.isArray(responseData)
+        ) {
           // It's already in the grouped format
           const groupedData = responseData as ApiResponse;
           setQuestions({
             academicAptitude: groupedData.academicAptitude || [],
             technicalSkills: groupedData.technicalSkills || [],
             careerInterest: groupedData.careerInterest || [],
-            learningStyle: groupedData.learningStyle || [],
+            learningWorkStyle: groupedData.learningWorkStyle || [],
           });
         } else if (Array.isArray(responseData)) {
           // Transform flat array to grouped structure
@@ -68,7 +74,7 @@ export const useAssessmentQuestions = () => {
             academicAptitude: [],
             technicalSkills: [],
             careerInterest: [],
-            learningStyle: [],
+            learningWorkStyle: [],
           };
 
           responseData.forEach((question: ApiQuestion) => {
@@ -90,8 +96,8 @@ export const useAssessmentQuestions = () => {
               case "careerInterest":
                 transformedQuestions.careerInterest.push(questionData);
                 break;
-              case "learningStyle":
-                transformedQuestions.learningStyle.push(questionData);
+              case "learningWorkStyle":
+                transformedQuestions.learningWorkStyle.push(questionData);
                 break;
               default:
                 console.warn(`Unknown category: ${question.category}`);
@@ -104,9 +110,8 @@ export const useAssessmentQuestions = () => {
         }
       } catch (err: unknown) {
         console.error("Failed to load questions:", err);
-        const errorMessage = err instanceof Error 
-          ? err.message 
-          : "Failed to load questions";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load questions";
         setError(errorMessage);
       } finally {
         setLoading(false);

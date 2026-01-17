@@ -39,7 +39,7 @@ export const useAssessmentValidation = ({
     if (
       section === "academicAptitude" ||
       section === "careerInterest" ||
-      section === "learningStyle" // Added learningStyle to the validation
+      section === "learningWorkStyle" // Added learningStyle to the validation
     ) {
       const firstUnansweredIndex = currentQuestions.findIndex(
         (q: Question) => {
@@ -49,7 +49,7 @@ export const useAssessmentValidation = ({
           if (
             section === "academicAptitude" || 
             section === "careerInterest" ||
-            section === "learningStyle"
+            section === "learningWorkStyle"
           ) {
             return !isNumberAnswer(answer);
           }

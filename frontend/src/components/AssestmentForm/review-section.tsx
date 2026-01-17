@@ -13,7 +13,7 @@ interface ReviewSectionProps {
     academicAptitude: Question[];
     technicalSkills: Question[];
     careerInterest: Question[];
-    learningStyle: Question[];
+    learningWorkStyle: Question[];
   };
   programScores: ProgramScores;
   onEditSection: (index: number) => void;
@@ -39,8 +39,8 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
         return questions.technicalSkills || [];
       case "careerInterest":
         return questions.careerInterest || [];
-      case "learningStyle":
-        return questions.learningStyle || [];
+      case "learningWorkStyle":
+        return questions.learningWorkStyle || [];
       default:
         return [];
     }
@@ -54,7 +54,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     if (
       sectionKey === "academicAptitude" ||
       sectionKey === "careerInterest" ||
-      sectionKey === "learningStyle"
+      sectionKey === "learningWorkStyle"
     ) {
       const labels =
         sectionKey === "careerInterest"
@@ -131,7 +131,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                       if (
                         sectionKey === "academicAptitude" ||
                         sectionKey === "careerInterest" ||
-                        sectionKey === "learningStyle"
+                        sectionKey === "learningWorkStyle"
                       ) {
                         return (
                           typeof answer === "number" &&
@@ -193,7 +193,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               if (
                 sectionKey === "academicAptitude" ||
                 sectionKey === "careerInterest" ||
-                sectionKey === "learningStyle"
+                sectionKey === "learningWorkStyle"
               ) {
                 return typeof answer === "number" && answer >= 1 && answer <= 5;
               }

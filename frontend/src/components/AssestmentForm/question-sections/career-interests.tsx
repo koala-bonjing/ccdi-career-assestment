@@ -40,11 +40,11 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
   // Labels aligned with your original `choiceLabels` mapping:
   // 1: "Strongly Matches", 2: "Matches", ..., 5: "Does Not Match"
   const labelMap = [
-    "Strongly Matches",
-    "Matches",
+    "Strongly Agree",
+    "Agree",
     "Neutral",
-    "Partially Matches",
-    "Does Not Match",
+    "Disagree",
+    "Strongly Disagree",
   ];
 
   return (

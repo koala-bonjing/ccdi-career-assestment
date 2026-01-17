@@ -59,7 +59,7 @@ export const saveAnswersAsDocument = async ({
           } else if (
             typedSectionKey === "academicAptitude" ||
             typedSectionKey === "careerInterest" ||
-            typedSectionKey === "learningStyle"
+            typedSectionKey === "learningWorkStyle"
           ) {
             // Numeric answers (Likert scale) for all three sections
             const labels: AnswerLabels = {
@@ -122,7 +122,7 @@ export const saveAnswersAsDocument = async ({
 
     // Debug: Log the actual form data to see what's being saved
     console.log("📋 Form Data being saved:", formData);
-    console.log("🎯 Learning Style answers:", formData.learningStyle);
+    console.log("🎯 Learning Style answers:", formData.learningWorkStyle);
 
     // Build the document
     const doc = new Document({

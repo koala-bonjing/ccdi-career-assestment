@@ -33,7 +33,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
 
   const calculateProgress = () => {
     const answered = questions.filter(
-      (q) => typeof formData.learningStyle[q.questionText] === "number"
+      (q) => typeof formData.learningWorkStyle[q.questionText] === "number"
     ).length;
     return Math.round((answered / questions.length) * 100);
   };
@@ -59,7 +59,8 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       }}
     >
       <SectionHeader
-        title="Learning Style"
+        title="Learning & Work Style"
+        subTitle="(Student Logistics & Financial Considerations)"
         icon={<Brain size={28} />}
         variant="success"
         currentQuestionIndex={currentIndex}
@@ -125,7 +126,8 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
             <div className="d-grid gap-3">
               {[1, 2, 3, 4, 5].map((val) => {
                 const isSelected =
-                  formData.learningStyle[currentQuestion.questionText] === val;
+                  formData.learningWorkStyle[currentQuestion.questionText] ===
+                  val;
                 return (
                   <label
                     key={val}
@@ -140,7 +142,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                       checked={isSelected}
                       onChange={() =>
                         onChange(
-                          "learningStyle",
+                          "learningWorkStyle",
                           currentQuestion.questionText,
                           val,
                           currentQuestion.program
@@ -191,9 +193,11 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
         isLastSection={currentSection === totalSections - 1}
         isComplete={calculateProgress() === 100}
         nextLabel={
-          calculateProgress() === 100
-            ? "Review Answers"
-            : "Complete All Questions"
+          currentSection === totalSections - 1
+            ? calculateProgress() === 100
+              ? "Finish Assessment"
+              : "Complete All Questions"
+            : "Next Section →"
         }
       />
     </Card>

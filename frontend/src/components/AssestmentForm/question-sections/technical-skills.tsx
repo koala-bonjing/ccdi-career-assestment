@@ -52,7 +52,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
       }}
     >
       <SectionHeader
-        title="Technical Skills"
+        title="Technical  Skills and Interests"
         icon={<Wrench size={28} />}
         variant="warning"
         sectionType="technicalSkills"

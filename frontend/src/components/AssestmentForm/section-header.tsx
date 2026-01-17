@@ -1,5 +1,5 @@
 import React from "react";
-import { Card,} from "react-bootstrap";
+import { Card } from "react-bootstrap";
 
 interface SectionHeaderProps {
   title: string;
@@ -22,6 +22,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
       {icon}
       <span className="ms-3">{title}</span>
     </Card.Title>
+    <p className="mb-0 mt-2 opacity-75">
+      Please review all your answers before submitting
+    </p>
   </Card.Header>
 );
 

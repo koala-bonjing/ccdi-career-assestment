@@ -19,7 +19,6 @@
   border-radius: 15px;
   transition: all 0.3s ease;
   margin: 0 auto;
-  
 }
 
 .card:hover {
@@ -50,6 +49,8 @@
   background-color: #0d6efd;
   border-color: #0d6efd;
 }
+
+
 
 .form-check-label {
   cursor: pointer;
@@ -356,7 +357,50 @@
   padding: 1rem 0;
   border-top: 1px solid #e9ecef;
 }
+/* Fixed Floating Action Button - Lower Right */
+.assessment-instruction-fab {
+  position: fixed;
+  bottom: 1.25rem; /* 20px from bottom */
+  right: 1.25rem; /* 20px from right */
+  z-index: 1050; /* Above most content */
+}
 
+.instruction-btn {
+  width: 55px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 20px;
+}
+
+.instruction-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.instruction-btn:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* Mobile adjustment */
+@media (max-width: 575.98px) {
+  .assessment-instruction-fab {
+    position: end;
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
 /* Enhanced Mobile Responsiveness */
 @media (max-width: 768px) {
   .main-content {

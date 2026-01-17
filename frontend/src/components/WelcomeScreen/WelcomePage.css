@@ -1,10 +1,39 @@
 /* Modern WelcomePage.css */
 .welcome-assessment-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   font-family: "Poppins", sans-serif;
   display: flex;
   flex-direction: column;
+
+  /* Layered background: base + subtle radial highlights + soft noise */
+  background: 
+    /* Subtle star-like speckles (using radial gradients as "dots") */ radial-gradient(
+      circle at 10% 20%,
+      rgba(255, 255, 255, 0.15) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 90% 40%,
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 30% 80%,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 70% 90%,
+      rgba(200, 230, 255, 0.12) 1px,
+      transparent 1px
+    ),
+    /* Soft glowing core (deep space blue center) */
+      radial-gradient(ellipse at center, #2c3e8f 0%, transparent 60%),
+    /* Main diagonal gradient (your original, slightly deepened) */
+      linear-gradient(135deg, #f0f4fc 0%, #1a3f8b 100%);
+
+
+  color: #000;
 }
 
 .welcome-main-content {

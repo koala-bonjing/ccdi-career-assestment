@@ -28,11 +28,11 @@ const getInitialAuthState = (): { user: User | null; loading: boolean } => {
   try {
     const savedUser = localStorage.getItem("user");
     console.log("🔍 Checking localStorage for user:", savedUser);
-    
+
     if (savedUser) {
       const parsed = JSON.parse(savedUser);
       console.log("📦 Parsed user data:", parsed);
-      
+
       // Check for _id (MongoDB style) or id
       if (parsed && (parsed._id || parsed.id) && parsed.email) {
         // Normalize to always use _id
@@ -49,7 +49,7 @@ const getInitialAuthState = (): { user: User | null; loading: boolean } => {
   } catch (e) {
     console.error("❌ Failed to parse user from localStorage:", e);
   }
-  
+
   console.log("ℹ️ No valid user in localStorage");
   return { user: null, loading: false };
 };
@@ -71,25 +71,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const login = (userData: User) => {
     try {
       console.log("🔑 Login attempt with data:", userData);
-      
+
       // Validate required fields
-      if (!userData._id && !userData._id) {
+      // ✅ FIXED: Check for both _id AND id (was checking _id twice)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!userData._id && !(userData as any).id) {
         console.error("❌ Cannot login: user data missing _id/id");
         throw new Error("Invalid user data: missing ID");
       }
-      
+
       if (!userData.email) {
         console.error("❌ Cannot login: user data missing email");
         throw new Error("Invalid user data: missing email");
       }
-      
+
       // Normalize user data
       const normalizedUser = {
         ...userData,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         _id: userData._id || (userData as any).id,
       };
-      
+
       localStorage.setItem("user", JSON.stringify(normalizedUser));
       setState({ user: normalizedUser, loading: false });
       console.log("✅ User logged in successfully:", normalizedUser._id);

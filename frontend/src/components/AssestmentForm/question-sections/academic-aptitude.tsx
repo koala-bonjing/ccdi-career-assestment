@@ -14,8 +14,6 @@ import SectionHeader from "../section-header";
 import AssessmentActionFooter from "../assessment-action-footer";
 import type { AssessmentSectionProps } from "../types";
 
-
-
 const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
   questions,
   formData,
@@ -28,7 +26,7 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
   setCurrentQuestionIndex,
   totalSections,
 }) => {
-  const currentIndex = currentQuestionIndex; 
+  const currentIndex = currentQuestionIndex;
   const currentQuestion = questions[currentIndex] || {
     questionText: "Loading...",
   };
@@ -125,28 +123,61 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
         <div className="row justify-content-center">
           <div className="col-lg-10">
             <div className="d-grid gap-2 gap-md-3">
-              {[1, 2, 3, 4, 5].map((val) => (
-                <Form.Check
-                  key={val}
-                  type="radio"
-                  name={`academic-q-${currentIndex}`}
-                  id={`academic-${currentIndex}-${val}`}
-                  label={<span className="fs-5">{labelMap[val - 1]}</span>}
-                  checked={
-                    formData.academicAptitude[currentQuestion.questionText] ===
-                    val
-                  }
-                  onChange={() =>
-                    onChange(
-                      "academicAptitude",
-                      currentQuestion.questionText,
-                      val,
-                      currentQuestion.program
-                    )
-                  }
-                  className="p-3 p-md-4 border rounded-3 hover-shadow text-start form-option fs-5"
-                />
-              ))}
+              {[1, 2, 3, 4, 5].map((val) => {
+                const isSelected =
+                  formData.academicAptitude[currentQuestion.questionText] ===
+                  val;
+                return (
+                  <label
+                    key={val}
+                    className="d-flex align-items-center p-3 p-md-4 border border-secondary rounded-3 text-start fs-5 mb-2"
+                    style={{ cursor: "pointer" }}
+                  >
+                    {/* Hidden radio input */}
+                    <input
+                      type="radio"
+                      name={`academic-q-${currentIndex}`}
+                      id={`academic-${currentIndex}-${val}`}
+                      checked={isSelected}
+                      onChange={() =>
+                        onChange(
+                          "academicAptitude",
+                          currentQuestion.questionText,
+                          val,
+                          currentQuestion.program
+                        )
+                      }
+                      style={{ display: "none" }} // Use inline style instead of class
+                    />
+                    {/* Custom radio indicator */}
+                    <span
+                      className="d-inline-flex align-items-center justify-content-center me-3 rounded-circle border"
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        minWidth: "20px", // Prevents shrinking
+                        minHeight: "20px",
+                        borderColor: isSelected ? "#0d6efd" : "#ced4da",
+                        borderWidth: "2px",
+                        borderStyle: "solid",
+                      }}
+                    >
+                      {isSelected && (
+                        <span
+                          className="rounded-circle"
+                          style={{
+                            width: "10px",
+                            height: "10px",
+                            backgroundColor: "#0d6efd",
+                          }}
+                        />
+                      )}
+                    </span>
+                    {/* Text stays the same */}
+                    <span className="text-dark">{labelMap[val - 1]}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>

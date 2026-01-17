@@ -1,7 +1,7 @@
 // src/components/ui/modals/assessment-completed-modal.tsx
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
-import { CheckCircle, BarChart3, RefreshCw } from "lucide-react";
+import { CheckCircle, BarChart3 } from "lucide-react";
 import type { AssessmentResult } from "../../../types";
 
 interface AssessmentCompletedModalProps {
@@ -9,16 +9,11 @@ interface AssessmentCompletedModalProps {
   onHide: () => void;
   assessmentResult: AssessmentResult | null;
   onViewResults: () => void;
-  onRetake: () => void;
 }
 
-export const AssessmentCompletedModal: React.FC<AssessmentCompletedModalProps> = ({
-  show,
-  onHide,
-  assessmentResult,
-  onViewResults,
-  onRetake,
-}) => {
+export const AssessmentCompletedModal: React.FC<
+  AssessmentCompletedModalProps
+> = ({ show, onHide, assessmentResult, onViewResults }) => {
   return (
     <Modal
       show={show}
@@ -65,25 +60,28 @@ export const AssessmentCompletedModal: React.FC<AssessmentCompletedModalProps> =
         <p className="text-muted mb-4 small">
           Completed on:{" "}
           {assessmentResult?.submissionDate
-            ? new Date(assessmentResult.submissionDate).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })
+            ? new Date(assessmentResult.submissionDate).toLocaleDateString(
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                }
+              )
             : "—"}
         </p>
 
         {/* Warning Note */}
         <div className="bg-light-warning rounded p-3 mb-4">
           <p className="mb-0 small text-dark">
-            <strong>Note:</strong> If you retake the assessment, your previous results will be
-            replaced with the new ones.
+            <strong>Note:</strong> If you retake the assessment, your previous
+            results will be replaced with the new ones.
           </p>
         </div>
       </Modal.Body>
 
       <Modal.Footer className="border-0 justify-content-center pb-4">
-        <div className="d-flex flex-column flex-sm-row justify-content-center gap-3 w-100">
+        <div className="d-flex flex-column flex-sm-row justify-content-center gap-3 w-55 ">
           <Button
             variant="outline-primary"
             onClick={onViewResults}
@@ -92,19 +90,6 @@ export const AssessmentCompletedModal: React.FC<AssessmentCompletedModalProps> =
           >
             <BarChart3 size={18} className="me-2" />
             View Full Results
-          </Button>
-          <Button
-            variant="primary"
-            onClick={onRetake}
-            className="flex-fill modern-btn-primary"
-            size="lg"
-            style={{
-              background: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
-              border: "none",
-            }}
-          >
-            <RefreshCw size={18} className="me-2" />
-            Retake Assessment
           </Button>
         </div>
       </Modal.Footer>

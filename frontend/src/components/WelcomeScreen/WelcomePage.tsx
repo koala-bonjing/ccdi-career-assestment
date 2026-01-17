@@ -121,7 +121,6 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
         show={hasCompleted && showCompletedModal} // ✅
         onHide={() => setShowCompletedModal(false)} // ✅ Now this works!
         onViewResults={viewResults}
-        onRetake={startNewAssessment}
       />
 
       <ContinueProgressModal
@@ -148,7 +147,7 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
                   hasProgress={hasProgress}
                   onStart={handleStartAssessment}
                   hasCompleted={hasCompleted}
-                  onViewResults={viewResults} // ✅ Pass viewResults
+                  onViewResults={viewResults}
                 />
               </>
 

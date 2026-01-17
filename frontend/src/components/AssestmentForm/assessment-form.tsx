@@ -1,5 +1,5 @@
 // src/components/AssessmentForm/AssessmentForm.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
 import { useAssessmentValidation } from "../../hooks/useAssessmentValidation";
@@ -15,6 +15,8 @@ import { getRecommendedProgram as _getRecommendedProgram } from "./utils";
 import { type SubmissionData } from "../EvaluationForm/EvaluationForm";
 import { ToastContainer } from "react-toastify";
 import "./AssessmentForm.css";
+import { Info } from "lucide-react";
+import { AssessmentInstructionsModal } from "../ui/modals/instruction-modal";
 
 interface AssessmentFormProps {
   currentUser?: User;
@@ -37,6 +39,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     loading: questionsLoading,
     error,
   } = useAssessmentQuestions();
+
+  const [showInstructions, setShowInstructions] = useState(false);
+  const hasShownInstructionsRef = useRef(false);
 
   const [formData, setFormData] = useState<AssessmentAnswers>(() => {
     if (restoredFormData) return restoredFormData;
@@ -83,6 +88,23 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     localStorage.setItem("evaluation-answers", JSON.stringify(formData));
     localStorage.setItem("currentAssessmentSection", currentSection.toString());
   }, [formData, currentSection]);
+
+  useEffect(() => {
+    if (
+      questions &&
+      !hasShownInstructionsRef.current &&
+      !loading &&
+      currentSection === 0
+    ) {
+      const hasSeenBefore = localStorage.getItem(
+        "hasSeenAssessmentInstructions"
+      );
+      if (!hasSeenBefore) {
+        setShowInstructions(true);
+        hasShownInstructionsRef.current = true;
+      }
+    }
+  }, [questions, loading, currentSection]);
 
   const sectionKey = sections[currentSection];
 
@@ -179,6 +201,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
         />
       ) : (
         <>
+          <AssessmentInstructionsModal
+            onHide={() => setShowInstructions(false)}
+            show={showInstructions}
+          />
           {currentSection === 0 && (
             <AcademicAptitudeSection
               questions={questions.academicAptitude}
@@ -235,6 +261,18 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           )}
         </>
       )}
+      {/* Fixed instruction button in lower-right */}
+      {/* Fixed instruction button */}
+      <div className="assessment-instruction-fab">
+        <button
+          type="button"
+          className="btn instruction-btn"
+          onClick={() => setShowInstructions(true)}
+          aria-label="Show assessment instructions"
+        >
+          <Info size={30} strokeWidth={2.5} color="white" />
+        </button>
+      </div>
 
       <ToastContainer />
     </div>

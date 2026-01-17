@@ -49,23 +49,6 @@ const getBorderColor = (programType: string): string => {
   }
 };
 
-const getBgClass = (programType: string): string => {
-  switch (programType) {
-    case "BSCS":
-      return "bg-primary";
-    case "BSIT":
-      return "bg-warning";
-    case "BSIS":
-      return "bg-info";
-    case "BSET Electronics Technology":
-      return "bg-success";
-    case "BSET Electrical Technology":
-      return "bg-danger";
-    default:
-      return "bg-secondary";
-  }
-};
-
 interface CompatibilityChartProps {
   percentages: ProgramPercentages;
   recommendedProgram: ProgramType;
@@ -78,6 +61,18 @@ const getPercentage = (
   const key = programType as keyof ProgramPercentages;
   const value = normalizedPercent[key];
   return typeof value === "number" ? Math.max(0, Math.min(100, value)) : 0;
+};
+
+const getProgressBarColor = (percentage: number): string => {
+  if (percentage >= 60) {
+    return "#08CB00"; // green (Bootstrap success)
+  } else if (percentage >= 50) {
+    return "#06D001";
+  } else if (percentage >= 30) {
+    return "#17a2b8"; // medium blue (Bootstrap info)
+  } else {
+    return "#dc3545"; // red (Bootstrap danger)
+  }
 };
 
 const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
@@ -138,7 +133,7 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
                         </span>
                         <h5
                           className={`mb-0 fw-bold ${
-                            isRecommended ? "text-success" : "text-dark"
+                            isRecommended ? "text-primary" : "text-dark"
                           }`}
                           style={{ fontSize: "1.1rem" }} // Prevent oversized text on mobile
                         >
@@ -159,7 +154,7 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
                             className="badge mt-1 m-2"
                             style={{
                               background:
-                                "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                                "linear-gradient(135deg, #08CB00 0%, #08CB00 100%)",
                               color: "white",
                               fontSize: "0.75rem",
                               padding: "0.25em 0.5em",
@@ -172,15 +167,18 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
                     </div>
                     {/* Progress Bar */}
                     <div
-                      className="progress mb-2"
+                      className="progress mb-2 "
                       style={{ height: "10px", borderRadius: "8px" }}
                     >
                       <div
-                        className={`progress-bar ${getBgClass(programType)}`}
+                        className="progress-bar"
+                        role="progressbar"
                         style={{
                           width: `${percentage}%`,
+                          backgroundColor: getProgressBarColor(percentage),
                           borderRadius: "8px",
-                          transition: "width 1s ease-in-out",
+                          transition:
+                            "width 1s ease-in-out, background-color 0.3s ease",
                         }}
                       ></div>
                     </div>

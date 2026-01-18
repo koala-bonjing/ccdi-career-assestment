@@ -12,17 +12,17 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const HOST = process.env.HOST || "0.0.0.0";
 
-// CORS Configuration - SINGLE INSTANCE ONLY
+// CORS Configuration
 const corsOptions = {
   origin: [
-    "http://localhost:5173", // Add your actual local port
+    "http://localhost:5173",
     "http://localhost:3000",
-    "https://ccdi-career-assestment.vercel.app", // Replace with your actual Vercel URL
+    "https://ccdi-career-assestment.vercel.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200,
 };
 
 // Apply CORS middleware ONCE
@@ -46,6 +46,13 @@ app.get("/", (req, res) => {
   });
 });
 
+// ✅ API Routes - MUST COME BEFORE 404 HANDLER
+app.use("/api", evalRoutes);
+app.use("/api", questionRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/evaluations", assessmentRoutes);
+
+// ✅ 404 Handler - MUST BE LAST (after all other routes)
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -58,12 +65,6 @@ app.use((req, res) => {
     ],
   });
 });
-
-// API Routes
-app.use("/api", evalRoutes);
-app.use("/api", questionRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/evaluations", assessmentRoutes);
 
 // Connect to MongoDB and start server
 mongoose

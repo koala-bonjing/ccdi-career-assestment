@@ -8,7 +8,6 @@ import type {
   User,
   ProgramScores,
 } from "../../types";
-import { BASE_URL } from "../../config/constants";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
 import { useAuth } from "../../context/AuthContext";
@@ -27,6 +26,7 @@ export interface SubmissionData {
 }
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const BASE_URL = import.meta.env.BASE_URL;
 
 const EvaluationForm = () => {
   const { showWelcome } = useWelcomeScreen();

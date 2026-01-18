@@ -57,7 +57,7 @@ export const useEvaluationStore = create<EvaluationState>((set) => ({
     "academicAptitude",
     "technicalSkills",
     "careerInterest",
-    "learningStyle",
+    "learningWorkStyle",
   ],
   currentSectionIndex: 0,
   setCurrentSectionIndex: (index) => set({ currentSectionIndex: index }),

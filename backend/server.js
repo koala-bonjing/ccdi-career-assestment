@@ -15,9 +15,9 @@ const HOST = process.env.HOST || "0.0.0.0";
 // CORS Configuration - SINGLE INSTANCE ONLY
 const corsOptions = {
   origin: [
-    "http://localhost:5137", // Add your actual local port
+    "http://localhost:5173", // Add your actual local port
     "http://localhost:3000",
-    "https://your-frontend.vercel.app", // Replace with your actual Vercel URL
+    "https://ccdi-career-assestment.vercel.app", // Replace with your actual Vercel URL
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -40,8 +40,22 @@ app.get("/", (req, res) => {
       evaluations: "/api/evaluations",
       saveEvaluation: "/api/save-evaluation",
       getEvaluations: "/api/get-evaluation",
+      evaluateAssessment: "/api/evaluate-assessment",
     },
     timestamp: new Date().toISOString(),
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.method} ${req.path} not found`,
+    availableRoutes: [
+      "GET /",
+      "POST /api/evaluate-assessment",
+      "POST /api/save-evaluation",
+      "GET /api/get-evaluations/:userId",
+    ],
   });
 });
 

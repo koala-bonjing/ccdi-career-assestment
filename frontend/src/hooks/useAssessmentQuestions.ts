@@ -1,6 +1,7 @@
 // hooks/useAssessmentQuestions.ts
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { BASE_URL } from "../config/constants";
 export interface Question {
   _id: string;
   questionText: string;
@@ -40,7 +41,6 @@ interface ApiResponse {
 }
 
 export const useAssessmentQuestions = () => {
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
   const [questions, setQuestions] = useState<BackendQuestions | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

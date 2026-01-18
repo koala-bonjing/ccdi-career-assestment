@@ -1,5 +1,8 @@
 import type { AssessmentAnswers } from "../types";
 
+// src/config/constants.ts
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
 const categoryTitles: Record<string, string> = {
   academicAptitude: "Academic Aptitude",
   technicalSkills: "Technical Skills",
@@ -72,6 +75,7 @@ const getSectionColorClasses = (section: string): string => {
 };
 
 export {
+  BASE_URL,
   categoryTitles,
   sectionBgColors,
   sectionHoverColors,

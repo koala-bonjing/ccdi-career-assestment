@@ -23,16 +23,16 @@ app.use(
 );
 app.use(express.json());
 
-const corsOptions = {
-  origin: [
-    "http://localhost:3000", // your local dev frontend
-    "https://your-frontend.vercel.app", // your Vercel production URL
-    // Add more if needed (e.g., custom domain)
-  ],
-  credentials: true,
-};
+  const corsOptions = {
+    origin: [
+      "http://localhost:3000", // your local dev frontend
+      "https://your-frontend.vercel.app", // your Vercel production URL
+      // Add more if needed (e.g., custom domain)
+    ],
+    credentials: true,
+  };
 
-app.use(cors(corsOptions));
+  app.use(cors(corsOptions));
 
 // Root route
 app.get("/", (req, res) => {

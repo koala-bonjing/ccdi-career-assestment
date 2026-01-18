@@ -12,23 +12,32 @@ import {
   Target,
   Brain,
   Shield,
+  EyeOff,
+  Eye,
 } from "lucide-react";
-import { BASE_URL } from "../../../config/constants";
 import type { LoginFormProps, FormData, Message } from "./types/login";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../../../config/constants";
 
 const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToSignup,
   onLoginSuccess,
 }) => {
+  // const BASE_URL = import.meta.env.BASE_URL;
+
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<Message>({ type: "", text: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const handleLogin = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -280,13 +289,25 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     className="form-control border-start-0"
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleInputChange}
                     required
                   />
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary d-flex align-items-center justify-content-center border-start-0 border-end-0"
+                    onClick={togglePasswordVisibility}
+                    style={{ width: "44px" }}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} className="text-muted" />
+                    ) : (
+                      <Eye size={20} className="text-muted" />
+                    )}
+                  </button>
                 </div>
               </div>
 

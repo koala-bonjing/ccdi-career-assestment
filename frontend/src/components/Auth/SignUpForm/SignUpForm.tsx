@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Cpu,
 } from "lucide-react";
-import { BASE_URL } from "../../../config/constants";
+
 import type {
   SignupFormProps,
   FormData,
@@ -20,6 +20,8 @@ import type {
 import "./SignUpForm.css";
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
   const [step, setStep] = useState<"signup" | "verify">("signup");
   const [loading, setLoading] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
@@ -67,7 +69,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     try {
       const response = await axios.post(
         `${BASE_URL}/api/auth/signup`,
-        formData
+        formData,
       );
       setMessage({ type: "success", text: response.data.message });
       setStep("verify");
@@ -176,7 +178,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                 value={verificationCode}
                 onChange={(e) =>
                   setVerificationCode(
-                    e.target.value.replace(/\D/g, "").slice(0, 6)
+                    e.target.value.replace(/\D/g, "").slice(0, 6),
                   )
                 }
                 maxLength={6}

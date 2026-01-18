@@ -17,13 +17,14 @@ import {
 } from "lucide-react";
 import type { LoginFormProps, FormData, Message } from "./types/login";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../../../config/constants";
 
 const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToSignup,
   onLoginSuccess,
 }) => {
   // const BASE_URL = import.meta.env.BASE_URL;
+
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
   const [formData, setFormData] = useState<FormData>({
     email: "",

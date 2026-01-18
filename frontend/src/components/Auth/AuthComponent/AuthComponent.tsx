@@ -2,19 +2,14 @@
 import React, { useState } from 'react';
 import SignupForm from '../SignUpForm/SignUpForm';
 import LoginForm from '../LoginForm/LoginForm';
-import { useAuth } from "../../../context/AuthContext"
+import { useAuth, type User } from "../../../context/AuthContext"
 import { useUserStore } from "../../../../store/useUserStore";
 
 interface AuthComponentProps {
   initialMode: 'signup' | 'login';
 }
 
-interface UserData {
-  id: string;
-  fullName: string;
-  email: string;
-  preferredCourse: string;
-}
+
 
 const AuthComponent: React.FC<AuthComponentProps> = ({ initialMode }) => {
   const [isLogin, setIsLogin] = useState<boolean>(initialMode === 'login');
@@ -25,7 +20,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ initialMode }) => {
     // Update both auth context and user store
     login(userData);
     setCurrentUser({
-      _id: userData.id,
+      _id: userData._id,
       name: userData.fullName,
       email: userData.email,
       preferredCourse: userData.preferredCourse

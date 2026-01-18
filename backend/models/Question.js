@@ -15,10 +15,22 @@ const questionSchema = new mongoose.Schema(
         "technicalSkills",
         "careerInterest",
         "learningStyle",
+        "learningWorkStyle", // Add this for your new section
       ],
       required: true,
     },
-    // 🔹 Updated to match Evaluation & User models
+    // NEW FIELD: For LearningStyleSection grouping
+    subCategory: {
+      type: String,
+      enum: [
+        "Learning Preferences",
+        "Work Style Preferences", 
+        "Financial & Time Resources",
+        "Career Goals & Logistics",
+        null, // For questions that don't need sub-category
+      ],
+      default: null,
+    },
     program: {
       type: String,
       enum: [

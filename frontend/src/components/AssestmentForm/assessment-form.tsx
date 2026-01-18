@@ -97,7 +97,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       currentSection === 0
     ) {
       const hasSeenBefore = localStorage.getItem(
-        "hasSeenAssessmentInstructions"
+        "hasSeenAssessmentInstructions",
       );
       if (!hasSeenBefore) {
         setShowInstructions(true);
@@ -112,7 +112,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     sectionKey: keyof AssessmentAnswers,
     questionText: string,
     value: number | boolean,
-    program?: string
+    program?: string,
   ) => {
     setFormData((prev) => ({
       ...prev,

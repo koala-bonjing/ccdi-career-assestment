@@ -33,7 +33,7 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
 
   const calculateProgress = () => {
     const answered = questions.filter(
-      (q) => typeof formData.academicAptitude[q.questionText] === "number"
+      (q) => typeof formData.academicAptitude[q.questionText] === "number",
     ).length;
     return Math.round((answered / questions.length) * 100);
   };
@@ -90,7 +90,7 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
                 size="lg"
                 onClick={() =>
                   setCurrentQuestionIndex(
-                    Math.min(questions.length - 1, currentIndex + 1)
+                    Math.min(questions.length - 1, currentIndex + 1),
                   )
                 }
                 disabled={currentIndex === questions.length - 1}
@@ -131,7 +131,29 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
                   <label
                     key={val}
                     className="d-flex align-items-center p-3 p-md-4 border border-secondary rounded-3 text-start fs-5 mb-2"
-                    style={{ cursor: "pointer" }}
+                    style={{
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      backgroundColor: isSelected ? "#e7f1ff" : "white",
+                      borderColor: isSelected ? "#0d6efd" : "#ced4da",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.backgroundColor = "#f8f9fa";
+                        e.currentTarget.style.borderColor = "#adb5bd";
+                        e.currentTarget.style.boxShadow =
+                          "0 2px 6px rgba(0,0,0,0.1)";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.backgroundColor = "white";
+                        e.currentTarget.style.borderColor = "#ced4da";
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }
+                    }}
                   >
                     {/* Hidden radio input */}
                     <input
@@ -139,14 +161,20 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
                       name={`academic-q-${currentIndex}`}
                       id={`academic-${currentIndex}-${val}`}
                       checked={isSelected}
-                      onChange={() =>
+                      onChange={() => {
+                        // Save the answer
                         onChange(
                           "academicAptitude",
                           currentQuestion.questionText,
                           val,
-                          currentQuestion.program
-                        )
-                      }
+                          currentQuestion.program,
+                        );
+                        if (currentIndex < questions.length - 1) {
+                          setTimeout(() => {
+                            setCurrentQuestionIndex(currentIndex + 1);
+                          }, 250);
+                        }
+                      }}
                       style={{ display: "none" }} // Use inline style instead of class
                     />
                     {/* Custom radio indicator */}

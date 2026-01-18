@@ -80,7 +80,7 @@ const EvaluationForm = () => {
   };
 
   const flattenAnswers = (
-    nested: AssessmentAnswers
+    nested: AssessmentAnswers,
   ): Record<string, string | number | boolean> => {
     const flat: Record<string, string | number | boolean> = {};
 
@@ -122,7 +122,7 @@ const EvaluationForm = () => {
   };
 
   const formatAnswers = (
-    answers: Record<string, string | number | boolean>
+    answers: Record<string, string | number | boolean>,
   ): string => {
     return Object.entries(answers)
       .map(([question, value]) => {
@@ -139,7 +139,7 @@ const EvaluationForm = () => {
   };
 
   const handleSubmitAnswers = async (
-    submissionData: SubmissionData
+    submissionData: SubmissionData,
   ): Promise<void> => {
     console.log("🚀 Submitting assessment...");
     console.log("👤 Current authUser:", authUser);
@@ -150,7 +150,7 @@ const EvaluationForm = () => {
     if (!authUser) {
       console.error("❌ No authenticated user found");
       setError(
-        "You must be logged in to submit assessment. Please refresh and login again."
+        "You must be logged in to submit assessment. Please refresh and login again.",
       );
       return;
     }
@@ -183,6 +183,8 @@ const EvaluationForm = () => {
         model: "gemini-3-flash-preview",
       });
 
+      // Add this to your EvaluationForm.tsx prompt
+
       const prompt = `
         You are a career guidance assistant for CCDI Sorsogon, helping students identify the most suitable technology program based on their aptitudes, interests, and circumstances.
 
@@ -208,23 +210,45 @@ const EvaluationForm = () => {
         - Logistics & Resources: Financial capacity, time availability, equipment access, physical requirements
 
         RESPONSE REQUIREMENTS:
+       RESPONSE REQUIREMENTS:
         1. **recommendedCourse**: Must be EXACTLY one of: "BSCS", "BSIT", "BSIS", "BSET Electronics Technology", "BSET Electrical Technology"
         2. **summary**: 2-3 sentences highlighting the student's strongest aptitudes and interests
         3. **result**: A clear statement of your primary recommendation and why it's the best fit (3-4 sentences)
-        4. **detailedEvaluation**: A comprehensive analysis (4-6 sentences) covering:
-          - How their academic strengths align with the recommended program
-          - How their technical interests match the program's focus
-          - How their career goals fit the typical career paths
-          - Any logistical considerations (resources, time, financial factors)
-          - Brief mention of why other programs were less suitable
-        5. **percent**: Confidence distribution across ALL five programs that sums to exactly 100
+        4. **detailedEvaluation**: A comprehensive analysis (4-6 sentences) covering all aspects
+      + 5. **percent**: Assign an ABSOLUTE confidence score (0-100) for EACH program independently based on assessment fit:
+      +    - Top program: 70-95 for strong matches
+      +    - Secondary programs: 30-60 for moderate fits
+      +    - Weak matches: 0-25
+      +    - Scores DO NOT need to sum to 100
+      +    - Example structure:
+      +        "BSCS": 85,
+      +        "BSIT": 40,
+      +        "BSIS": 35,
+      +        "BSET Electronics Technology": 15,
+      +        "BSET Electrical Technology": 10
+
+      6. **categoryExplanations**: Specific reasons for each category score (1-2 sentences each):
+          - academicReason: Why their academic aptitude fits this program
+          - technicalReason: Why their technical skills match this program
+          - careerReason: Why their career goals align with this program
+          - logisticsReason: Why this program is logistically feasible for them
 
         IMPORTANT GUIDELINES:
         - Base your recommendation on the ASSESSMENT DATA, not just their initial preference
-        - If their answers strongly indicate a different program than their preference, recommend the better fit and explain why
-        - Be specific about program names — never use generic terms like "BSET" alone
-        - Ensure percentages are realistic (top choice typically 40-70%, not 95%+)
-        - Consider the whole student profile, not just one dimension
+        - Be specific and personalized in category explanations
+        - Use the student's actual answers to justify each category
+        - Make explanations actionable and encouraging
+
+        PRIORITIZE THESE FACTORS WHEN CALCULATING PERCENTAGES:
+        1. Academic Aptitude (40% weight): Math strength, theoretical vs practical preference
+        2. Technical Interests (30% weight): Hardware/software preference, systems thinking
+        3. Career Goals (20% weight): Desired work environment, job type preferences
+        4. Logistics (10% weight): Financial capacity, equipment access, time availability
+
+        CRITICAL RULES FOR PERCENTAGES:
+      - If student shows EXTREME alignment with one program (e.g., loves math + theoretical work + wants research career), top score MUST be 85-95
+      - Never give >60% to more than two programs
+      - Programs with no relevant skills/interests should score ≤15
 
         Respond ONLY with valid JSON (no markdown, no explanation):
         {
@@ -238,7 +262,14 @@ const EvaluationForm = () => {
             "BSIS": number,
             "BSET Electronics Technology": number,
             "BSET Electrical Technology": number
-          }
+          },
+          "categoryExplanations": {
+            "academicReason": "string",
+            "technicalReason": "string",
+            "careerReason": "string",
+            "logisticsReason": "string"
+          },
+          "aiAnswer": "string"
         }
         `;
       console.log("🤖 Sending request to AI...");
@@ -272,6 +303,9 @@ const EvaluationForm = () => {
         percent: parsed.percent,
         programScores: programScores,
         submissionDate: new Date().toISOString(),
+        answers: answers,
+        aiAnswer: parsed.aiAnswer,
+        categoryExplanations: parsed.categoryExplanations,
       };
 
       setResult(transformed);
@@ -288,16 +322,19 @@ const EvaluationForm = () => {
           userEmail: authUser.email || "",
           evaluation: parsed.result || "",
           recommendations: parsed.recommendation || "",
+          detailedEvaluation: parsed.detailedEvaluation || "",
+          aiAnswer: parsed.aiAnswer || "",
           recommendedCourse: parsed.recommendedCourse,
           percent: parsed.percent,
           programScores: programScores || {},
+          categoryExplanations: parsed.categoryExplanations || "",
         };
 
         console.log("📤 Saving to backend:", payload);
 
         const response = await axios.post(
           `${BASE_URL}/api/save-evaluation`,
-          payload
+          payload,
         );
 
         console.log("✅ Backend save successful:", response.data);

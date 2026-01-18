@@ -9,6 +9,10 @@ export interface Question {
   program: string;
   weight: number;
   options?: string[];
+  category?: string; // Add this
+  subCategory?: string; // ADD THIS LINE - This is what's missing!
+  order?: number;
+  isActive?: boolean;
 }
 
 export interface BackendQuestions {
@@ -25,6 +29,9 @@ interface ApiQuestion {
   weight: number;
   options?: string[];
   category?: string;
+  subCategory?: string; // Add this
+  order?: number;
+  isActive?: boolean;
 }
 
 interface ApiResponse {
@@ -42,11 +49,14 @@ export const useAssessmentQuestions = () => {
   useEffect(() => {
     const fetchQuestions = async (): Promise<void> => {
       try {
-        console.log("Fetching questions from API...");
+        console.log("🔄 Fetching questions from API...");
         const response = await axios.get<ApiResponse | ApiQuestion[]>(
-          `${BASE_URL}/api/questions`
+          `${BASE_URL}/api/questions`,
         );
 
+        // Add debug logging
+        console.log("📥 Raw API response:", response.data);
+        
         // Check if response is already grouped by category
         const responseData = response.data;
         const hasGroupedStructure =
@@ -62,6 +72,17 @@ export const useAssessmentQuestions = () => {
         ) {
           // It's already in the grouped format
           const groupedData = responseData as ApiResponse;
+          
+          // Debug: Check what fields are in learningWorkStyle questions
+          if (groupedData.learningWorkStyle && groupedData.learningWorkStyle.length > 0) {
+            console.log("🔍 First learningWorkStyle question from grouped data:", {
+              text: groupedData.learningWorkStyle[0].questionText?.substring(0, 50),
+              hasSubCategory: 'subCategory' in groupedData.learningWorkStyle[0],
+              subCategory: groupedData.learningWorkStyle[0].subCategory,
+              allKeys: Object.keys(groupedData.learningWorkStyle[0])
+            });
+          }
+          
           setQuestions({
             academicAptitude: groupedData.academicAptitude || [],
             technicalSkills: groupedData.technicalSkills || [],
@@ -84,7 +105,20 @@ export const useAssessmentQuestions = () => {
               program: question.program,
               weight: question.weight,
               options: question.options || undefined,
+              category: question.category, // Include category
+              subCategory: question.subCategory, // ADD THIS - THIS IS THE FIX
+              order: question.order,
+              isActive: question.isActive,
             };
+
+            // Debug logging for learningWorkStyle questions
+            if (question.category === "learningWorkStyle") {
+              console.log(`📝 Processing learningWorkStyle question:`, {
+                text: question.questionText.substring(0, 50),
+                subCategory: question.subCategory,
+                hasSubCategory: !!question.subCategory
+              });
+            }
 
             switch (question.category) {
               case "academicAptitude":
@@ -104,12 +138,18 @@ export const useAssessmentQuestions = () => {
             }
           });
 
+          // Debug: Check final structure
+          console.log("📊 Final transformed questions:", {
+            learningWorkStyleCount: transformedQuestions.learningWorkStyle.length,
+            firstQuestion: transformedQuestions.learningWorkStyle[0]
+          });
+
           setQuestions(transformedQuestions);
         } else {
           throw new Error("Invalid API response format");
         }
       } catch (err: unknown) {
-        console.error("Failed to load questions:", err);
+        console.error("❌ Failed to load questions:", err);
         const errorMessage =
           err instanceof Error ? err.message : "Failed to load questions";
         setError(errorMessage);

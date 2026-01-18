@@ -58,7 +58,8 @@ export interface ProgramScores {
 export interface Question {
   _id: string;
   questionText: string;
-  program?: string;
+  program: string;
+  subCategory?: string;
   options?: string[];
 }
 
@@ -70,12 +71,18 @@ export interface AssessmentQuestions {
 }
 
 export interface AssessmentAnswers {
-  academicAptitude: Record<string, number>; // 1–5
-  technicalSkills: Record<string, boolean>; // true/false
-  careerInterest: Record<string, number>; // 1–5
-  learningWorkStyle: Record<string, number>; // 1–5 (or could be string if using labels — confirm your logic)
+  academicAptitude: Record<string, number>;
+  technicalSkills: Record<string, boolean>;
+  careerInterest: Record<string, number>;
+  learningWorkStyle: Record<string, boolean>;
 }
 
+export interface CategoryExplanations {
+  academicReason: string;
+  technicalReason: string;
+  careerReason: string;
+  logisticsReason: string;
+}
 // 🔹 EvaluationResult — AI’s raw JSON response shape
 export interface EvaluationResult {
   result: string;
@@ -90,6 +97,9 @@ export interface EvaluationResult {
     "BSET Electronics Technology": number;
     "BSET Electrical Technology": number;
   };
+  answer: AssessmentAnswers;
+  categoryExplanations?: CategoryExplanations;
+  aiAnswer?: string;
 }
 
 // 🔹 AssessmentResult — post-processed, ready for UI/storage
@@ -108,8 +118,11 @@ export interface AssessmentResult {
     "BSET Electronics Technology": number;
     "BSET Electrical Technology": number;
   };
-  programScores: ProgramScores; // ✅ now consistent
+  programScores: ProgramScores;
   submissionDate?: string;
+  answers: AssessmentAnswers;
+  categoryExplanations?: CategoryExplanations;
+  aiAnswer?: string;
 }
 
 // 🔹 Props for AssessmentForm

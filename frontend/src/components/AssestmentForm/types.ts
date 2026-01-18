@@ -16,13 +16,18 @@ export interface ProgramScores {
 }
 
 export interface AssessmentSectionProps {
-  questions: { _id: string; questionText: string; program?: string }[];
+  questions: {
+    _id: string;
+    questionText: string;
+    program?: string;
+    subCategory?: string;
+  }[];
   formData: AssessmentAnswers;
   onChange: (
     section: keyof AssessmentAnswers,
     q: string,
     val: number | boolean,
-    prog?: string
+    prog?: string,
   ) => void;
   onNext: () => void;
   onPrevious: () => void;

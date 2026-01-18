@@ -10,17 +10,19 @@ router.post("/save-evaluation", async (req, res) => {
       userName,
       userEmail,
       evaluation,
+      detailedEvaluation,
       recommendations,
       recommendedCourse,
       percent,
-      programScores
+      programScores,
     } = req.body;
 
     // Validate required fields
     if (!userId || !recommendedCourse || !percent) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: userId, recommendedCourse, or percent"
+        message:
+          "Missing required fields: userId, recommendedCourse, or percent",
       });
     }
 
@@ -29,28 +31,30 @@ router.post("/save-evaluation", async (req, res) => {
       userName: userName || "Anonymous User",
       userEmail: userEmail || "",
       evaluation: evaluation || "No evaluation details provided",
+      detailedEvaluation:
+        detailedEvaluation || "No evaluation details provided",
       recommendations: recommendations || "No specific recommendations",
       recommendedCourse,
       percent,
       programScores: programScores || {},
-      submissionDate: new Date()
+      submissionDate: new Date(),
     });
 
     await evaluationDoc.save();
-    
-    console.log('✅ Evaluation saved for user:', userId);
+
+    console.log("✅ Evaluation saved for user:", userId);
     res.status(201).json({
       success: true,
-      message: 'Evaluation saved successfully',
+      message: "Evaluation saved successfully",
       evaluationId: evaluationDoc._id,
-      data: evaluationDoc
+      data: evaluationDoc,
     });
   } catch (error) {
-    console.error('❌ Error saving evaluation:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to save evaluation',
-      error: error.message 
+    console.error("❌ Error saving evaluation:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to save evaluation",
+      error: error.message,
     });
   }
 });
@@ -63,7 +67,7 @@ router.get("/get-evaluations/:userId", async (req, res) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "User ID is required"
+        message: "User ID is required",
       });
     }
 
@@ -74,14 +78,14 @@ router.get("/get-evaluations/:userId", async (req, res) => {
     res.status(200).json({
       success: true,
       count: evaluations.length,
-      data: evaluations
+      data: evaluations,
     });
   } catch (error) {
-    console.error('❌ Error fetching evaluations:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to fetch evaluations',
-      error: error.message 
+    console.error("❌ Error fetching evaluations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch evaluations",
+      error: error.message,
     });
   }
 });
@@ -96,20 +100,20 @@ router.get("/evaluation/:evaluationId", async (req, res) => {
     if (!evaluation) {
       return res.status(404).json({
         success: false,
-        message: "Evaluation not found"
+        message: "Evaluation not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: evaluation
+      data: evaluation,
     });
   } catch (error) {
-    console.error('❌ Error fetching evaluation:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to fetch evaluation',
-      error: error.message 
+    console.error("❌ Error fetching evaluation:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch evaluation",
+      error: error.message,
     });
   }
 });
@@ -124,20 +128,20 @@ router.delete("/evaluation/:evaluationId", async (req, res) => {
     if (!evaluation) {
       return res.status(404).json({
         success: false,
-        message: "Evaluation not found"
+        message: "Evaluation not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Evaluation deleted successfully"
+      message: "Evaluation deleted successfully",
     });
   } catch (error) {
-    console.error('❌ Error deleting evaluation:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to delete evaluation',
-      error: error.message 
+    console.error("❌ Error deleting evaluation:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete evaluation",
+      error: error.message,
     });
   }
 });

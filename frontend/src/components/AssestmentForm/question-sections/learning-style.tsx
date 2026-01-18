@@ -1,18 +1,21 @@
-// src/components/AssessmentForm/LearningStyleSection.tsx
+// Updated LearningStyleSection.tsx with validation hook integration
 
-import {
-  Card,
-  Row,
-  Col,
-  Badge,
-  ProgressBar,
-  Form,
-  Button,
-} from "react-bootstrap";
-import { Brain, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Card, Row, Col, Form, Alert, Badge } from "react-bootstrap";
+import { CheckCircle2, Circle, BrainCircuit } from "lucide-react";
 import SectionHeader from "../section-header";
 import AssessmentActionFooter from "../assessment-action-footer";
+import { useAssessmentValidation } from "../../../hooks/useAssessmentValidation";
 import type { AssessmentSectionProps } from "../types";
+import type { Question } from "../../../types";
+
+interface QuestionGroup {
+  category: string;
+  icon: string;
+  color: string;
+  description: string;
+  questions: Question[];
+}
 
 const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   questions,
@@ -23,29 +26,175 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   onReset,
   currentSection,
   totalSections,
-  setCurrentQuestionIndex,
-  currentQuestionIndex,
 }) => {
-  const currentIndex = currentQuestionIndex;
-  const currentQuestion = questions[currentIndex] || {
-    questionText: "Loading...",
+  const [activeGroup, setActiveGroup] = useState(0);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // Initialize the validation hook
+  const { validateSection } = useAssessmentValidation({
+    formData,
+    section: "learningWorkStyle",
+    currentQuestions: questions as Question[],
+    setCurrentQuestionIndex: (index) => {
+      // Scroll to the specific category group
+      const categoryIndex = getCategoryIndexForQuestion(index);
+      if (categoryIndex !== -1) {
+        setActiveGroup(categoryIndex);
+      }
+    },
+    categoryTitles: {
+      learningWorkStyle: "Learning & Work Style",
+    },
+  });
+
+  useEffect(() => {
+    console.log("🔍 LearningStyleSection questions:", questions);
+    console.log("🔍 Questions length:", questions.length);
+
+    // Check if questions have subCategory
+    if (questions.length > 0) {
+      console.log("🔍 First question:", questions[0]);
+      console.log(
+        "🔍 Does first question have subCategory?",
+        questions[0].subCategory,
+      );
+    }
+  }, [questions]);
+
+  // Helper function to find which category a question belongs to
+  const getCategoryIndexForQuestion = (questionIndex: number) => {
+    if (questionIndex < 0 || questionIndex >= questions.length) return -1;
+
+    const question = questions[questionIndex];
+    const subCategory = question.subCategory;
+
+    const categoryOrder = [
+      "Learning Preferences",
+      "Work Style Preferences",
+      "Financial & Time Resources",
+      "Career Goals & Logistics",
+    ];
+
+    return categoryOrder.findIndex((cat) => cat === subCategory);
   };
 
-  const calculateProgress = () => {
-    const answered = questions.filter(
-      (q) => typeof formData.learningWorkStyle[q.questionText] === "number"
+  // Group questions by their subCategory field
+  const questionGroups: QuestionGroup[] = useMemo(() => {
+    const groups: Record<string, Question[]> = {};
+
+    // First, organize questions by their subCategory
+    questions.forEach((question) => {
+      const subCategory = question.subCategory || "Uncategorized";
+      if (!groups[subCategory]) {
+        groups[subCategory] = [];
+      }
+      groups[subCategory].push(question as Question);
+    });
+
+    // Define the order and configuration for each category
+    const categoryConfig = {
+      "Learning Preferences": {
+        icon: "📚",
+        color: "#2B3176",
+        description: "How do you prefer to learn and study?",
+      },
+      "Work Style Preferences": {
+        icon: "💼",
+        color: "#EC2326",
+        description: "What type of work environment suits you?",
+      },
+      "Financial & Time Resources": {
+        icon: "💰",
+        color: "#1C6CB3",
+        description: "What resources do you have available?",
+      },
+      "Career Goals & Logistics": {
+        icon: "🎯",
+        color: "#28a745",
+        description: "What are your career priorities?",
+      },
+    };
+
+    // Convert to array in the correct order
+    return Object.entries(categoryConfig).map(([category, config]) => ({
+      category,
+      icon: config.icon,
+      color: config.color,
+      description: config.description,
+      questions: groups[category] || [], // Get questions for this category, or empty array if none
+    }));
+  }, [questions]);
+
+  // Check if at least one question is answered in each category
+  const checkCategoryCompletion = () => {
+    const incompleteCategories: string[] = [];
+
+    questionGroups.forEach((group) => {
+      // Instead of === true, check for truthy value
+      const hasAnswerInCategory = group.questions.some(
+        (q) => !!formData.learningWorkStyle[q.questionText], // Convert to boolean
+      );
+
+      if (!hasAnswerInCategory && group.questions.length > 0) {
+        incompleteCategories.push(group.category);
+      }
+    });
+
+    setValidationErrors(incompleteCategories);
+    return incompleteCategories;
+  };
+
+  // Check if a specific group is complete
+  const isGroupComplete = (groupIndex: number) => {
+    const group = questionGroups[groupIndex];
+    return group.questions.some(
+      (q) => !!formData.learningWorkStyle[q.questionText], // Truthy check
+    );
+  };
+
+  // Get completion status for display
+  const getCompletionStatus = () => {
+    const totalGroups = questionGroups.length;
+    const completedGroups = questionGroups.filter((_, idx) =>
+      isGroupComplete(idx),
     ).length;
-    return Math.round((answered / questions.length) * 100);
+    return { completedGroups, totalGroups };
   };
 
-  // Same as Academic Aptitude (Agree/Disagree scale)
-  const labelMap = [
-    "Strongly Agree",
-    "Agree",
-    "Neutral",
-    "Disagree",
-    "Strongly Disagree",
-  ];
+  // Handle checkbox change with validation update
+  const handleCheckboxChange = (question: Question, checked: boolean) => {
+    onChange(
+      "learningWorkStyle",
+      question.questionText,
+      checked,
+      question.program,
+    );
+
+    // Clear validation error for this category if user selects something
+    if (checked) {
+      const category = question.subCategory || "Uncategorized";
+      setValidationErrors((prev) => prev.filter((cat) => cat !== category));
+    }
+  };
+
+  // Handle next button click with validation
+  const handleNextWithValidation = () => {
+    const incompleteCategories = checkCategoryCompletion();
+
+    if (incompleteCategories.length > 0) {
+      // Use the validation hook's toast notification
+      const isValid = validateSection();
+      if (!isValid) {
+        return; // Don't proceed if validation fails
+      }
+    }
+
+    onNext();
+  };
+
+  const { completedGroups, totalGroups } = getCompletionStatus();
+  const currentGroup = questionGroups[activeGroup];
+  const isSectionComplete = completedGroups === totalGroups;
 
   return (
     <Card
@@ -59,145 +208,305 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       }}
     >
       <SectionHeader
+        icon={<BrainCircuit />}
+        sectionType="learningWorkStyle"
         title="Learning & Work Style"
-        subTitle="(Student Logistics & Financial Considerations)"
-        icon={<Brain size={28} />}
-        variant="success"
-        currentQuestionIndex={currentIndex}
-        totalQuestions={questions.length}
-        sectionType="learningStyle"
+        variant="warning"
       />
 
-      <Card.Body className="p-5">
-        <Row className="align-items-center mb-4">
-          <Col md={4} className="mb-2">
-            <Badge bg="success" className="fs-6 p-3">
-              Question {currentIndex + 1} of {questions.length}
-            </Badge>
-          </Col>
-          <Col md={4} className="text-center">
-            <div className="d-flex gap-2 justify-content-center">
-              <Button
-                variant="outline-danger"
-                size="lg"
-                onClick={() =>
-                  setCurrentQuestionIndex(Math.max(0, currentIndex - 1))
-                }
-                disabled={currentIndex === 0}
-                className="px-3"
-              >
-                <ChevronLeft size={16} /> Previous
-              </Button>
-              <Button
-                variant="outline-danger"
-                size="lg"
-                onClick={() =>
-                  setCurrentQuestionIndex(Math.max(0, currentIndex + 1))
-                }
-                disabled={currentIndex === questions.length - 1}
-                className="px-3"
-              >
-                Next <ChevronRight size={16} />
-              </Button>
+      <Card.Body className="p-4 p-md-5">
+        {/* Progress and Validation Alert */}
+        <div className="mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h5 className="mb-1">
+                Progress: {completedGroups} of {totalGroups} categories complete
+              </h5>
+              <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+                Please select at least one option from each category
+              </p>
             </div>
-          </Col>
-          <Col md={4} className="text-end">
-            <Badge bg="light" text="dark" className="fs-6 p-2">
-              {calculateProgress()}% Complete
+            <Badge
+              bg={isSectionComplete ? "success" : "warning"}
+              className="fs-6 px-3 py-2"
+            >
+              {completedGroups}/{totalGroups} Categories
             </Badge>
-          </Col>
-        </Row>
+          </div>
 
-        <ProgressBar
-          now={calculateProgress()}
-          className="mb-5"
-          variant="success"
-          style={{ height: "12px" }}
-        />
-
-        <div className="text-center mb-5">
-          <Form.Label className="h3 mb-4 text-dark d-block fw-bold">
-            {currentQuestion.questionText}
-          </Form.Label>
+          {validationErrors.length > 0 && (
+            <Alert variant="warning" className="mt-3">
+              <div className="d-flex align-items-center">
+                <Circle size={20} className="me-2" />
+                <div>
+                  <strong>Please complete these categories:</strong>
+                  <ul className="mb-0 mt-1">
+                    {validationErrors.map((category, idx) => (
+                      <li key={idx}>{category}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </Alert>
+          )}
         </div>
 
-        <div className="row justify-content-center">
-          <div className="col-lg-8">
-            <div className="d-grid gap-3">
-              {[1, 2, 3, 4, 5].map((val) => {
-                const isSelected =
-                  formData.learningWorkStyle[currentQuestion.questionText] ===
-                  val;
-                return (
-                  <label
-                    key={val}
-                    className="d-flex align-items-center p-3 p-md-4 border border-secondary rounded-3 text-start fs-5 mb-2"
-                    style={{ cursor: "pointer" }}
+        {/* Category Navigation Tabs */}
+        <Row className="mb-4">
+          {questionGroups.map((group, idx) => {
+            const isComplete = isGroupComplete(idx);
+            const isActive = activeGroup === idx;
+            const isIncomplete = validationErrors.includes(group.category);
+
+            return (
+              <Col key={idx} xs={6} lg={3} className="mb-3">
+                <button
+                  onClick={() => {
+                    setActiveGroup(idx);
+                    setValidationErrors([]); // Clear errors when switching tabs
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    border: `2px solid ${
+                      isIncomplete
+                        ? "#dc3545"
+                        : isActive
+                          ? group.color
+                          : isComplete
+                            ? `${group.color}80`
+                            : "#e0e0e0"
+                    }`,
+                    borderRadius: "12px",
+                    background: isActive
+                      ? `linear-gradient(135deg, ${group.color}10 0%, ${group.color}05 100%)`
+                      : isComplete
+                        ? `linear-gradient(135deg, ${group.color}05 0%, ${group.color}02 100%)`
+                        : "white",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    position: "relative",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.borderColor = group.color;
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.borderColor = isComplete
+                        ? `${group.color}80`
+                        : "#e0e0e0";
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }
+                  }}
+                >
+                  <div style={{ fontSize: "2rem", marginBottom: "8px" }}>
+                    {group.icon}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: "700",
+                      color: isActive
+                        ? group.color
+                        : isComplete
+                          ? `${group.color}99`
+                          : "#666",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
                   >
-                    {/* Hidden radio input */}
-                    <input
-                      type="radio"
-                      name={`academic-q-${currentIndex}`}
-                      id={`academic-${currentIndex}-${val}`}
-                      checked={isSelected}
-                      onChange={() =>
-                        onChange(
-                          "learningWorkStyle",
-                          currentQuestion.questionText,
-                          val,
-                          currentQuestion.program
-                        )
-                      }
-                      style={{ display: "none" }} // Use inline style instead of class
-                    />
-                    {/* Custom radio indicator */}
-                    <span
-                      className="d-inline-flex align-items-center justify-content-center me-3 rounded-circle border"
+                    {group.category}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: isComplete ? "#28a745" : "#999",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {isComplete
+                      ? "Complete"
+                      : `${group.questions.length} questions`}
+                  </div>
+                  {isComplete && (
+                    <CheckCircle2
+                      size={20}
                       style={{
-                        width: "20px",
-                        height: "20px",
-                        minWidth: "20px", // Prevents shrinking
-                        minHeight: "20px",
-                        borderColor: isSelected ? "#0d6efd" : "#ced4da",
-                        borderWidth: "2px",
-                        borderStyle: "solid",
+                        position: "absolute",
+                        top: "8px",
+                        right: "8px",
+                        color: group.color,
+                      }}
+                    />
+                  )}
+                  {isIncomplete && (
+                    <Circle
+                      size={20}
+                      style={{
+                        position: "absolute",
+                        top: "8px",
+                        right: "8px",
+                        color: "#dc3545",
+                      }}
+                    />
+                  )}
+                </button>
+              </Col>
+            );
+          })}
+        </Row>
+
+        {/* Current Category Card */}
+        <div
+          style={{
+            background: `linear-gradient(135deg, ${currentGroup.color}08 0%, ${currentGroup.color}03 100%)`,
+            borderRadius: "16px",
+            padding: "32px",
+            border: `2px solid ${currentGroup.color}30`,
+            position: "relative",
+          }}
+        >
+          {/* Category Header */}
+          <div className="text-center mb-4">
+            <div style={{ fontSize: "3rem", marginBottom: "12px" }}>
+              {currentGroup.icon}
+            </div>
+            <h3
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "800",
+                color: currentGroup.color,
+                marginBottom: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+              }}
+            >
+              {currentGroup.category}
+              {validationErrors.includes(currentGroup.category) && (
+                <span
+                  style={{
+                    color: "#dc3545",
+                    fontSize: "0.8rem",
+                    marginLeft: "8px",
+                  }}
+                >
+                  (Required)
+                </span>
+              )}
+            </h3>
+            <p style={{ color: "#666", fontSize: "1rem", marginBottom: 0 }}>
+              {currentGroup.description}
+            </p>
+            <small style={{ color: "#999", fontSize: "0.85rem" }}>
+              Select at least one option that applies to you
+            </small>
+          </div>
+
+          {/* Checkbox Questions from Backend */}
+          <Row>
+            {currentGroup.questions.map((question, idx) => {
+              const isChecked =
+                !!formData.learningWorkStyle[question.questionText];
+              return (
+                <Col key={idx} md={6} className="mb-3">
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "12px",
+                      padding: "16px 20px",
+                      border: `2px solid ${isChecked ? currentGroup.color : "#e0e0e0"}`,
+                      borderRadius: "12px",
+                      background: isChecked
+                        ? `${currentGroup.color}10`
+                        : "white",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                      minHeight: "70px",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isChecked) {
+                        e.currentTarget.style.borderColor = currentGroup.color;
+                        e.currentTarget.style.transform = "translateX(4px)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isChecked) {
+                        e.currentTarget.style.borderColor = "#e0e0e0";
+                        e.currentTarget.style.transform = "translateX(0)";
+                      }
+                    }}
+                  >
+                    <Form.Check
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) =>
+                        handleCheckboxChange(question, e.target.checked)
+                      }
+                      style={{ display: "none" }}
+                    />
+                    <div style={{ marginTop: "2px", flexShrink: 0 }}>
+                      {isChecked ? (
+                        <CheckCircle2
+                          size={24}
+                          style={{ color: currentGroup.color }}
+                        />
+                      ) : (
+                        <Circle size={24} style={{ color: "#ccc" }} />
+                      )}
+                    </div>
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: "0.95rem",
+                        color: isChecked ? "#333" : "#666",
+                        fontWeight: isChecked ? "600" : "400",
+                        lineHeight: "1.4",
                       }}
                     >
-                      {isSelected && (
-                        <span
-                          className="rounded-circle"
-                          style={{
-                            width: "10px",
-                            height: "10px",
-                            backgroundColor: "#0d6efd",
-                          }}
-                        />
-                      )}
+                      {question.questionText}
+                      {currentGroup.category === "Career Goals & Logistics" &&
+                        question.program && (
+                          <small
+                            style={{
+                              color: "#888",
+                              fontSize: "0.85rem",
+                              display: "block",
+                              marginTop: "4px",
+                            }}
+                          >
+                            {question.program}
+                          </small>
+                        )}
                     </span>
-                    {/* Text stays the same */}
-                    <span className="text-dark">{labelMap[val - 1]}</span>
                   </label>
-                );
-              })}
-            </div>
-          </div>
+                </Col>
+              );
+            })}
+          </Row>
         </div>
       </Card.Body>
 
+      {/* Footer - Original Assessment Actions */}
       <AssessmentActionFooter
         currentSection={currentSection}
         totalSections={totalSections}
         onPrevious={onPrevious}
-        onNext={onNext}
+        onNext={handleNextWithValidation} // Use validated next handler
         onReset={onReset}
         isLastSection={currentSection === totalSections - 1}
-        isComplete={calculateProgress() === 100}
+        isComplete={isSectionComplete} // Only complete when all 4 categories have at least one answer
         nextLabel={
           currentSection === totalSections - 1
-            ? calculateProgress() === 100
+            ? isSectionComplete
               ? "Finish Assessment"
-              : "Complete All Questions"
-            : "Next Section →"
+              : "Complete All Categories First"
+            : isSectionComplete
+              ? "Next Section →"
+              : "Complete All Categories First"
         }
       />
     </Card>

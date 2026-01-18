@@ -1,0 +1,215 @@
+/* src/pages/ResultsPage/components/ProgramBreakdownChart.css */
+
+:root {
+  --color-academic: #2B3176;
+  --color-technical: #EC2326;
+  --color-career: #1C6CB3;
+  --color-logistics: #28a745;
+  --border-light: rgba(43, 49, 118, 0.1);
+  --bg-light: rgba(43, 49, 118, 0.03);
+  --shadow-light: rgba(43, 49, 118, 0.08);
+}
+
+.program-breakdown-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Title */
+.program-breakdown-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-academic);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.program-breakdown-title-line {
+  height: 2px;
+  width: 40px;
+  background: linear-gradient(90deg, var(--color-academic) 0%, var(--color-technical) 100%);
+  margin: 0 auto 40px;
+  border-radius: 2px;
+}
+
+/* Content Layout */
+.program-breakdown-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Explanations */
+.program-breakdown-explanations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Category Card */
+.program-breakdown-category-card {
+  background: linear-gradient(135deg, rgba(43, 49, 118, 0.04) 0%, rgba(236, 35, 38, 0.04) 100%);
+  border: 2px solid var(--border-light);
+  border-radius: 16px;
+  padding: 20px 24px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+
+.program-breakdown-category-card:hover {
+  transform: translateX(-8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Dynamic category color via data attribute */
+.program-breakdown-category-card[data-category="academic"]:hover {
+  border-color: var(--color-academic);
+  box-shadow: 0 8px 24px rgba(43, 49, 118, 0.2);
+}
+.program-breakdown-category-card[data-category="technical"]:hover {
+  border-color: var(--color-technical);
+  box-shadow: 0 8px 24px rgba(236, 35, 38, 0.2);
+}
+.program-breakdown-category-card[data-category="career"]:hover {
+  border-color: var(--color-career);
+  box-shadow: 0 8px 24px rgba(28, 108, 179, 0.2);
+}
+.program-breakdown-category-card[data-category="logistics"]:hover {
+  border-color: var(--color-logistics);
+  box-shadow: 0 8px 24px rgba(40, 167, 69, 0.2);
+}
+
+.program-breakdown-category-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.program-breakdown-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.program-breakdown-category-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.program-breakdown-category-value {
+  font-weight: 900;
+  font-size: 1.5rem;
+  font-family: monospace;
+}
+
+.program-breakdown-category-reason {
+  font-size: 0.875rem;
+  color: #555;
+  line-height: 1.5;
+  flex-grow: 1;
+  margin-bottom: 12px;
+}
+
+.program-breakdown-progress-bar {
+  height: 6px;
+  background: rgba(43, 49, 118, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.program-breakdown-progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.8s ease;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Chart Container */
+.program-breakdown-chart-container {
+  background: linear-gradient(135deg, var(--bg-light) 0%, rgba(236, 35, 38, 0.03) 100%);
+  border: 2px solid var(--border-light);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px var(--shadow-light);
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Legend */
+.program-breakdown-legend {
+  text-align: center;
+  margin-top: 32px;
+  padding: 16px;
+  background: rgba(43, 49, 118, 0.05);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 360px) {
+  .program-breakdown-container { padding: 0 10px; }
+  .program-breakdown-title { font-size: 1.1rem; }
+  .program-breakdown-title-line { width: 30px; margin-bottom: 32px; }
+  .program-breakdown-chart-container { height: 200px; padding: 12px; }
+  .program-breakdown-category-card { padding: 14px; min-height: 100px; }
+  .program-breakdown-category-icon { font-size: 1.3rem; }
+  .program-breakdown-category-value { font-size: 1.1rem; }
+  .program-breakdown-category-reason { font-size: 0.75rem; }
+  .program-breakdown-progress-bar { height: 4px; }
+}
+
+/* Tablet */
+@media (min-width: 576px) {
+  .program-breakdown-title { font-size: 1.4rem; }
+  .program-breakdown-title-line { width: 50px; height: 3px; }
+  .program-breakdown-chart-container { height: 260px; padding: 18px; }
+  .program-breakdown-category-card { padding: 16px; }
+}
+
+/* Desktop */
+@media (min-width: 992px) {
+  .program-breakdown-content {
+    display: grid;
+    grid-template-columns: 1fr 450px;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .program-breakdown-explanations {
+    grid-column: 1;
+  }
+
+  .program-breakdown-chart-container {
+    grid-column: 2;
+    height: 480px;
+    justify-self: center;
+  }
+}
+
+/* Extra Large */
+@media (min-width: 1200px) {
+  .program-breakdown-content {
+    gap: 50px;
+    grid-template-columns: 1fr 500px;
+  }
+
+  .program-breakdown-category-reason {
+    font-size: 0.9rem;
+  }
+}

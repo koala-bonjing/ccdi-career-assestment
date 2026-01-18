@@ -38,23 +38,12 @@ export const useAssessmentValidation = ({
 
     if (
       section === "academicAptitude" ||
-      section === "careerInterest" ||
-      section === "learningWorkStyle" // Added learningStyle to the validation
+      section === "careerInterest"
     ) {
       const firstUnansweredIndex = currentQuestions.findIndex(
         (q: Question) => {
           const answer = answers[q.questionText];
-          
-          // All three sections now use number answers (1-5 Likert scale)
-          if (
-            section === "academicAptitude" || 
-            section === "careerInterest" ||
-            section === "learningWorkStyle"
-          ) {
-            return !isNumberAnswer(answer);
-          }
-          
-          return true;
+          return !isNumberAnswer(answer);
         }
       );
 
@@ -81,6 +70,64 @@ export const useAssessmentValidation = ({
       }
     }
 
+    if (section === "learningWorkStyle") {
+      // Group questions by subCategory
+      const questionsBySubCategory: Record<string, Question[]> = {};
+      currentQuestions.forEach((question) => {
+        const subCategory = question.subCategory || "Uncategorized";
+        if (!questionsBySubCategory[subCategory]) {
+          questionsBySubCategory[subCategory] = [];
+        }
+        questionsBySubCategory[subCategory].push(question);
+      });
+
+      // Define required categories
+      const requiredCategories = [
+        "Learning Preferences",
+        "Work Style Preferences",
+        "Financial & Time Resources",
+        "Career Goals & Logistics"
+      ];
+
+      // Check each required category
+      const incompleteCategories: string[] = [];
+      
+      requiredCategories.forEach((category) => {
+        const questionsInCategory = questionsBySubCategory[category] || [];
+        const hasAnswerInCategory = questionsInCategory.some(
+          (q) => answers[q.questionText] === true
+        );
+        
+        if (!hasAnswerInCategory && questionsInCategory.length > 0) {
+          incompleteCategories.push(category);
+        }
+      });
+
+      if (incompleteCategories.length > 0) {
+        // Find the first unanswered question in the first incomplete category
+        const firstIncompleteCategory = incompleteCategories[0];
+        const questionsInCategory = questionsBySubCategory[firstIncompleteCategory] || [];
+        const firstQuestionInCategory = questionsInCategory[0];
+        const firstUnansweredIndex = firstQuestionInCategory 
+          ? currentQuestions.findIndex(q => q._id === firstQuestionInCategory._id)
+          : -1;
+
+        // Create a more detailed message
+        let message = "Please select at least one option from each category: ";
+        if (incompleteCategories.length > 2) {
+          message += `Missing ${incompleteCategories.length} categories`;
+        } else {
+          message += incompleteCategories.join(", ");
+        }
+
+        return {
+          isValid: false,
+          message,
+          firstUnansweredIndex: firstUnansweredIndex !== -1 ? firstUnansweredIndex : 0
+        };
+      }
+    }
+
     return { isValid: true };
   }, [formData, section, currentQuestions, categoryTitles]);
 
@@ -88,19 +135,36 @@ export const useAssessmentValidation = ({
     const result = validateSection();
     
     if (!result.isValid && result.message) {
-      const isTechnicalSkillError = result.message.includes('Technical Skill');
+      const isLearningWorkStyleError = section === "learningWorkStyle";
+      const isTechnicalSkillError = section === "technicalSkills";
       
+      // Determine toast style based on section
+      let toastStyle = {};
+      if (isLearningWorkStyleError) {
+        toastStyle = {
+          backgroundColor: "rgba(255, 193, 7, 0.35)", // Yellow/orange for learning style
+          color: "#856404",
+          border: "2px solid rgba(255, 193, 7, 0.7)",
+        };
+      } else if (isTechnicalSkillError) {
+        toastStyle = {
+          backgroundColor: "rgba(255, 140, 0, 0.35)", // Orange for technical skills
+          color: "#fff",
+          border: "2px solid rgba(255, 120, 0, 0.7)",
+        };
+      } else {
+        toastStyle = {
+          backgroundColor: "rgba(33, 150, 243, 0.3)", // Blue for other sections
+          color: "#fff",
+          border: "2px solid #2196F3",
+        };
+      }
+
       toast.warning(result.message, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 4000, // Longer timeout for learning style errors
         style: {
-          backgroundColor: isTechnicalSkillError 
-            ? "rgba(255, 140, 0, 0.35)"
-            : "rgba(33, 150, 243, 0.3)",
-          color: "#fff",
-          border: isTechnicalSkillError
-            ? "2px solid rgba(255, 120, 0, 0.7)"
-            : "2px solid #2196F3",
+          ...toastStyle,
           borderRadius: "10px",
           fontWeight: "500",
           fontFamily: "Poppins",
@@ -116,7 +180,7 @@ export const useAssessmentValidation = ({
     }
 
     return result.isValid;
-  }, [validateSection, setCurrentQuestionIndex]);
+  }, [validateSection, setCurrentQuestionIndex, section]);
 
   return {
     validateSection: validateSectionWithToast,

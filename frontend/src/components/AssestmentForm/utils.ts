@@ -27,7 +27,7 @@ export const isSectionComplete = (
     academicAptitude: Record<string, number>;
     technicalSkills: Record<string, boolean>;
     careerInterest: Record<string, number>;
-    learningStyle: Record<string, number>;
+    learningWorkStyle: Record<string, number>;
   },
   requireFullCompletion = true
 ): boolean => {

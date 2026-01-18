@@ -1,7 +1,14 @@
 // src/components/AssessmentForm/ReviewSection.tsx
 import React from "react";
 import { Card, Row, Col, Badge, Button, Spinner } from "react-bootstrap";
-import { Eye, Edit, CheckCircle, AlertCircle, Download } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  CheckCircle,
+  AlertCircle,
+  Download,
+  CircleCheck,
+} from "lucide-react";
 import type { Question, AssessmentAnswers, User } from "../../types";
 import { categoryTitles, sections } from "../../config/constants";
 import { saveAnswersAsDocument } from "../../hooks/saveAnswersAsDocument";
@@ -49,46 +56,125 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   const getAnswerLabel = (
     sectionKey: keyof AssessmentAnswers,
     _question: string,
-    value: number | boolean | null | undefined
+    value: number | boolean | null | undefined,
   ): string => {
-    if (
-      sectionKey === "academicAptitude" ||
-      sectionKey === "careerInterest" ||
-      sectionKey === "learningWorkStyle"
-    ) {
-      const labels =
-        sectionKey === "careerInterest"
-          ? [
-              "Strongly Matches",
-              "Matches",
-              "Neutral",
-              "Partially Matches",
-              "Does Not Match",
-            ]
-          : [
-              "Strongly Agree",
-              "Agree",
-              "Neutral",
-              "Disagree",
-              "Strongly Disagree",
-            ];
+    if (sectionKey === "academicAptitude" || sectionKey === "careerInterest") {
+      const labels = [
+        "Strongly Agree",
+        "Agree",
+        "Neutral",
+        "Disagree",
+        "Strongly Disagree",
+      ];
       if (typeof value === "number" && value >= 1 && value <= 5) {
         return labels[value - 1];
       }
       return "Not Answered";
     }
-    if (sectionKey === "technicalSkills") {
-      return value === true ? "Yes" : "No";
+
+    if (
+      sectionKey === "technicalSkills" ||
+      sectionKey === "learningWorkStyle"
+    ) {
+      return value === true ? "Selected ✓" : "Not Selected";
     }
-    return "Not answered";
+    return "Not Answered";
+  };
+
+  const getAnswerColor = (
+    sectionKey: keyof AssessmentAnswers,
+    value: number | boolean | null | undefined,
+  ): string => {
+    if (
+      sectionKey === "technicalSkills" ||
+      sectionKey === "learningWorkStyle"
+    ) {
+      return value === true ? "#28a745" : "#6c757d";
+    }
+
+    if (typeof value === "number") {
+      const colors = [
+        "#28a745", // Strongly Agree/Matches (1)
+        "#20c997", // Agree/Matches (2)
+        "#6c757d", // Neutral (3)
+        "#fd7e14", // Disagree/Partially Matches (4)
+        "#dc3545", // Strongly Disagree/Does Not Match (5)
+      ];
+      return colors[value - 1] || "#6c757d";
+    }
+
+    return "#6c757d";
   };
 
   const sectionColors = [
-    { bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)", text: "white" },
-    { bg: "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)", text: "white" },
-    { bg: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)", text: "white" },
-    { bg: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)", text: "white" },
+    {
+      bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+      text: "white",
+      accent: "#A41D31",
+    },
+    {
+      bg: "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)",
+      text: "white",
+      accent: "#2B3176",
+    },
+    {
+      bg: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
+      text: "white",
+      accent: "#EC2326",
+    },
+    {
+      bg: "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)",
+      text: "white",
+      accent: "#2B3176",
+    },
   ];
+
+  const getSectionCompletion = (sectionKey: string) => {
+    const sectionQuestions = getQuestionsBySection(sectionKey);
+    const answeredCount = sectionQuestions.filter((q) => {
+      const answer =
+        formData[sectionKey as keyof AssessmentAnswers][q.questionText];
+
+      // Different validation for each section type
+      if (
+        sectionKey === "academicAptitude" ||
+        sectionKey === "careerInterest"
+      ) {
+        return typeof answer === "number" && answer >= 1 && answer <= 5;
+      }
+      if (
+        sectionKey === "technicalSkills" ||
+        sectionKey === "learningWorkStyle"
+      ) {
+        return answer === true; // Checkbox selected
+      }
+      return false;
+    }).length;
+
+    const totalCount = sectionQuestions.length;
+
+    return {
+      answeredCount,
+      totalCount,
+      percentage: Math.round((answeredCount / totalCount) * 100),
+    };
+  };
+
+  // Group learning work style questions by category for better display
+  const groupLearningStyleQuestions = () => {
+    const questions = getQuestionsBySection("learningWorkStyle");
+    const groups: Record<string, Question[]> = {};
+
+    questions.forEach((question) => {
+      const category = question.subCategory || "Uncategorized";
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(question);
+    });
+
+    return groups;
+  };
 
   return (
     <Card className="border-0 shadow-lg review-card">
@@ -111,69 +197,61 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
       <Card.Body className="p-4 p-lg-5">
         {/* Progress Summary */}
         <Row className="mb-5">
-          <Col md={8} className="mx-auto">
+          <Col md={10} className="mx-auto">
             <Card
-              className="border-0"
+              className="border-0 shadow-sm"
               style={{
                 background: "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
                 border: "2px solid #2B3176",
               }}
             >
-              <Card.Body className="text-center p-4">
-                <h5 className="fw-bold mb-3" style={{ color: "#2B3176" }}>
+              <Card.Body className="p-4">
+                <h5
+                  className="fw-bold mb-3 text-center"
+                  style={{ color: "#2B3176" }}
+                >
                   Assessment Progress Summary
                 </h5>
                 <Row className="g-3">
-                  {sections.map((sectionKey) => {
-                    const sectionQuestions = getQuestionsBySection(sectionKey);
-                    const answeredCount = sectionQuestions.filter((q) => {
-                      const answer = formData[sectionKey][q.questionText];
-                      if (
-                        sectionKey === "academicAptitude" ||
-                        sectionKey === "careerInterest" ||
-                        sectionKey === "learningWorkStyle"
-                      ) {
-                        return (
-                          typeof answer === "number" &&
-                          answer >= 1 &&
-                          answer <= 5
-                        );
-                      }
-                      if (sectionKey === "technicalSkills") {
-                        return answer === true;
-                      }
-                      return false;
-                    }).length;
-                    const totalCount = sectionQuestions.length;
+                  {sections.map((sectionKey, idx) => {
+                    const completion = getSectionCompletion(sectionKey);
+                    const isComplete = completion.answeredCount > 0;
 
                     return (
-                      <Col md={6} key={sectionKey}>
+                      <Col md={3} key={sectionKey}>
                         <div
-                          className="d-flex justify-content-between align-items-center p-3 rounded"
+                          className="d-flex flex-column p-3 rounded text-center"
                           style={{
                             background: "white",
-                            border: "2px solid #e9ecef",
+                            border: `2px solid ${isComplete ? sectionColors[idx].accent : "#e9ecef"}`,
+                            height: "100%",
                           }}
                         >
-                          <span
-                            className="fw-semibold"
-                            style={{ color: "#2B3176" }}
-                          >
-                            {categoryTitles[sectionKey]}
-                          </span>
-                          <Badge
-                            style={{
-                              background:
-                                answeredCount === totalCount
-                                  ? "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)"
-                                  : "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
-                              color: "white",
-                              border: "none",
-                            }}
-                            className="fs-6 p-2"
-                          >
-                            {answeredCount}/{totalCount}
-                          </Badge>
+                          <div className="mb-2">
+                            <span
+                              className="fw-bold d-block"
+                              style={{
+                                color: "#2B3176",
+                                fontSize: "0.9rem",
+                              }}
+                            >
+                              {categoryTitles[sectionKey]}
+                            </span>
+                          </div>
+                          <div className="mt-auto">
+                            <Badge
+                              style={{
+                                background: isComplete
+                                  ? "linear-gradient(135deg, #28a745 0%, #20c997 100%)"
+                                  : "linear-gradient(135deg, #6c757d 0%, #495057 100%)",
+                                color: "white",
+                                border: "none",
+                              }}
+                              className="fs-6 p-2 w-100"
+                            >
+                              {completion.answeredCount}/{completion.totalCount}
+                            </Badge>
+                          </div>
                         </div>
                       </Col>
                     );
@@ -189,37 +267,45 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
           {sections.map((sectionKey, sectionIndex) => {
             const sectionQuestions = getQuestionsBySection(sectionKey);
             const answeredQuestions = sectionQuestions.filter((q) => {
-              const answer = formData[sectionKey][q.questionText];
+              const answer =
+                formData[sectionKey as keyof AssessmentAnswers][q.questionText];
+
+              // Different logic for different section types
               if (
                 sectionKey === "academicAptitude" ||
-                sectionKey === "careerInterest" ||
-                sectionKey === "learningWorkStyle"
+                sectionKey === "careerInterest"
               ) {
                 return typeof answer === "number" && answer >= 1 && answer <= 5;
               }
-              if (sectionKey === "technicalSkills") {
-                return answer === true;
+              if (
+                sectionKey === "technicalSkills" ||
+                sectionKey === "learningWorkStyle"
+              ) {
+                return answer === true; // Checkbox is checked
               }
               return false;
             });
+
             const color = sectionColors[sectionIndex];
+
+            const learningStyleGroups = groupLearningStyleQuestions();
 
             return (
               <Col xl={6} lg={12} key={sectionKey}>
-                <Card className="h-100 shadow-sm review-section-card">
+                <Card className="h-100 shadow-sm review-section-card border-0">
                   <Card.Header
                     className="d-flex justify-content-between align-items-center py-3"
                     style={{
                       background: color.bg,
                       color: color.text,
-                      borderBottom: `3px solid ${
-                        sectionIndex === 1 ? "#2B3176" : "#EC2326"
-                      }`,
+                      borderBottom: `3px solid ${color.accent}`,
                     }}
                   >
-                    <h5 className="mb-0 fw-bold">
-                      {categoryTitles[sectionKey]}
-                    </h5>
+                    <div>
+                      <h5 className="mb-0 fw-bold">
+                        {categoryTitles[sectionKey]}
+                      </h5>
+                    </div>
                     <Button
                       variant="light"
                       size="sm"
@@ -236,122 +322,317 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                     </Button>
                   </Card.Header>
 
-                  <Card.Body className="p-3 p-md-4 review-section-body">
+                  <Card.Body className="p-3 p-md-4 review-section-body h-100">
                     {sectionKey === "technicalSkills" ? (
-                      <div className="technical-skills-review">
+                      <div className="technical-skills-review h-100">
                         <h6
                           className="fw-bold mb-3 text-center"
                           style={{ color: "#2B3176" }}
                         >
                           Selected Technical Skills ({answeredQuestions.length})
                         </h6>
+
                         {answeredQuestions.length > 0 ? (
                           <div className="skills-container">
-                            <div className="d-flex flex-wrap gap-2 justify-content-center skills-badge-container">
-                              {answeredQuestions.map((skill) => (
+                            {/* Treat all technical skills as one group */}
+                            <div className="mb-4">
+                              <div
+                                className="d-flex align-items-center mb-2 p-2 rounded"
+                                style={{
+                                  background: "rgba(40, 167, 69, 0.1)",
+                                  borderLeft: "4px solid #28a745",
+                                }}
+                              >
                                 <Badge
-                                  key={skill._id}
-                                  className="skill-badge"
+                                  className="me-2"
                                   style={{
-                                    background:
-                                      "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                                    background: color.bg,
                                     color: "white",
-                                    border: "2px solid #2B3176",
                                   }}
                                 >
-                                  {skill.questionText}
+                                  1
                                 </Badge>
-                              ))}
+                                <h6
+                                  className="mb-0"
+                                  style={{
+                                    color: "#2B3176",
+                                    fontSize: "0.95rem",
+                                  }}
+                                >
+                                  Technical Competencies
+                                  <small className="ms-2 text-muted">
+                                    ({answeredQuestions.length} selected)
+                                  </small>
+                                </h6>
+                              </div>
+
+                              <div className="ms-3">
+                                {answeredQuestions.map((question) => (
+                                  <div
+                                    key={question._id}
+                                    className="d-flex align-items-start p-2 mb-2 rounded"
+                                    style={{
+                                      background: "rgba(248, 249, 255, 0.5)",
+                                      border: "1px solid #dee2e6",
+                                    }}
+                                  >
+                                    <Badge className="me-2 mt-1 flex-shrink-0">
+                                      <CircleCheck size={15} />
+                                    </Badge>
+                                    <div className="flex-grow-1">
+                                      <div
+                                        className="text-dark mb-1"
+                                        style={{
+                                          lineHeight: 1.3,
+                                          fontSize: "0.9rem",
+                                        }}
+                                      >
+                                        {question.questionText}
+                                      </div>
+                                      <Badge
+                                        className="px-2 py-1"
+                                        style={{
+                                          background: "#28a745",
+                                          color: "white",
+                                          fontSize: "0.75rem",
+                                          fontWeight: 600,
+                                          borderRadius: "4px",
+                                        }}
+                                      >
+                                        ✓ Selected
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         ) : (
-                          <div
-                            className="text-center py-3"
-                            style={{ color: "#6c757d" }}
-                          >
-                            <AlertCircle size={32} className="mb-2" />
-                            <p className="mb-0">No technical skills selected</p>
+                          <div className="text-center py-4">
+                            <div className="mb-3">
+                              <AlertCircle
+                                size={48}
+                                style={{ color: "#6c757d" }}
+                              />
+                            </div>
+                            <p className="mb-1" style={{ color: "#6c757d" }}>
+                              No technical skills selected
+                            </p>
+                            <small className="text-muted">
+                              Technical skills are selected via checkboxes
+                            </small>
+                          </div>
+                        )}
+                      </div>
+                    ) : sectionKey === "learningWorkStyle" ? (
+                      <div className="learning-style-review">
+                        <h6
+                          className="fw-bold mb-3 text-center"
+                          style={{ color: "#2B3176" }}
+                        >
+                          Selected Preferences ({answeredQuestions.length})
+                        </h6>
+
+                        {answeredQuestions.length > 0 ? (
+                          <div className="preferences-container">
+                            {Object.entries(learningStyleGroups).map(
+                              ([category, catQuestions], catIndex) => {
+                                const answeredCatQuestions =
+                                  catQuestions.filter(
+                                    (q) =>
+                                      formData.learningWorkStyle[
+                                        q.questionText
+                                      ] === true,
+                                  );
+
+                                if (answeredCatQuestions.length === 0)
+                                  return null;
+
+                                return (
+                                  <div key={category} className="mb-4">
+                                    <div
+                                      className="d-flex align-items-center mb-2 p-2 rounded"
+                                      style={{
+                                        background: "rgba(40, 167, 69, 0.1)",
+                                        borderLeft: "4px solid #28a745",
+                                      }}
+                                    >
+                                      <Badge
+                                        className="me-2"
+                                        style={{
+                                          background: color.bg,
+                                          color: "white",
+                                        }}
+                                      >
+                                        {catIndex + 1}
+                                      </Badge>
+                                      <h6
+                                        className="mb-0"
+                                        style={{
+                                          color: "#2B3176",
+                                          fontSize: "0.95rem",
+                                        }}
+                                      >
+                                        {category}
+                                        <small className="ms-2 text-muted">
+                                          ({answeredCatQuestions.length} of{" "}
+                                          {catQuestions.length} selected)
+                                        </small>
+                                      </h6>
+                                    </div>
+
+                                    <div className="ms-3">
+                                      {answeredCatQuestions.map((question) => (
+                                        <div
+                                          key={question._id}
+                                          className="d-flex align-items-start p-2 mb-2 rounded"
+                                          style={{
+                                            background:
+                                              "rgba(248, 249, 255, 0.5)",
+                                            border: "1px solid #dee2e6",
+                                          }}
+                                        >
+                                          <Badge className="me-2 mt-1 flex-shrink-0">
+                                            <CircleCheck size={15} />
+                                          </Badge>
+                                          <div className="flex-grow-1">
+                                            <div
+                                              className="text-dark mb-1"
+                                              style={{
+                                                lineHeight: 1.3,
+                                                fontSize: "0.9rem",
+                                              }}
+                                            >
+                                              {question.questionText}
+                                            </div>
+                                            <Badge
+                                              className="px-2 py-1"
+                                              style={{
+                                                background: "#28a745",
+                                                color: "white",
+                                                fontSize: "0.75rem",
+                                                fontWeight: 600,
+                                                borderRadius: "4px",
+                                              }}
+                                            >
+                                              ✓ Selected
+                                            </Badge>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4">
+                            <div className="mb-3">
+                              <AlertCircle
+                                size={48}
+                                style={{ color: "#6c757d" }}
+                              />
+                            </div>
+                            <p className="mb-1" style={{ color: "#6c757d" }}>
+                              No preferences selected
+                            </p>
+                            <small className="text-muted">
+                              Learning & Work Style uses checkbox selections
+                              (not ratings)
+                            </small>
                           </div>
                         )}
                       </div>
                     ) : (
                       <div className="review-questions-container">
                         <h6
-                          className="fw-bold mb-3 text-center small"
+                          className="fw-bold mb-3 text-center"
                           style={{ color: "#2B3176" }}
                         >
                           Questions & Answers ({answeredQuestions.length})
                         </h6>
                         {answeredQuestions.length > 0 ? (
-                          <div className="small">
+                          <div>
                             {answeredQuestions.map((question, qIndex) => {
                               const answer =
-                                formData[sectionKey][question.questionText];
+                                formData[sectionKey as keyof AssessmentAnswers][
+                                  question.questionText
+                                ];
+                              const answerColor = getAnswerColor(
+                                sectionKey,
+                                answer,
+                              );
+                              const answerLabel = getAnswerLabel(
+                                sectionKey,
+                                question.questionText,
+                                answer,
+                              );
+
                               return (
                                 <div
                                   key={question._id}
-                                  className="d-flex align-items-start py-1 border-bottom border-light pb-2"
+                                  className="d-flex align-items-start p-3 mb-3 rounded"
                                   style={{
-                                    fontSize: "0.95rem",
-                                    border: "3px solid black",
-                                    padding: "8px",
+                                    background: "rgba(248, 249, 255, 0.5)",
+                                    border: "1px solid #dee2e6",
                                   }}
                                 >
                                   <Badge
-                                    className="me-2 mt-1 flex-shrink-0"
+                                    className="me-3 mt-1 flex-shrink-0"
                                     style={{
-                                      background:
-                                        sectionColors[sectionIndex].bg,
+                                      background: color.bg,
                                       color: "white",
-                                      fontSize: "0.75rem",
-                                      width: "24px",
-                                      height: "24px",
+                                      fontSize: "0.85rem",
+                                      minWidth: "32px",
+                                      height: "32px",
                                       display: "flex",
                                       alignItems: "center",
                                       justifyContent: "center",
-                                      borderRadius: "50%",
-                                      border: "1.5px solid black",
+                                      borderRadius: "6px",
                                     }}
                                   >
                                     {qIndex + 1}
                                   </Badge>
                                   <div className="flex-grow-1">
                                     <div
-                                      className="text-dark fw-medium mb-1"
-                                      style={{ lineHeight: 1.3 }}
-                                    >
-                                      {question.questionText.length > 70
-                                        ? `${question.questionText.substring(
-                                            0,
-                                            70
-                                          )}…`
-                                        : question.questionText}
-                                    </div>
-                                    <Badge
-                                      className="px-2 py-1"
+                                      className="text-dark mb-2"
                                       style={{
-                                        background: "rgba(43, 49, 118, 0.1)",
-                                        color: "#ffffffff",
-                                        fontSize: "0.8rem",
-                                        fontWeight: 500,
-                                        borderRadius: "6px",
+                                        lineHeight: 1.4,
+                                        fontSize: "0.95rem",
                                       }}
                                     >
-                                      {getAnswerLabel(
-                                        sectionKey,
-                                        question.questionText,
-                                        answer
-                                      )}
-                                    </Badge>
+                                      {question.questionText}
+                                    </div>
+                                    <div className="d-flex align-items-center">
+                                      <Badge
+                                        className="px-3 py-1"
+                                        style={{
+                                          background: answerColor,
+                                          color: "white",
+                                          fontSize: "0.8rem",
+                                          fontWeight: 600,
+                                          borderRadius: "20px",
+                                        }}
+                                      >
+                                        {answerLabel}
+                                      </Badge>
+                                    </div>
                                   </div>
                                 </div>
                               );
                             })}
                           </div>
                         ) : (
-                          <div className="text-center py-2 small text-muted">
-                            <AlertCircle size={18} className="mb-1" />
-                            <div>No answers</div>
+                          <div className="text-center py-4">
+                            <AlertCircle
+                              size={32}
+                              className="mb-2"
+                              style={{ color: "#6c757d" }}
+                            />
+                            <p className="mb-0" style={{ color: "#6c757d" }}>
+                              No answers provided
+                            </p>
                           </div>
                         )}
                       </div>
@@ -363,12 +644,12 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
           })}
         </Row>
 
-        {/* Action Area */}
+        {/* Action Area - Same as before */}
         <div
           className="text-center mt-5 p-4 rounded action-section"
           style={{
             background: "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
-            border: "3px solid #2B3176",
+            border: "2px solid #2B3176",
           }}
         >
           <h4 className="mb-3" style={{ color: "#2B3176" }}>
@@ -402,7 +683,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               style={{
                 background: loading
                   ? "linear-gradient(135deg, #6c757d 0%, #495057 100%)"
-                  : "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
+                  : "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
                 color: "white",
                 border: "none",
                 opacity: loading ? 0.7 : 1,

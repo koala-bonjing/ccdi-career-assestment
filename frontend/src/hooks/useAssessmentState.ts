@@ -11,7 +11,7 @@ import type {
 
 // 🔹 Derive display-ready data (used by WelcomeScreen UI)
 export const deriveDisplayData = (
-  result: AssessmentResult | null
+  result: AssessmentResult | null,
 ): AssessmentDisplayResult | null => {
   if (!result) return null;
 
@@ -42,28 +42,35 @@ export const deriveDisplayData = (
       ? new Date(result.submissionDate).toLocaleDateString()
       : new Date().toLocaleDateString(),
     score: Math.round(
-      Math.max(...programLabels.map((p) => result.percent[p] ?? 0))
+      Math.max(...programLabels.map((p) => result.percent[p] ?? 0)),
     ),
     totalQuestions: 50,
     recommendedPaths: topPaths,
-    strengths: [
-      "Analytical Thinking",
-      "Problem Solving",
-      "Technical Aptitude",
-    ],
+    strengths: ["Analytical Thinking", "Problem Solving", "Technical Aptitude"],
   };
 };
 
+// 🔹 Check if user has unsaved progress
 // 🔹 Check if user has unsaved progress
 const hasExistingProgress = (): boolean => {
   try {
     const answers = localStorage.getItem("evaluation-answers");
     if (!answers) return false;
     const parsed = JSON.parse(answers);
-    return Object.values(parsed).some(
-      (section: Record<string, unknown>) =>
-        section && typeof section === "object" && Object.keys(section).length > 0
-    );
+
+    // Type guard to check if parsed is an object
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return false;
+    }
+
+    return Object.values(parsed).some((section) => {
+      return (
+        section &&
+        typeof section === "object" &&
+        !Array.isArray(section) &&
+        Object.keys(section).length > 0
+      );
+    });
   } catch (error) {
     console.error("Error checking progress:", error);
     return false;
@@ -89,7 +96,7 @@ export const useAssessmentState = () => {
         console.log("🔍 Checking for saved evaluations for user:", user._id);
 
         const response = await axios.get(
-          `${BASE_URL}/api/get-evaluations/${user._id}`
+          `${BASE_URL}/api/get-evaluations/${user._id}`,
         );
 
         if (response.data.success && response.data.data.length > 0) {
@@ -101,6 +108,7 @@ export const useAssessmentState = () => {
             summary: latest.summary || latest.evaluation || "",
             evaluation: latest.evaluation || "",
             recommendations: latest.recommendations || "",
+            detailedEvaluation: latest.detailedEvaluation || "",
             recommendedProgram: latest.recommendedCourse as ProgramType,
             user: {
               _id: user._id,
@@ -111,6 +119,7 @@ export const useAssessmentState = () => {
             percent: latest.percent || {},
             programScores: latest.programScores || {},
             submissionDate: latest.submissionDate || new Date().toISOString(),
+            answers: latest.answers || "",
           };
 
           setRawResult(result);
@@ -158,4 +167,4 @@ export const useAssessmentState = () => {
     clearAssessmentStorage,
     refetch,
   };
-};  
+};

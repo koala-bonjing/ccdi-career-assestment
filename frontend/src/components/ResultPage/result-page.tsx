@@ -25,6 +25,8 @@ import { useEvaluationStore } from "../../../store/useEvaluationStore"; // ✅ A
 import "./result-page.css";
 import type { AssessmentResult } from "../../types";
 import { useResultsHydration } from "../../hooks/useResultHydaration";
+import RadarChart from "./chart/radar-chart";
+import ProgramBreakdownChart from "./chart/program-breakdown-chart";
 
 interface ResultsPageProps {
   result?: AssessmentResult; // Make it optional
@@ -44,13 +46,6 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
 
   // ✅ Priority: prop > store > assessment state
   const result = propResult || storeResult || assessmentResult;
-
-  // ✅ Add debugging
-  console.log("📊 ResultsPage sources:");
-  console.log("  - propResult:", propResult);
-  console.log("  - storeResult:", storeResult);
-  console.log("  - assessmentResult:", assessmentResult);
-  console.log("  - final result:", result);
 
   // ✅ Call all hooks BEFORE any conditional returns
   const normalizedPercent = useNormalizedPercentages(result?.percent);
@@ -78,6 +73,63 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   const handlePrint = () => {
     window.print();
   };
+
+  // Derive section scores (0–100)
+  const computeSectionScores = () => {
+    if (!result?.answers) return null;
+
+    const {
+      academicAptitude,
+      technicalSkills,
+      careerInterest,
+      learningWorkStyle,
+    } = result.answers;
+
+    // Academic: average of 1–5 → scale to 0–100
+    const academicValues = Object.values(academicAptitude).filter(
+      (v) => typeof v === "number",
+    ) as number[];
+    const academic = academicValues.length
+      ? Math.round(
+          (academicValues.reduce((a, b) => a + b, 0) / academicValues.length) *
+            20,
+        )
+      : 0;
+
+    // Technical: % of "true" answers
+    const techValues = Object.values(technicalSkills).filter(
+      (v) => typeof v === "boolean",
+    );
+    const technical = techValues.length
+      ? Math.round(
+          (techValues.filter((v) => v).length / techValues.length) * 100,
+        )
+      : 0;
+
+    // Career: average of 1–5 → 0–100
+    const careerValues = Object.values(careerInterest).filter(
+      (v) => typeof v === "number",
+    ) as number[];
+    const career = careerValues.length
+      ? Math.round(
+          (careerValues.reduce((a, b) => a + b, 0) / careerValues.length) * 20,
+        )
+      : 0;
+
+    const logisticsValues = Object.values(learningWorkStyle).filter(
+      (v) => typeof v === "boolean",
+    );
+    const logistics = logisticsValues.length
+      ? Math.round(
+          (logisticsValues.filter((v) => v).length / logisticsValues.length) *
+            100,
+        )
+      : 0;
+
+    return { academic, technical, career, logistics };
+  };
+
+  const sectionScores = computeSectionScores();
 
   return (
     <div
@@ -126,7 +178,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 {showDetailed && (
                   <DetailedExplanationSection
                     evaluation={result.detailedEvaluation}
-                    recommendations={result.recommendations}
+                    recommendations={result.evaluation}
                   />
                 )}
 
@@ -136,6 +188,32 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 />
 
                 <CompatibilityLegend />
+                {/* Advanced Insights */}
+                {sectionScores && (
+                  <>
+                    <h4
+                      className="text-center mt-5 mb-3 fw-bold"
+                      style={{ color: "#2B3176" }}
+                    >
+                      Your Full Profile Overview
+                    </h4>
+                    <RadarChart
+                      academic={sectionScores.academic}
+                      technical={sectionScores.technical}
+                      career={sectionScores.career}
+                      logistics={sectionScores.logistics}
+                    />
+
+                    <ProgramBreakdownChart
+                      programName={result.recommendedProgram}
+                      academic={sectionScores.academic}
+                      technical={sectionScores.technical}
+                      career={sectionScores.career}
+                      logistics={sectionScores.logistics}
+                      categoryExplanations={result.categoryExplanations}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>

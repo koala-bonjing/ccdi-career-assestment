@@ -45,38 +45,34 @@ export const saveAnswersAsDocument = async ({
               }),
             ],
             spacing: { after: 100 },
-          })
+          }),
         );
 
         // Process each question in the section
         for (const [question, answer] of Object.entries(sectionData)) {
           let answerText = "";
 
-          // Format the answer based on its type and section
           if (typedSectionKey === "technicalSkills") {
-            // Boolean answers for technical skills
             answerText = answer ? "Yes" : "No";
+          } else if (typedSectionKey === "learningWorkStyle") {
+            answerText = answer ? "✅ Selected" : "X";
           } else if (
             typedSectionKey === "academicAptitude" ||
-            typedSectionKey === "careerInterest" ||
-            typedSectionKey === "learningWorkStyle"
+            typedSectionKey === "careerInterest"
           ) {
             // Numeric answers (Likert scale) for all three sections
             const labels: AnswerLabels = {
               1:
                 typedSectionKey === "careerInterest"
-                  ? "Strongly Matches"
-                  : "Strongly Agree", // ✅ Fixed: 1 = Strongly Agree
-              2: typedSectionKey === "careerInterest" ? "Matches" : "Agree", // ✅ Fixed: 2 = Agree
+                  ? "Strongly Agree"
+                  : "Strongly Agree",
+              2: typedSectionKey === "careerInterest" ? "Agree" : "Agree",
               3: "Neutral",
-              4:
-                typedSectionKey === "careerInterest"
-                  ? "Partially Matches"
-                  : "Disagree", // ✅ Fixed: 4 = Disagree
+              4: typedSectionKey === "careerInterest" ? "Disagree" : "Disagree",
               5:
                 typedSectionKey === "careerInterest"
-                  ? "Does Not Match"
-                  : "Strongly Disagree", // ✅ Fixed: 5 = Strongly Disagree
+                  ? "Strongly Disagree"
+                  : "Strongly Disagree",
             };
 
             // Ensure the answer is a number and within valid range
@@ -104,7 +100,7 @@ export const saveAnswersAsDocument = async ({
               ],
               indent: { left: 400 },
               spacing: { after: 50 },
-            })
+            }),
           );
         }
 
@@ -113,7 +109,7 @@ export const saveAnswersAsDocument = async ({
           new Paragraph({
             children: [new TextRun({ text: "" })],
             spacing: { after: 150 },
-          })
+          }),
         );
       }
 

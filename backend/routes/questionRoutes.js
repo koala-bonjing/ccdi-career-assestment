@@ -16,13 +16,15 @@ router.get("/", async (req, res) => {
       academicAptitude: [],
       technicalSkills: [],
       careerInterest: [],
-      learningStyle: [],
+      learningWorkStyle: [],
     };
 
     questions.forEach((question) => {
       groupedQuestions[question.category].push({
         _id: question._id,
         questionText: question.questionText,
+        category: question.category,
+        subCategory: question.subCategory,
         program: question.program,
         weight: question.weight,
         options: question.options,
@@ -68,7 +70,6 @@ router.post("/bulk", async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
-
 
 // Update question (admin)
 router.put("/:id", async (req, res) => {

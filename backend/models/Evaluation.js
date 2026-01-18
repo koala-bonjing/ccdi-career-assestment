@@ -11,6 +11,7 @@ const evaluationSchema = new mongoose.Schema(
     userEmail: { type: String, required: true },
     evaluation: { type: String, required: true },
     recommendations: { type: String, required: true },
+    detailedEvaluation: { type: String, required: true },
     recommendedCourse: {
       type: String,
       enum: [

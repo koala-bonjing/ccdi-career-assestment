@@ -2,13 +2,16 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import { BASE_URL } from "../config/constants";
+
 import type {
   AssessmentResult,
   AssessmentDisplayResult,
   ProgramType,
 } from "../types";
 
+
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 // 🔹 Derive display-ready data (used by WelcomeScreen UI)
 export const deriveDisplayData = (
   result: AssessmentResult | null,

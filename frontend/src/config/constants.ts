@@ -1,6 +1,6 @@
 import type { AssessmentAnswers } from "../types";
 
-const BASE_URL = "https://backend-tau-nine-54.vercel.app";
+const BASE_URL = "https://ccdi-career-assestment-backend.vercel.app";
 
 const categoryTitles: Record<string, string> = {
   academicAptitude: "Academic Aptitude",

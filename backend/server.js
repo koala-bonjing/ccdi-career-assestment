@@ -10,29 +10,26 @@ const assessmentRoutes = require("./routes/assessmentRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const HOST = process.env.HOST || "0.0.0.0"; // Add this line
+const HOST = process.env.HOST || "0.0.0.0";
 
-// Middleware
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  }),
-);
+// CORS Configuration - SINGLE INSTANCE ONLY
+const corsOptions = {
+  origin: [
+    "http://localhost:5137", // Add your actual local port
+    "http://localhost:3000",
+    "https://your-frontend.vercel.app", // Replace with your actual Vercel URL
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+};
+
+// Apply CORS middleware ONCE
+app.use(cors(corsOptions));
+
+// Body parser middleware
 app.use(express.json());
-
-  const corsOptions = {
-    origin: [
-      "http://localhost:3000", // your local dev frontend
-      "https://your-frontend.vercel.app", // your Vercel production URL
-      // Add more if needed (e.g., custom domain)
-    ],
-    credentials: true,
-  };
-
-  app.use(cors(corsOptions));
 
 // Root route
 app.get("/", (req, res) => {
@@ -58,7 +55,6 @@ app.use("/api/evaluations", assessmentRoutes);
 mongoose
   .connect(process.env.MONGO_DB_URI)
   .then(() => {
-    // Update this to use HOST variable
     app.listen(PORT, HOST, () =>
       console.log(`✅ Server running on http://${HOST}:${PORT}`),
     );

@@ -4,7 +4,7 @@ import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../NavigationBarComponents/NavigationBar";
-import { useEvaluationStore } from "../../../store/useEvaluationStore"; // ✅ ADD THIS
+import { useEvaluationStore }from "../../../store/useEvaluationStore"; 
 
 import { ToastContainer } from "react-bootstrap";
 import "./WelcomePage.css";

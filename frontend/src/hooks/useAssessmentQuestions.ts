@@ -1,8 +1,6 @@
 // hooks/useAssessmentQuestions.ts
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { BASE_URL } from "../config/constants";
-
 export interface Question {
   _id: string;
   questionText: string;
@@ -42,6 +40,7 @@ interface ApiResponse {
 }
 
 export const useAssessmentQuestions = () => {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
   const [questions, setQuestions] = useState<BackendQuestions | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +55,7 @@ export const useAssessmentQuestions = () => {
 
         // Add debug logging
         console.log("📥 Raw API response:", response.data);
-        
+
         // Check if response is already grouped by category
         const responseData = response.data;
         const hasGroupedStructure =
@@ -72,17 +71,27 @@ export const useAssessmentQuestions = () => {
         ) {
           // It's already in the grouped format
           const groupedData = responseData as ApiResponse;
-          
+
           // Debug: Check what fields are in learningWorkStyle questions
-          if (groupedData.learningWorkStyle && groupedData.learningWorkStyle.length > 0) {
-            console.log("🔍 First learningWorkStyle question from grouped data:", {
-              text: groupedData.learningWorkStyle[0].questionText?.substring(0, 50),
-              hasSubCategory: 'subCategory' in groupedData.learningWorkStyle[0],
-              subCategory: groupedData.learningWorkStyle[0].subCategory,
-              allKeys: Object.keys(groupedData.learningWorkStyle[0])
-            });
+          if (
+            groupedData.learningWorkStyle &&
+            groupedData.learningWorkStyle.length > 0
+          ) {
+            console.log(
+              "🔍 First learningWorkStyle question from grouped data:",
+              {
+                text: groupedData.learningWorkStyle[0].questionText?.substring(
+                  0,
+                  50,
+                ),
+                hasSubCategory:
+                  "subCategory" in groupedData.learningWorkStyle[0],
+                subCategory: groupedData.learningWorkStyle[0].subCategory,
+                allKeys: Object.keys(groupedData.learningWorkStyle[0]),
+              },
+            );
           }
-          
+
           setQuestions({
             academicAptitude: groupedData.academicAptitude || [],
             technicalSkills: groupedData.technicalSkills || [],
@@ -116,7 +125,7 @@ export const useAssessmentQuestions = () => {
               console.log(`📝 Processing learningWorkStyle question:`, {
                 text: question.questionText.substring(0, 50),
                 subCategory: question.subCategory,
-                hasSubCategory: !!question.subCategory
+                hasSubCategory: !!question.subCategory,
               });
             }
 
@@ -140,8 +149,9 @@ export const useAssessmentQuestions = () => {
 
           // Debug: Check final structure
           console.log("📊 Final transformed questions:", {
-            learningWorkStyleCount: transformedQuestions.learningWorkStyle.length,
-            firstQuestion: transformedQuestions.learningWorkStyle[0]
+            learningWorkStyleCount:
+              transformedQuestions.learningWorkStyle.length,
+            firstQuestion: transformedQuestions.learningWorkStyle[0],
           });
 
           setQuestions(transformedQuestions);

@@ -142,6 +142,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
       <NavigationBar />
 
       {/* 👇 White Card Container — centered, max-width, responsive padding */}
+      {/* 👇 White Card Container — centered, max-width, responsive padding */}
       <div className="container-fluid py-4 flex-grow-1 d-flex">
         <div className="row justify-content-center w-100">
           <div className="col-xxl-10 col-xl-12 col-lg-12">
@@ -152,7 +153,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 background: "white",
                 borderRadius: "20px",
                 overflow: "hidden",
-                minHeight: "70vh", // ensures space even on small screens
+                minHeight: "70vh",
               }}
             >
               <div className="card-body p-4 p-md-5">

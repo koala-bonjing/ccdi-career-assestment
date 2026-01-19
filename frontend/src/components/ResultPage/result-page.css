@@ -74,53 +74,62 @@ body {
 
 /* Small (mobile) */
 @media (max-width: 575.98px) {
-  .container-fluid.py-4 {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
+  /* Fix the container padding conflict */
+  .container-fluid,
+  .container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    overflow-x: hidden; /* Prevents tiny horizontal shifts */
   }
 
+  /* Ensure rows don't "bleed" out of the container */
+  .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Even padding inside the card */
   .card-body {
-    padding: 1.25rem !important;
+    padding: 1rem !important; /* Uniform padding all around */
   }
 
-  .card-body.p-lg-5 {
-    padding: 1.25rem !important;
-  }
-
+  /* Typography sizing for mobile */
   h2 {
-    font-size: 1.75rem !important;
+    font-size: 1.5rem !important;
   }
-
   h3 {
-    font-size: 1.35rem !important;
+    font-size: 1.25rem !important;
   }
-
+  h4 {
+    font-size: 1.15rem !important;
+  }
   h5 {
-    font-size: 1.1rem !important;
-  }
-
-  .btn-lg {
-    padding: 0.6rem 1.2rem !important;
-    font-size: 0.95rem !important;
-  }
-
-  p {
     font-size: 1rem !important;
   }
-
+  p,
   .summary-p {
-    font-size: 1rem !important;
+    font-size: 0.9rem !important;
   }
-  /* Stack action buttons vertically on mobile */
+
+  /* Perfect centering for action buttons */
   .text-center.mb-4 > .btn {
     display: block;
-    width: 90%;
-    margin: 0.5rem auto !important;
+    width: 100%; /* Change from 90% to 100% to fill the card evenly */
+    margin: 0.5rem 0 !important;
   }
 
-  /* Student info: stack columns */
-  .student-info-row .col-md-6 {
-    margin-bottom: 0.75rem;
+  /* Ensure charts and SVGs stay within bounds */
+  svg,
+  .radar-chart-container {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+
+/* Medium (tablet) */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .card-body {
+    padding: 1.5rem !important;
   }
 }
 
@@ -305,4 +314,3 @@ body {
   background-color: #fff8e1;
   border-left: 4px solid #ffc107;
 }
-

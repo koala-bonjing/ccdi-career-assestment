@@ -321,9 +321,9 @@ router.post("/evaluate-assessment", async (req, res) => {
 
     const evaluationDoc = new Evaluation({
       userId,
-      fullName: parsed.fullName || "Anonymous User",
-      email: parsed.email || "",
-      evaluation: parsed.evaluation || "No evaluation details provided",
+      userName: fullName || "Anonymous User",
+      userEmail: email || "",
+      evaluation: parsed.result || "No evaluation details provided",
       detailedEvaluation:
         parsed.detailedEvaluation || "No evaluation details provided",
       recommendations: parsed.recommendations || "No specific recommendations",

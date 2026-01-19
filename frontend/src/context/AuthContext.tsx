@@ -6,6 +6,8 @@ import React, {
   type ReactNode,
 } from "react";
 
+import { StorageEncryptor } from "../components/ResultPage/utils/encryption";
+
 export interface User {
   _id: string;
   name: string;
@@ -26,7 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const getInitialAuthState = (): { user: User | null; loading: boolean } => {
   try {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = StorageEncryptor.getItem("user");
     console.log("🔍 Checking localStorage for user:", savedUser);
 
     if (savedUser) {
@@ -92,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         _id: userData._id || (userData as any).id,
       };
 
-      localStorage.setItem("user", JSON.stringify(normalizedUser));
+      StorageEncryptor.setItem("user", JSON.stringify(normalizedUser));
       setState({ user: normalizedUser, loading: false });
       console.log("✅ User logged in successfully:", normalizedUser._id);
     } catch (e) {
@@ -103,7 +105,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = () => {
     console.log("👋 Logging out user:", state.user?._id);
-    localStorage.removeItem("user");
+    StorageEncryptor.removeItem("user");
     setState({ user: null, loading: false });
   };
 

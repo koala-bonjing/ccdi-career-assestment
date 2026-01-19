@@ -300,7 +300,7 @@ router.post("/evaluate-assessment", async (req, res) => {
 
     // AI Evaluation
     const model = genAI.getGenerativeModel({
-      model: "gemini-3-pro-preview",
+      model: "gemini-2.5-flash",
     });
 
     const aiResponse = await model.generateContent(prompt);

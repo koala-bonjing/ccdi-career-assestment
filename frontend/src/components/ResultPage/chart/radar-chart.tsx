@@ -6,6 +6,7 @@ interface RadarChartProps {
   technical: number;
   career: number;
   logistics: number;
+  recommendedProgram: string; // Added to make descriptions dynamic
 }
 
 const RadarChart: React.FC<RadarChartProps> = ({
@@ -13,27 +14,29 @@ const RadarChart: React.FC<RadarChartProps> = ({
   technical,
   career,
   logistics,
+  recommendedProgram,
 }) => {
+  // Data updated to match your 4 specific AI category requirements
   const data = [
     {
-      label: "Academic Aptitude",
+      label: "Academic Alignment",
       value: academic,
-      description: "Your academic strengths & learning preferences",
+      description: "Math, logic, and learning style compatibility with program demands.",
     },
     {
-      label: "Technical Skills",
+      label: "Technical Fit",
       value: technical,
-      description: "Your hands-on technical abilities & interests",
+      description: "Match between your hands-on skills and the program's core focus.",
     },
     {
-      label: "Career Interest",
+      label: "Career Synergy",
       value: career,
-      description: "Alignment with professional goals & industries",
+      description: "Alignment between your professional goals and typical job outcomes.",
     },
     {
-      label: "Logistics & Resources",
+      label: "Practical Feasibility",
       value: logistics,
-      description: "Your practical readiness & resource availability",
+      description: "Program viability based on your resources, time, and equipment.",
     },
   ];
 
@@ -119,19 +122,19 @@ const RadarChart: React.FC<RadarChartProps> = ({
       {/* Chart Header */}
       <div className="text-center mb-4">
         <h4 className="fw-bold mb-2" style={{ color: "#2B3176" }}>
-          Your Learning & Career Profile
+          Program Compatibility: {recommendedProgram}
         </h4>
         <p
           className="text-muted"
           style={{ maxWidth: "800px", margin: "0 auto" }}
         >
-          This radar chart shows your strengths across four key dimensions that
-          influence program success
+          This radar chart visualizes how your profile aligns with the specific demands and 
+          expectations of the <strong>{recommendedProgram}</strong> program.
         </p>
       </div>
 
       <div className="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-5">
-        {/* Radar Chart */}
+        {/* Radar Chart SVG Area */}
         <div
           style={{
             width: "100%",
@@ -226,11 +229,10 @@ const RadarChart: React.FC<RadarChartProps> = ({
               >
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
               </svg>
-              <small className="fw-bold">HOW TO READ THIS CHART</small>
+              <small className="fw-bold">COMPATIBILITY BREAKDOWN</small>
             </div>
             <p className="mb-0 small">
-              Larger areas show your stronger dimensions. A balanced profile
-              indicates readiness across all success factors.
+              Larger areas represent higher compatibility with the recommended program's core success factors.
             </p>
           </div>
 
@@ -314,15 +316,15 @@ const RadarChart: React.FC<RadarChartProps> = ({
                 ></div>
               </div>
               <div className="d-flex justify-content-between mt-2">
-                <small className="text-muted">Score</small>
+                <small className="text-muted">Alignment Status</small>
                 <small
-                  className={`fw-bold ${item.value >= 70 ? "text-success" : item.value >= 40 ? "text-warning" : "text-danger"}`}
+                  className={`fw-bold ${item.value >= 75 ? "text-success" : item.value >= 45 ? "text-warning" : "text-danger"}`}
                 >
-                  {item.value >= 70
-                    ? "Strong"
-                    : item.value >= 40
-                      ? "Moderate"
-                      : "Developing"}
+                  {item.value >= 75
+                    ? "Strong Match"
+                    : item.value >= 45
+                      ? "Moderate Match"
+                      : "Developing Match"}
                 </small>
               </div>
             </div>
@@ -349,7 +351,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
                     borderRadius: "50%",
                   }}
                 ></div>
-                <small className="text-muted">Strong</small>
+                <small className="text-muted">High Fit</small>
               </div>
               <div className="d-flex align-items-center gap-1">
                 <div
@@ -360,11 +362,11 @@ const RadarChart: React.FC<RadarChartProps> = ({
                     borderRadius: "50%",
                   }}
                 ></div>
-                <small className="text-muted">Developing</small>
+                <small className="text-muted">Potential Fit</small>
               </div>
             </div>
             <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-              Aim for balanced development across all dimensions
+               Analyzed based on {recommendedProgram} criteria
             </small>
           </div>
         </div>

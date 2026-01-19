@@ -27,7 +27,7 @@ import type { AssessmentResult } from "../../types";
 import { useResultsHydration } from "../../hooks/useResultHydaration";
 import RadarChart from "./chart/radar-chart";
 import ProgramBreakdownChart from "./chart/program-breakdown-chart";
-  
+
 interface ResultsPageProps {
   result?: AssessmentResult; // Make it optional
 }
@@ -42,37 +42,15 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   const { result: storeResult } = useEvaluationStore();
 
   // Hydrate Data on Mount
-  useResultsHydration();
 
   // ✅ Priority: prop > store > assessment state
   const result = propResult || storeResult || assessmentResult;
 
+  console.log("result.categoryScores:", result?.categoryScores);
+
   // ✅ Call all hooks BEFORE any conditional returns
   const normalizedPercent = useNormalizedPercentages(result?.percent);
-
-  // ✅ NOW check if result exists from ANY source
-  if (!result) {
-    console.log("❌ No result found from any source - showing NoResultsView");
-    return <NoResultsView />;
-  }
-
-  // Handler for saving document
-  const handleSaveAsDocument = async (): Promise<void> => {
-    if (!result || !authUser) return;
-
-    setSavingDocument(true);
-    try {
-      await saveResultsAsDocument(result, authUser as User);
-    } catch (error) {
-      console.error("Error saving document:", error);
-    } finally {
-      setSavingDocument(false);
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
+  useResultsHydration();
 
   // Derive section scores (0–100)
   const computeSectionScores = () => {
@@ -128,8 +106,30 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
 
     return { academic, technical, career, logistics };
   };
-
   const sectionScores = computeSectionScores();
+  // ✅ NOW check if result exists from ANY source
+  if (!result) {
+    console.log("❌ No result found from any source - showing NoResultsView");
+    return <NoResultsView />;
+  }
+
+  // Handler for saving document
+  const handleSaveAsDocument = async (): Promise<void> => {
+    if (!result || !authUser) return;
+
+    setSavingDocument(true);
+    try {
+      await saveResultsAsDocument(result, authUser as User);
+    } catch (error) {
+      console.error("Error saving document:", error);
+    } finally {
+      setSavingDocument(false);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <div
@@ -189,7 +189,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
 
                 <CompatibilityLegend />
                 {/* Advanced Insights */}
-                {result.categoryScore && sectionScores && (
+                {result.categoryScores && sectionScores && (
                   <>
                     <h4
                       className="text-center mt-5 mb-3 fw-bold"
@@ -198,10 +198,11 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                       Your Full Profile Overview
                     </h4>
                     <RadarChart
-                      academic={result.categoryScore.academic}
-                      technical={result.categoryScore.technical}
-                      career={result.categoryScore.career}
-                      logistics={result.categoryScore.logistics}
+                      academic={result.categoryScores.academic}
+                      technical={result.categoryScores.technical}
+                      career={result.categoryScores.career}
+                      logistics={result.categoryScores.logistics}
+                      recommendedProgram={result.recommendedProgram}
                     />
 
                     <ProgramBreakdownChart

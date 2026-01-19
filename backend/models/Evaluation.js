@@ -41,13 +41,18 @@ const evaluationSchema = new mongoose.Schema(
         max: 100,
       },
     },
-    // programScores: {
-    //   BSIT: Number,
-    //   BSCS: Number,
-    //   BSIS: Number,
-    //   "BSET Electronics Technology": Number,
-    //   "BSET Electrical Technology": Number,
-    // },
+    categoryScores: {
+      academic: Number,
+      technical: Number,
+      career: Number,
+      logistics: Number,
+    },
+    categoryExplanations: {
+      academicReason: String,
+      technicalReason: String,
+      careerReason: String,
+      logisticsReason: String,
+    },
     answers: { type: Object },
     submissionDate: { type: Date, default: Date.now },
     sessionId: String, // Link to assessment session if needed

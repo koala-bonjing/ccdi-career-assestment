@@ -84,7 +84,7 @@ export interface CategoryExplanations {
   logisticsReason: string;
 }
 
-export interface categoryScores {
+export interface CategoryScores {
   academic: number;
   technical: number;
   career: number;
@@ -114,7 +114,6 @@ export interface AssessmentResult {
   success: boolean;
   summary: string;
   evaluation: string;
-  recommendations: string;
   detailedEvaluation: string;
   recommendedProgram: ProgramType;
   user: User;
@@ -130,7 +129,7 @@ export interface AssessmentResult {
   answers: AssessmentAnswers;
   categoryExplanations?: CategoryExplanations;
   aiAnswer?: string;
-  categoryScore: categoryScores;
+  categoryScores: CategoryScores;
 }
 
 // 🔹 Props for AssessmentForm
@@ -152,7 +151,6 @@ export interface Evaluation {
   date?: Date;
   answers: AssessmentAnswers;
   evaluation: string;
-  recommendations: string;
   recommendedProgram: ProgramType;
 }
 

@@ -108,7 +108,6 @@ export const useAssessmentState = () => {
             success: true,
             summary: latest.summary || latest.evaluation || "",
             evaluation: latest.evaluation || "",
-            recommendations: latest.recommendations || "",
             detailedEvaluation: latest.detailedEvaluation || "",
             recommendedProgram: latest.recommendedCourse as ProgramType,
             user: {
@@ -121,7 +120,10 @@ export const useAssessmentState = () => {
             programScores: latest.programScores || {},
             submissionDate: latest.submissionDate || new Date().toISOString(),
             answers: latest.answers || "",
+            categoryScores: latest.categoryScores,
           };
+
+          console.log("Result", result.categoryScores);
 
           setRawResult(result);
           setHasCompleted(true);

@@ -278,11 +278,14 @@ router.post("/evaluate-assessment", async (req, res) => {
   - Never give >60% to more than two programs
   - Programs with no relevant skills/interests should score ≤15
 
+
+  Strictly: Do not include any other text before or after the JSON. Only output the JSON object.
   Respond ONLY with valid JSON (no markdown, no explanation):
   {
     "summary": "string",
     "result": "string",
     "detailedEvaluation": "string",
+     "recommendations" : "string"
     "recommendedCourse": "BSCS|BSIT|BSIS|BSET Electronics Technology|BSET Electrical Technology",
     "percent": {
       "BSCS": number,
@@ -318,8 +321,11 @@ router.post("/evaluate-assessment", async (req, res) => {
     const raw = aiResponse.response.text();
     console.log("📥 Raw AI response:", raw.substring(0, 200) + "...");
 
-    const cleaned = raw.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("AI did not return valid JSON format");
+    }
+    const parsed = JSON.parse(jsonMatch[0]);
 
     if (!parsed.recommendedCourse || !parsed.percent) {
       throw new Error(
@@ -341,6 +347,8 @@ router.post("/evaluate-assessment", async (req, res) => {
       percent: parsed.percent,
       recommendedCourse: parsed.recommendedCourse,
       percent: parsed.percent,
+      categoryScores: parsed.categoryScores,
+      categoryExplanations: parsed.categoryExplanations,
       submissionDate: new Date(),
     });
 
@@ -351,6 +359,7 @@ router.post("/evaluate-assessment", async (req, res) => {
       summary: parsed.summary,
       evaluation: parsed.result,
       detailedEvaluation: parsed.detailedEvaluation,
+      recommendations: parsed.recommendations,
       recommendedProgram: parsed.recommendedCourse,
       user: {
         _id: userId,
@@ -367,6 +376,19 @@ router.post("/evaluate-assessment", async (req, res) => {
       categoryScores: parsed.categoryScores,
       evaluationId: evaluationDoc._id,
     };
+
+    if (!parsed.categoryScores) {
+      console.log("⚠️ categoryScores is missing from AI response");
+      console.log("Available keys:", Object.keys(parsed));
+
+      // Set defaults if missing
+      parsed.categoryScores = {
+        academic: 0,
+        technical: 0,
+        career: 0,
+        logistics: 0,
+      };
+    }
 
     console.log("✅ Sending response to client");
     res.json(result);

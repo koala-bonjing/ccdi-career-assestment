@@ -1,6 +1,6 @@
 // Updated LearningStyleSection.tsx with validation hook integration
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, Row, Col, Form, Alert, Badge } from "react-bootstrap";
 import { CheckCircle2, Circle, BrainCircuit } from "lucide-react";
 import SectionHeader from "../section-header";
@@ -46,20 +46,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       learningWorkStyle: "Learning & Work Style",
     },
   });
-
-  useEffect(() => {
-    console.log("🔍 LearningStyleSection questions:", questions);
-    console.log("🔍 Questions length:", questions.length);
-
-    // Check if questions have subCategory
-    if (questions.length > 0) {
-      console.log("🔍 First question:", questions[0]);
-      console.log(
-        "🔍 Does first question have subCategory?",
-        questions[0].subCategory,
-      );
-    }
-  }, [questions]);
 
   // Helper function to find which category a question belongs to
   const getCategoryIndexForQuestion = (questionIndex: number) => {

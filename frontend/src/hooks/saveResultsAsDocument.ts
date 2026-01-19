@@ -15,10 +15,9 @@ import type { User } from "../types";
 import { Bounce, toast } from "react-toastify";
 
 interface ResultData {
-  
   recommendedProgram: string;
   evaluation: string;
-  recommendations: string;
+  detailedEvaluation: string;
   summary?: string;
   percent?: Record<string, number>;
 }
@@ -266,7 +265,7 @@ export const saveResultsAsDocument = async (result: ResultData, user: User) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: result.recommendations,
+                  text: result.detailedEvaluation,
                   size: 22,
                 }),
               ],
@@ -428,7 +427,7 @@ export const saveResultsAsDocument = async (result: ResultData, user: User) => {
                               }),
                             ],
                           });
-                        }
+                        },
                       ),
                     ],
                   }),
@@ -461,7 +460,7 @@ export const saveResultsAsDocument = async (result: ResultData, user: User) => {
                       day: "numeric",
                       hour: "2-digit",
                       minute: "2-digit",
-                    }
+                    },
                   )}`,
                   size: 16,
                   color: "999999",

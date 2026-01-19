@@ -4,7 +4,7 @@ require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Evaluation = require("../models/Evaluation");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
 
 // Save evaluation results
 router.post("/save-evaluation", async (req, res) => {
@@ -299,7 +299,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
     // AI Evaluation
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
     });
 
     const aiResponse = await model.generateContent(prompt);

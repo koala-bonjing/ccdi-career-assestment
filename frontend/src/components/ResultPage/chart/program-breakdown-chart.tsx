@@ -222,7 +222,14 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
                 >
                   {cat.icon}
                 </div>
-                <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <span
                       className="program-breakdown-category-label"

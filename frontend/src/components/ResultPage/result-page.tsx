@@ -27,7 +27,7 @@ import type { AssessmentResult } from "../../types";
 import { useResultsHydration } from "../../hooks/useResultHydaration";
 import RadarChart from "./chart/radar-chart";
 import ProgramBreakdownChart from "./chart/program-breakdown-chart";
-
+  
 interface ResultsPageProps {
   result?: AssessmentResult; // Make it optional
 }
@@ -189,7 +189,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
 
                 <CompatibilityLegend />
                 {/* Advanced Insights */}
-                {sectionScores && (
+                {result.categoryScore && sectionScores && (
                   <>
                     <h4
                       className="text-center mt-5 mb-3 fw-bold"
@@ -198,10 +198,10 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                       Your Full Profile Overview
                     </h4>
                     <RadarChart
-                      academic={sectionScores.academic}
-                      technical={sectionScores.technical}
-                      career={sectionScores.career}
-                      logistics={sectionScores.logistics}
+                      academic={result.categoryScore.academic}
+                      technical={result.categoryScore.technical}
+                      career={result.categoryScore.career}
+                      logistics={result.categoryScore.logistics}
                     />
 
                     <ProgramBreakdownChart

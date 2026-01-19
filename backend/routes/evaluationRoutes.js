@@ -255,6 +255,11 @@ router.post("/evaluate-assessment", async (req, res) => {
     - technicalReason: Why their technical skills match this program
     - careerReason: Why their career goals align with this program
     - logisticsReason: Why this program is logistically feasible for them
+    7. **categoryScores**: Assign a score from 0 to 100 for EACH of the following categories, based on how well the student aligns with the **recommended program**:
+   - academic: How well their academic aptitude (math, logic, learning style) matches the program's demands
+   - technical: How well their technical interests and hands-on skills fit the program's focus
+   - career: How aligned their career goals and job preferences are with typical outcomes of this program
+   - logistics: How feasible the program is given their resources, time, equipment, and personal situation
 
   IMPORTANT GUIDELINES:
   - Base your recommendation on the ASSESSMENT DATA, not just their initial preference
@@ -286,6 +291,12 @@ router.post("/evaluate-assessment", async (req, res) => {
       "BSET Electronics Technology": number,
       "BSET Electrical Technology": number
     },
+     "categoryScores": {
+    "academic": number,
+    "technical": number,
+    "career": number,
+    "logistics": number
+     },
     "categoryExplanations": {
       "academicReason": "string",
       "technicalReason": "string",
@@ -353,6 +364,7 @@ router.post("/evaluate-assessment", async (req, res) => {
       answers,
       aiAnswer: parsed.aiAnswer,
       categoryExplanations: parsed.categoryExplanations,
+      categoryScores: parsed.categoryScores,
       evaluationId: evaluationDoc._id,
     };
 

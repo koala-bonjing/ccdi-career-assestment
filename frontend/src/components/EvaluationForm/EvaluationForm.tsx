@@ -193,6 +193,7 @@
           answers: backendResult.answers || answers,
           aiAnswer: backendResult.aiAnswer,
           categoryExplanations: backendResult.categoryExplanations,
+          categoryScore: backendResult.categoryScore,
         };
 
         // Store result in Zustand

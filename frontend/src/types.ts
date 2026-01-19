@@ -83,6 +83,13 @@ export interface CategoryExplanations {
   careerReason: string;
   logisticsReason: string;
 }
+
+export interface categoryScores {
+  academic: number;
+  technical: number;
+  career: number;
+  logistics: number;
+}
 // 🔹 EvaluationResult — AI’s raw JSON response shape
 export interface EvaluationResult {
   result: string;
@@ -123,6 +130,7 @@ export interface AssessmentResult {
   answers: AssessmentAnswers;
   categoryExplanations?: CategoryExplanations;
   aiAnswer?: string;
+  categoryScore: categoryScores;
 }
 
 // 🔹 Props for AssessmentForm

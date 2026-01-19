@@ -3,6 +3,7 @@ const router = express.Router();
 require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Evaluation = require("../models/Evaluation");
+const { parse } = require("dotenv");
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
 
@@ -299,7 +300,7 @@ router.post("/evaluate-assessment", async (req, res) => {
 
     // AI Evaluation
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-pro-preview",
     });
 
     const aiResponse = await model.generateContent(prompt);
@@ -320,21 +321,20 @@ router.post("/evaluate-assessment", async (req, res) => {
 
     const evaluationDoc = new Evaluation({
       userId,
-      userName: userName || "Anonymous User",
-      userEmail: userEmail || "",
-      evaluation: evaluation || "No evaluation details provided",
+      fullName: parsed.fullName || "Anonymous User",
+      email: parsed.email || "",
+      evaluation: parsed.evaluation || "No evaluation details provided",
       detailedEvaluation:
-        detailedEvaluation || "No evaluation details provided",
-      recommendations: recommendations || "No specific recommendations",
-      recommendedCourse,
-      percent,
-      programScores: programScores || {},
+        parsed.detailedEvaluation || "No evaluation details provided",
+      recommendations: parsed.recommendations || "No specific recommendations",
+      percent: parsed.percent,
+      recommendedCourse: parsed.recommendedCourse,
+      percent: parsed.percent,
       submissionDate: new Date(),
     });
 
     await evaluationDoc.save();
 
-    // ✅ FIX: Use fullName from destructured variable
     const result = {
       success: true,
       summary: parsed.summary,
@@ -353,7 +353,7 @@ router.post("/evaluate-assessment", async (req, res) => {
       answers,
       aiAnswer: parsed.aiAnswer,
       categoryExplanations: parsed.categoryExplanations,
-      evaluationId: parsed._id,
+      evaluationId: evaluationDoc._id,
     };
 
     console.log("✅ Sending response to client");

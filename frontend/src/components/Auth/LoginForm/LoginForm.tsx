@@ -14,6 +14,7 @@ import {
   Shield,
   EyeOff,
   Eye,
+  User,
 } from "lucide-react";
 import type { LoginFormProps, FormData, Message } from "./types/login";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
   const [formData, setFormData] = useState<FormData>({
+    fullName: "",
     email: "",
     password: "",
   });
@@ -256,7 +258,31 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   className="form-label fw-semibold"
                   style={{ color: "#2B3176" }}
                 >
-                  Student Email Address
+                  Student' Name
+                </label>
+                <div className="input-group">
+                  <span className="input-group-text bg-light border-end-0">
+                    <User size={18} className="text-muted" />
+                  </span>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Enter your name"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mb-3">
+                <label
+                  htmlFor="email"
+                  className="form-label fw-semibold"
+                  style={{ color: "#2B3176" }}
+                >
+                  Email Address
                 </label>
                 <div className="input-group">
                   <span className="input-group-text bg-light border-end-0">

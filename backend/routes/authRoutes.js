@@ -74,7 +74,7 @@ router.post("/signup", async (req, res) => {
     const emailSent = await sendVerificationCode(
       email,
       fullName,
-      verificationCode
+      verificationCode,
     );
 
     if (!emailSent) {
@@ -194,7 +194,7 @@ router.post("/resend-code", async (req, res) => {
     const emailSent = await sendVerificationCode(
       email,
       user.fullName,
-      verificationCode
+      verificationCode,
     );
 
     if (!emailSent) {
@@ -215,17 +215,19 @@ router.post("/resend-code", async (req, res) => {
 });
 
 // Login
+
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { fullName, email, password } = req.body;
 
-    if (!email || !password) {
+    // 1. Check if all fields are provided
+    if (!email || !password || !fullName) {
       return res.status(400).json({
-        message: "Email and password are required",
+        message: "Student Name, Email and password are required",
       });
     }
 
-    // Check if user exists
+    // 2. Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
@@ -233,18 +235,26 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Check if user is verified
-    if (!user.isVerified) {
+    // 3. Verify Name (Case-insensitive check is usually better for names)
+    // We trim both to avoid errors with accidental spaces
+    if (user.fullName.trim().toLowerCase() !== fullName.trim().toLowerCase()) {
       return res.status(400).json({
         message:
-          "📧 Please verify your email first. Check your inbox for the code.",
+          "The Student Name provided does not match our records for this email.",
       });
     }
 
-    // Check password (assuming you have correctPassword method in User model)
+    // 4. Check if user is verified
+    if (!user.isVerified) {
+      return res.status(400).json({
+        message: "📧 Please verify your email first.",
+      });
+    }
+
+    // 5. Check password
     const isPasswordCorrect = await user.correctPassword(
       password,
-      user.password
+      user.password,
     );
     if (!isPasswordCorrect) {
       return res.status(400).json({
@@ -253,7 +263,7 @@ router.post("/login", async (req, res) => {
     }
 
     res.json({
-      message: "✅ Login successful! Welcome back to CCDI Sorsogon!",
+      message: "✅ Login successful!",
       user: {
         id: user._id,
         fullName: user.fullName,
@@ -263,9 +273,7 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("_login error:", error);
-    res.status(500).json({
-      message: "Server error during login",
-    });
+    res.status(500).json({ message: "Server error during login" });
   }
 });
 

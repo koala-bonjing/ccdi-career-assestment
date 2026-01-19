@@ -12,7 +12,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  fullName?: string;
+  fullName: string;
   preferredCourse?: string;
 }
 
@@ -36,13 +36,11 @@ const getInitialAuthState = (): { user: User | null; loading: boolean } => {
       console.log("📦 Parsed user data:", parsed);
 
       // Check for _id (MongoDB style) or id
-      if (parsed && (parsed._id || parsed.id) && parsed.email) {
-        // Normalize to always use _id
+      if ((savedUser._id || savedUser.id) && savedUser.email) {
         const normalizedUser = {
-          ...parsed,
-          _id: parsed._id || parsed.id,
+          ...savedUser,
+          _id: savedUser._id || savedUser.id,
         };
-        console.log("✅ User restored from localStorage:", normalizedUser._id);
         return { user: normalizedUser, loading: false };
       } else {
         console.warn("⚠️ Invalid user data in localStorage:", parsed);
@@ -94,7 +92,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         _id: userData._id || (userData as any).id,
       };
 
-      StorageEncryptor.setItem("user", JSON.stringify(normalizedUser));
+      StorageEncryptor.setItem("user", normalizedUser);
       setState({ user: normalizedUser, loading: false });
       console.log("✅ User logged in successfully:", normalizedUser._id);
     } catch (e) {

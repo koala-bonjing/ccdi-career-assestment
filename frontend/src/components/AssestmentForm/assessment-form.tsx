@@ -9,14 +9,19 @@ import TechnicalSkillsSection from "./question-sections/technical-skills";
 import CareerInterestSection from "./question-sections/career-interests";
 import LearningStyleSection from "./question-sections/learning-style";
 import ReviewSection from "./review-section";
-import { type AssessmentAnswers, type User } from "../../types";
+import {
+  type AssessmentAnswers,
+  type AssessmentQuestions,
+  type User,
+} from "../../types";
 import { type ProgramScores } from "./types";
 import { getRecommendedProgram as _getRecommendedProgram } from "./utils";
 import { type SubmissionData } from "../EvaluationForm/EvaluationForm";
 import { ToastContainer } from "react-toastify";
 import "./AssessmentForm.css";
-import { Info } from "lucide-react";
+import { Info  } from "lucide-react";
 import { AssessmentInstructionsModal } from "../ui/modals/instruction-modal";
+import { PrerequisitesSection } from "./question-sections/prerequisites";
 
 interface AssessmentFormProps {
   currentUser?: User;
@@ -111,7 +116,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const handleChange = (
     sectionKey: keyof AssessmentAnswers,
     questionText: string,
-    value: number | boolean,
+    value: number | boolean | string,
     program?: string,
   ) => {
     setFormData((prev) => ({
@@ -137,7 +142,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const { validateSection } = useAssessmentValidation({
     formData,
     section: sectionKey,
-    currentQuestions: questions?.[sectionKey] || [],
+    currentQuestions:
+      (questions as unknown as AssessmentQuestions)[sectionKey] || [],
     setCurrentQuestionIndex,
     categoryTitles,
   });
@@ -169,6 +175,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const handleStartNew = () => {
     setFormData({
+      prerequisites: {},
       academicAptitude: {},
       technicalSkills: {},
       careerInterest: {},
@@ -206,6 +213,20 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             show={showInstructions}
           />
           {currentSection === 0 && (
+            <PrerequisitesSection
+              currentQuestionIndex={currentQuestionIndex}
+              currentSection={currentSection}
+              formData={formData}
+              onChange={handleChange}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              onReset={handleStartNew}
+              questions={questions.prerequisites}
+              setCurrentQuestionIndex={setCurrentQuestionIndex}
+              totalSections={sections.length}
+            />
+          )}
+          {currentSection === 1 && (
             <AcademicAptitudeSection
               questions={questions.academicAptitude}
               formData={formData}
@@ -219,7 +240,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               setCurrentQuestionIndex={setCurrentQuestionIndex}
             />
           )}
-          {currentSection === 1 && (
+          {currentSection === 2 && (
             <TechnicalSkillsSection
               questions={questions.technicalSkills}
               formData={formData}
@@ -231,7 +252,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               totalSections={sections.length}
             />
           )}
-          {currentSection === 2 && (
+          {currentSection === 3 && (
             <CareerInterestSection
               questions={questions.careerInterest}
               formData={formData}
@@ -245,7 +266,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               setCurrentQuestionIndex={setCurrentQuestionIndex}
             />
           )}
-          {currentSection === 3 && (
+          {currentSection === 4 && (
             <LearningStyleSection
               questions={questions.learningWorkStyle}
               formData={formData}

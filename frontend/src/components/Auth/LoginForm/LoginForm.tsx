@@ -258,7 +258,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   className="form-label fw-semibold"
                   style={{ color: "#2B3176" }}
                 >
-                  Student' Name
+                  Student's Name
                 </label>
                 <div className="input-group">
                   <span className="input-group-text bg-light border-end-0">

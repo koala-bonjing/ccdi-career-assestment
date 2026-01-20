@@ -64,6 +64,7 @@ export interface Question {
 }
 
 export interface AssessmentQuestions {
+  prerequisites: Question[];
   academicAptitude: Question[];
   technicalSkills: Question[];
   careerInterest: Question[];
@@ -71,6 +72,7 @@ export interface AssessmentQuestions {
 }
 
 export interface AssessmentAnswers {
+  prerequisites: Record<string, string>;
   academicAptitude: Record<string, number>;
   technicalSkills: Record<string, boolean>;
   careerInterest: Record<string, number>;

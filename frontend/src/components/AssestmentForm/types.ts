@@ -21,12 +21,14 @@ export interface AssessmentSectionProps {
     questionText: string;
     program?: string;
     subCategory?: string;
+    options?: string[];
+    helperText?: string;
   }[];
   formData: AssessmentAnswers;
   onChange: (
     section: keyof AssessmentAnswers,
     q: string,
-    val: number | boolean,
+    val: number | boolean | string,
     prog?: string,
   ) => void;
   onNext: () => void;

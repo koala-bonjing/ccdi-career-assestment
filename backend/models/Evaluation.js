@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+// Optional Schema Update - Only add if you want to store preparation recommendations
 
 const evaluationSchema = new mongoose.Schema(
   {
@@ -7,59 +7,82 @@ const evaluationSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    userName: { type: String, required: true },
-    userEmail: { type: String, required: true },
-    evaluation: { type: String, required: true },
-    recommendations: { type: String, required: true },
-    detailedEvaluation: { type: String, required: true },
-    recommendedCourse: {
+    userName: {
       type: String,
-      enum: [
-        "BSCS",
-        "BSIT",
-        "BSIS",
-        "BSET Electronics Technology",
-        "BSET Electrical Technology",
-        "Undecided",
-      ],
       required: true,
     },
+    userEmail: {
+      type: String,
+      required: true,
+    },
+
+    // AI Generated Results
+    evaluation: {
+      type: String,
+      required: true,
+    },
+    detailedEvaluation: {
+      type: String,
+      required: true,
+    },
+    recommendations: {
+      type: String,
+    },
+    recommendedCourse: {
+      type: String,
+      required: true,
+    },
+
+    // Scores
     percent: {
-      BSIT: { type: Number, required: true, min: 0, max: 100 },
-      BSCS: { type: Number, required: true, min: 0, max: 100 },
-      BSIS: { type: Number, required: true, min: 0, max: 100 },
-      "BSET Electronics Technology": {
-        type: Number,
-        required: true,
-        min: 0,
-        max: 100,
-      },
-      "BSET Electrical Technology": {
-        type: Number,
-        required: true,
-        min: 0,
-        max: 100,
-      },
+      BSCS: { type: Number, default: 0 },
+      BSIT: { type: Number, default: 0 },
+      BSIS: { type: Number, default: 0 },
+      "BSET Electronics Technology": { type: Number, default: 0 },
+      "BSET Electrical Technology": { type: Number, default: 0 },
     },
+
     categoryScores: {
-      academic: Number,
-      technical: Number,
-      career: Number,
-      logistics: Number,
+      academic: { type: Number, default: 0 },
+      technical: { type: Number, default: 0 },
+      career: { type: Number, default: 0 },
+      logistics: { type: Number, default: 0 },
     },
+
     categoryExplanations: {
       academicReason: String,
       technicalReason: String,
       careerReason: String,
       logisticsReason: String,
     },
-    answers: { type: Object },
-    submissionDate: { type: Date, default: Date.now },
-    sessionId: String, // Link to assessment session if needed
+
+    // ✅ OPTIONAL NEW FIELD: Only add if you want to store preparation recommendations
+    preparationNeeded: {
+      mathReview: { type: Boolean, default: false },
+      readingSupport: { type: Boolean, default: false },
+      timeManagement: { type: Boolean, default: false },
+      estimatedPrepTime: { type: String, default: "ready now" },
+    },
+
+    submissionDate: {
+      type: Date,
+      default: Date.now,
+    },
+
+    // Optional: Store raw answers
+    rawAnswers: {
+      type: mongoose.Schema.Types.Mixed,
+      required: false,
+    },
   },
   {
     timestamps: true,
   },
 );
 
-module.exports = mongoose.model("Evaluation", evaluationSchema);
+// Add index for faster queries
+evaluationSchema.index({ userId: 1, submissionDate: -1 });
+
+const Evaluation = mongoose.model("Evaluation", evaluationSchema);
+
+module.exports = Evaluation;

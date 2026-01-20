@@ -25,12 +25,12 @@ const sectionHoverColors: Record<string, string> = {
   learningWorkStyle: "hover:bg-pink-400/50",
 };
 
-const sectionFormBgColors: Record<keyof AssessmentAnswers, string> = {
-  academicAptitude: "bg-blue-400/20",
-  technicalSkills: "bg-orange-400/20",
-  careerInterest: "bg-purple-400/20",
-  learningWorkStyle: "bg-pink-400/20",
-};
+// const sectionFormBgColors: Record<keyof AssessmentAnswers, string> = {
+//   academicAptitude: "bg-blue-400/20",
+//   technicalSkills: "bg-orange-400/20",
+//   careerInterest: "bg-purple-400/20",
+//   learningWorkStyle: "bg-pink-400/20",
+// };
 
 export const sectionDotColors: Record<
   string,
@@ -43,6 +43,7 @@ export const sectionDotColors: Record<
 };
 
 const sections: (keyof AssessmentAnswers)[] = [
+  "prerequisites",
   "academicAptitude",
   "technicalSkills",
   "careerInterest",
@@ -79,7 +80,7 @@ export {
   categoryTitles,
   sectionBgColors,
   sectionHoverColors,
-  sectionFormBgColors,
+ // sectionFormBgColors,
   sections,
   getSectionColorClass,
   getSectionColorClasses,

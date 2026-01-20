@@ -15,6 +15,7 @@ export interface Question {
 }
 
 export interface BackendQuestions {
+  prerequisites: Question[];
   academicAptitude: Question[];
   technicalSkills: Question[];
   careerInterest: Question[];
@@ -28,12 +29,13 @@ interface ApiQuestion {
   weight: number;
   options?: string[];
   category?: string;
-  subCategory?: string; // Add this
+  subCategory?: string;
   order?: number;
   isActive?: boolean;
 }
 
 interface ApiResponse {
+  prerequisites?: Question[];
   academicAptitude?: Question[];
   technicalSkills?: Question[];
   careerInterest?: Question[];
@@ -59,6 +61,7 @@ export const useAssessmentQuestions = () => {
         // Check if response is already grouped by category
         const responseData = response.data;
         const hasGroupedStructure =
+          "prerequisites" in responseData ||
           "academicAptitude" in responseData ||
           "technicalSkills" in responseData ||
           "careerInterest" in responseData ||
@@ -93,6 +96,7 @@ export const useAssessmentQuestions = () => {
           }
 
           setQuestions({
+            prerequisites: groupedData.prerequisites || [],
             academicAptitude: groupedData.academicAptitude || [],
             technicalSkills: groupedData.technicalSkills || [],
             careerInterest: groupedData.careerInterest || [],
@@ -101,6 +105,7 @@ export const useAssessmentQuestions = () => {
         } else if (Array.isArray(responseData)) {
           // Transform flat array to grouped structure
           const transformedQuestions: BackendQuestions = {
+            prerequisites: [],
             academicAptitude: [],
             technicalSkills: [],
             careerInterest: [],

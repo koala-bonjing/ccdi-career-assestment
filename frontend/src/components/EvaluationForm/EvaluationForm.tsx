@@ -63,7 +63,7 @@ const EvaluationForm = () => {
         console.log("📥 Loaded saved answers:", parsed);
 
         const formData: AssessmentAnswers = {
-          prerequisites: parsed.prerequisites || {},
+          foundationalAssessment: parsed.foundationalAssessment || {},
           academicAptitude: parsed.academicAptitude || {},
           technicalSkills: parsed.technicalSkills || {},
           careerInterest: parsed.careerInterest || {},
@@ -87,10 +87,12 @@ const EvaluationForm = () => {
   ): Record<string, string | number | boolean> => {
     const flat: Record<string, string | number | boolean> = {};
 
-    if (nested.prerequisites) {
-      Object.entries(nested.prerequisites).forEach(([questios, value]) => {
-        flat[`prequisits.${questios}`] = value;
-      });
+    if (nested.foundationalAssessment) {
+      Object.entries(nested.foundationalAssessment).forEach(
+        ([questios, value]) => {
+          flat[`prequisits.${questios}`] = value;
+        },
+      );
     }
 
     // Academic Aptitude (numbers)
@@ -121,7 +123,7 @@ const EvaluationForm = () => {
     StorageEncryptor.removeItem("currentAssessmentSection");
     clearAllAnswers();
     setRestoredFormData({
-      prerequisites: {},
+      foundationalAssessment: {},
       academicAptitude: {},
       technicalSkills: {},
       careerInterest: {},

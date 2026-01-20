@@ -6,7 +6,7 @@ interface RadarChartProps {
   technical: number;
   career: number;
   logistics: number;
-  recommendedProgram: string; // Added to make descriptions dynamic
+  recommendedProgram: string;
 }
 
 const RadarChart: React.FC<RadarChartProps> = ({
@@ -16,27 +16,31 @@ const RadarChart: React.FC<RadarChartProps> = ({
   logistics,
   recommendedProgram,
 }) => {
-  // Data updated to match your 4 specific AI category requirements
+  // Data updated to reflect "Profiling Stats" while keeping your structure
   const data = [
     {
-      label: "Academic Alignment",
+      label: "Academic Readiness",
       value: academic,
-      description: "Math, logic, and learning style compatibility with program demands.",
+      description:
+        "Math foundations, English comprehension, and science background.",
     },
     {
-      label: "Technical Fit",
+      label: "Technical Intuition",
       value: technical,
-      description: "Match between your hands-on skills and the program's core focus.",
+      description:
+        "Logic puzzles, troubleshooting skills, and computer literacy.",
     },
     {
-      label: "Career Synergy",
+      label: "Effort & Synergy",
       value: career,
-      description: "Alignment between your professional goals and typical job outcomes.",
+      description:
+        "Study habits, motivation levels, and alignment with program goals.",
     },
     {
       label: "Practical Feasibility",
       value: logistics,
-      description: "Program viability based on your resources, time, and equipment.",
+      description:
+        "Viability based on your time, internet access, and environment.",
     },
   ];
 
@@ -122,14 +126,14 @@ const RadarChart: React.FC<RadarChartProps> = ({
       {/* Chart Header */}
       <div className="text-center mb-4">
         <h4 className="fw-bold mb-2" style={{ color: "#2B3176" }}>
-          Program Compatibility: {recommendedProgram}
+          STUDENT PROFILING STATS
         </h4>
         <p
           className="text-muted"
           style={{ maxWidth: "800px", margin: "0 auto" }}
         >
-          This radar chart visualizes how your profile aligns with the specific demands and 
-          expectations of the <strong>{recommendedProgram}</strong> program.
+          Analysis for the <strong>{recommendedProgram}</strong> program based
+          on your foundational readiness and assessment.
         </p>
       </div>
 
@@ -202,13 +206,10 @@ const RadarChart: React.FC<RadarChartProps> = ({
           </svg>
         </div>
 
-        {/* Stats Panel */}
+        {/* Stats Panel - WITH ORIGINAL HOVER STYLING */}
         <div
           className="d-flex flex-column gap-3"
-          style={{
-            width: "100%",
-            maxWidth: "420px",
-          }}
+          style={{ width: "100%", maxWidth: "420px" }}
         >
           {/* Info Box */}
           <div
@@ -232,7 +233,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
               <small className="fw-bold">COMPATIBILITY BREAKDOWN</small>
             </div>
             <p className="mb-0 small">
-              Larger areas represent higher compatibility with the recommended program's core success factors.
+              Based on your {recommendedProgram} profiling results.
             </p>
           </div>
 
@@ -315,22 +316,10 @@ const RadarChart: React.FC<RadarChartProps> = ({
                   }}
                 ></div>
               </div>
-              <div className="d-flex justify-content-between mt-2">
-                <small className="text-muted">Alignment Status</small>
-                <small
-                  className={`fw-bold ${item.value >= 75 ? "text-success" : item.value >= 45 ? "text-warning" : "text-danger"}`}
-                >
-                  {item.value >= 75
-                    ? "Strong Match"
-                    : item.value >= 45
-                      ? "Moderate Match"
-                      : "Developing Match"}
-                </small>
-              </div>
             </div>
           ))}
 
-          {/* Legend */}
+          {/* Legend - ORIGINAL STYLE */}
           <div
             style={{
               textAlign: "center",
@@ -365,9 +354,6 @@ const RadarChart: React.FC<RadarChartProps> = ({
                 <small className="text-muted">Potential Fit</small>
               </div>
             </div>
-            <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-               Analyzed based on {recommendedProgram} criteria
-            </small>
           </div>
         </div>
       </div>

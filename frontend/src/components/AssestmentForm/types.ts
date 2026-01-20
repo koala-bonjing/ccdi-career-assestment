@@ -23,6 +23,7 @@ export interface AssessmentSectionProps {
     subCategory?: string;
     options?: string[];
     helperText?: string;
+    showIf?: string;
   }[];
   formData: AssessmentAnswers;
   onChange: (

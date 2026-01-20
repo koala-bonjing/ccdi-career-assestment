@@ -6,16 +6,17 @@ export interface Question {
   _id: string;
   questionText: string;
   program: string;
-  weight: number;
+  weight?: number;
   options?: string[];
   category?: string; // Add this
   subCategory?: string; // ADD THIS LINE - This is what's missing!
   order?: number;
   isActive?: boolean;
+  helperText?: string;
 }
 
 export interface BackendQuestions {
-  prerequisites: Question[];
+  foundationalAssessment: Question[];
   academicAptitude: Question[];
   technicalSkills: Question[];
   careerInterest: Question[];
@@ -32,10 +33,11 @@ interface ApiQuestion {
   subCategory?: string;
   order?: number;
   isActive?: boolean;
+  helperText?: string;
 }
 
 interface ApiResponse {
-  prerequisites?: Question[];
+  foundationalAssessment?: Question[];
   academicAptitude?: Question[];
   technicalSkills?: Question[];
   careerInterest?: Question[];
@@ -61,7 +63,7 @@ export const useAssessmentQuestions = () => {
         // Check if response is already grouped by category
         const responseData = response.data;
         const hasGroupedStructure =
-          "prerequisites" in responseData ||
+          "foundationalAssessment" in responseData ||
           "academicAptitude" in responseData ||
           "technicalSkills" in responseData ||
           "careerInterest" in responseData ||
@@ -96,7 +98,7 @@ export const useAssessmentQuestions = () => {
           }
 
           setQuestions({
-            prerequisites: groupedData.prerequisites || [],
+            foundationalAssessment: groupedData.foundationalAssessment || [],
             academicAptitude: groupedData.academicAptitude || [],
             technicalSkills: groupedData.technicalSkills || [],
             careerInterest: groupedData.careerInterest || [],
@@ -105,7 +107,7 @@ export const useAssessmentQuestions = () => {
         } else if (Array.isArray(responseData)) {
           // Transform flat array to grouped structure
           const transformedQuestions: BackendQuestions = {
-            prerequisites: [],
+            foundationalAssessment: [],
             academicAptitude: [],
             technicalSkills: [],
             careerInterest: [],
@@ -123,11 +125,12 @@ export const useAssessmentQuestions = () => {
               subCategory: question.subCategory, // ADD THIS - THIS IS THE FIX
               order: question.order,
               isActive: question.isActive,
+              helperText: question.helperText,
             };
 
             switch (question.category) {
-              case "prerequisites":
-                transformedQuestions.prerequisites.push(questionData);
+              case "foundationalAssessment":
+                transformedQuestions.foundationalAssessment.push(questionData);
                 break;
               case "academicAptitude":
                 transformedQuestions.academicAptitude.push(questionData);

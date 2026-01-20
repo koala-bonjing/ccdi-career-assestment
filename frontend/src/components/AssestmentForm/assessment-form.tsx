@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
-import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
+import {
+  useAssessmentQuestions,
+  type Question,
+} from "../../hooks/useAssessmentQuestions";
 import { useAssessmentValidation } from "../../hooks/useAssessmentValidation";
 import { sections, categoryTitles } from "../../config/constants";
 import AcademicAptitudeSection from "./question-sections/academic-aptitude";
@@ -8,11 +11,7 @@ import TechnicalSkillsSection from "./question-sections/technical-skills";
 import CareerInterestSection from "./question-sections/career-interests";
 import LearningStyleSection from "./question-sections/learning-style";
 import ReviewSection from "./review-section";
-import {
-  type AssessmentAnswers,
-  type AssessmentQuestions,
-  type User,
-} from "../../types";
+import { type AssessmentAnswers, type User } from "../../types";
 import { type ProgramScores } from "./types";
 import { getRecommendedProgram as _getRecommendedProgram } from "./utils";
 import { type SubmissionData } from "../EvaluationForm/EvaluationForm";
@@ -20,7 +19,7 @@ import { ToastContainer } from "react-toastify";
 import "./AssessmentForm.css";
 import { Info } from "lucide-react";
 import { AssessmentInstructionsModal } from "../ui/modals/instruction-modal";
-import { PrerequisitesSection } from "./question-sections/prerequisites";
+import FoundationalAssessmentSection from "./question-sections/foundational-assessment";
 import { StorageEncryptor } from "../ResultPage/utils/encryption";
 
 interface AssessmentFormProps {
@@ -52,7 +51,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   // This ensures that 'prerequisites' exists even if the user has old saved data.
   const [formData, setFormData] = useState<AssessmentAnswers>(() => {
     const baseStructure: AssessmentAnswers = {
-      prerequisites: {},
+      foundationalAssessment: {},
       academicAptitude: {},
       technicalSkills: {},
       careerInterest: {},
@@ -65,7 +64,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       const saved = localStorage.getItem("evaluation-answers");
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Merging ensures new keys (like prerequisites) are never null
+        // Merging ensures new keys (like foundationalAssessment) are never null
         return { ...baseStructure, ...parsed };
       }
     } catch (e) {
@@ -153,13 +152,26 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setShowReview(false);
   };
 
+  const getCurrentQuestions = () => {
+    if (!questions) return [];
+
+    // Map section key to questions object property
+    const questionMap: Record<string, Question[]> = {
+      foundationalAssessment: questions.foundationalAssessment,
+      academicAptitude: questions.academicAptitude,
+      technicalSkills: questions.technicalSkills,
+      careerInterest: questions.careerInterest,
+      learningWorkStyle: questions.learningWorkStyle,
+    };
+
+    return questionMap[sectionKey] || [];
+  };
+
   // ✅ ALGORITHM PART 4: Validation Logic
   const { validateSection } = useAssessmentValidation({
     formData,
     section: sectionKey,
-    currentQuestions: questions
-      ? (questions as unknown as AssessmentQuestions)[sectionKey]
-      : [],
+    currentQuestions: getCurrentQuestions(),
     setCurrentQuestionIndex,
     categoryTitles,
   });
@@ -191,7 +203,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const handleStartNew = () => {
     setFormData({
-      prerequisites: {},
+      foundationalAssessment: {},
       academicAptitude: {},
       technicalSkills: {},
       careerInterest: {},
@@ -232,10 +244,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             show={showInstructions}
           />
 
-          {/* SECTION 0: PREREQUISITES */}
+          {/* SECTION 0: foundationalAssessment */}
           {currentSection === 0 && (
-            <PrerequisitesSection
-              questions={questions.prerequisites}
+            <FoundationalAssessmentSection
+              questions={questions.foundationalAssessment}
               formData={formData}
               onChange={handleChange}
               onNext={handleNext}

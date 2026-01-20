@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Evaluation = require("../models/Evaluation");
@@ -66,29 +67,31 @@ router.get("/get-evaluations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // 1. Validate if the ID is a valid MongoDB ObjectId to prevent CastError
+    // 1. Check if the ID is valid hex string
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid User ID format" });
+        .json({ success: false, message: "Invalid ID format" });
     }
 
-    // 2. Find the evaluations
+    // 2. Query the EVALUATIONS collection, not the user collection
+    // We look for any evaluation where the userId field matches the ID in the URL
     const evaluations = await Evaluation.find({ userId: userId }).sort({
       submissionDate: -1,
     });
 
-    // 3. Always return a 200, even if the array is empty
+    // 3. Return the data. If it's empty, data will just be [] (empty array)
+    // This PREVENTS the 500 error because [] is a valid response.
     return res.status(200).json({
       success: true,
+      count: evaluations.length,
       data: evaluations,
     });
   } catch (error) {
-    // 4. This catch prevents the 500 crash and tells you what happened
-    console.error("❌ GET EVALUATIONS ERROR:", error);
-    res.status(500).json({
+    console.error("🔥 Backend Error:", error);
+    return res.status(500).json({
       success: false,
-      message: "Server error while fetching evaluations",
+      message: "Internal Server Error",
       error: error.message,
     });
   }

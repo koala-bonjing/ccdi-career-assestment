@@ -1,4 +1,5 @@
 // Optional Schema Update - Only add if you want to store preparation recommendations
+const mongoose = require("mongoose");
 
 const evaluationSchema = new mongoose.Schema(
   {
@@ -43,7 +44,7 @@ const evaluationSchema = new mongoose.Schema(
     },
     summary: {
       type: String,
-      required: false, 
+      required: false,
     },
 
     categoryScores: {

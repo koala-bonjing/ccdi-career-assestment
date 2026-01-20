@@ -1,16 +1,16 @@
 // src/components/WelcomeScreen/hooks/useAssessmentState.ts
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext"; // Fixed path
 import axios from "axios";
-import { BASE_URL } from "../config/constants";
+import { BASE_URL } from "../config/constants"; // Fixed path
 
 import type {
   AssessmentResult,
   AssessmentDisplayResult,
   ProgramType,
+  AssessmentAnswers,
 } from "../types";
 
-// 🔹 Derive display-ready data (used by WelcomeScreen UI)
 export const deriveDisplayData = (
   result: AssessmentResult | null,
 ): AssessmentDisplayResult | null => {
@@ -24,10 +24,13 @@ export const deriveDisplayData = (
     "BSET Electrical Technology",
   ] as const;
 
+  // Defensive check: Ensure result.percent exists before mapping
+  const percentData = result.percent || {};
+
   const sortedPrograms = programLabels
     .map((prog) => ({
       program: prog,
-      percent: result.percent[prog] ?? 0,
+      percent: percentData[prog] ?? 0,
     }))
     .sort((a, b) => b.percent - a.percent);
 
@@ -43,7 +46,7 @@ export const deriveDisplayData = (
       ? new Date(result.submissionDate).toLocaleDateString()
       : new Date().toLocaleDateString(),
     score: Math.round(
-      Math.max(...programLabels.map((p) => result.percent[p] ?? 0)),
+      Math.max(...programLabels.map((p) => percentData[p] ?? 0), 0),
     ),
     totalQuestions: 50,
     recommendedPaths: topPaths,
@@ -51,29 +54,22 @@ export const deriveDisplayData = (
   };
 };
 
-// 🔹 Check if user has unsaved progress
-// 🔹 Check if user has unsaved progress
 const hasExistingProgress = (): boolean => {
   try {
     const answers = localStorage.getItem("evaluation-answers");
     if (!answers) return false;
     const parsed = JSON.parse(answers);
-
-    // Type guard to check if parsed is an object
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
       return false;
-    }
 
     return Object.values(parsed).some((section) => {
       return (
         section &&
         typeof section === "object" &&
-        !Array.isArray(section) &&
         Object.keys(section).length > 0
       );
     });
-  } catch (error) {
-    console.error("Error checking progress:", error);
+  } catch {
     return false;
   }
 };
@@ -86,57 +82,59 @@ export const useAssessmentState = () => {
   const [loading, setLoading] = useState(true);
 
   const checkAssessmentStatus = async () => {
+    if (!user?._id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-
-      // ✅ Check localStorage for in-progress answers
       setHasProgress(hasExistingProgress());
 
-      // ✅ Fetch completed evaluations from backend
-      if (user?._id) {
-        console.log("🔍 Checking for saved evaluations for user:", user._id);
+      const response = await axios.get(
+        `${BASE_URL}/api/get-evaluations/${user._id}`,
+      );
 
-        const response = await axios.get(
-          `${BASE_URL}/api/get-evaluations/${user._id}`,
-        );
+      if (response.data.success && response.data.data.length > 0) {
+        const latest = response.data.data[0];
 
-        if (response.data.success && response.data.data.length > 0) {
-          const latest = response.data.data[0];
-          console.log("✅ Found latest evaluation:", latest);
+        // ✅ FIXED: Mapping logic with fallback objects instead of strings
+        const result: AssessmentResult = {
+          success: true,
+          summary:
+            latest.summary || latest.evaluation || "No summary available",
+          evaluation: latest.evaluation || "",
+          detailedEvaluation: latest.detailedEvaluation || "",
+          recommendedProgram: latest.recommendedCourse as ProgramType,
+          user: {
+            _id: user._id,
+            name: user.fullName || user.name || "Student",
+            email: user.email || "",
+            preferredCourse: user.preferredCourse || "Undecided",
+          },
+          percent: latest.percent || {},
+          programScores: latest.programScores || {},
+          submissionDate: latest.submissionDate || new Date().toISOString(),
+          // ✅ FIX: answers must be an object, not a string ""
+          answers: (latest.answers ||
+            latest.rawAnswers ||
+            {}) as AssessmentAnswers,
+          categoryScores: latest.categoryScores || {
+            academic: 0,
+            technical: 0,
+            career: 0,
+            logistics: 0,
+          },
+        };
 
-          const result: AssessmentResult = {
-            success: true,
-            summary: latest.summary || latest.evaluation || "",
-            evaluation: latest.evaluation || "",
-            detailedEvaluation: latest.detailedEvaluation || "",
-            recommendedProgram: latest.recommendedCourse as ProgramType,
-            user: {
-              _id: user._id,
-              name: user.fullName || user.name || "Student",
-              email: user.email || "",
-              preferredCourse: user.preferredCourse || "Undecided",
-            },
-            percent: latest.percent || {},
-            programScores: latest.programScores || {},
-            submissionDate: latest.submissionDate || new Date().toISOString(),
-            answers: latest.answers || "",
-            categoryScores: latest.categoryScores,
-          };
-
-          console.log("Result", result.categoryScores);
-
-          setRawResult(result);
-          setHasCompleted(true);
-        } else {
-          console.log("ℹ️ No completed evaluations found");
-          setRawResult(null);
-          setHasCompleted(false);
-        }
+        setRawResult(result);
+        setHasCompleted(true);
       } else {
         setRawResult(null);
         setHasCompleted(false);
       }
     } catch (error) {
+      // This is where your 500 error is caught
       console.error("❌ Error fetching assessment status:", error);
       setRawResult(null);
       setHasCompleted(false);
@@ -149,25 +147,17 @@ export const useAssessmentState = () => {
     checkAssessmentStatus();
   }, [user?._id]);
 
-  const clearAssessmentStorage = () => {
-    localStorage.removeItem("evaluation-answers");
-    localStorage.removeItem("currentAssessmentSection");
-    setHasProgress(false);
-  };
-
-  const refetch = () => {
-    checkAssessmentStatus();
-  };
-
-  // ✅ Derive display-ready object
   const assessmentResult = deriveDisplayData(rawResult);
 
   return {
-    assessmentResult, // AssessmentDisplayResult | null
+    assessmentResult,
     hasProgress,
     hasCompleted,
     loading,
-    clearAssessmentStorage,
-    refetch,
+    clearAssessmentStorage: () => {
+      localStorage.removeItem("evaluation-answers");
+      setHasProgress(false);
+    },
+    refetch: checkAssessmentStatus,
   };
 };

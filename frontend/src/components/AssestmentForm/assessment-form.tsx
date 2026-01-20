@@ -1,4 +1,3 @@
-// src/components/AssessmentForm/AssessmentForm.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
@@ -19,7 +18,7 @@ import { getRecommendedProgram as _getRecommendedProgram } from "./utils";
 import { type SubmissionData } from "../EvaluationForm/EvaluationForm";
 import { ToastContainer } from "react-toastify";
 import "./AssessmentForm.css";
-import { Info  } from "lucide-react";
+import { Info } from "lucide-react";
 import { AssessmentInstructionsModal } from "../ui/modals/instruction-modal";
 import { PrerequisitesSection } from "./question-sections/prerequisites";
 
@@ -48,27 +47,30 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const [showInstructions, setShowInstructions] = useState(false);
   const hasShownInstructionsRef = useRef(false);
 
+  // ✅ ALGORITHM PART 1: Safe State Initialization
+  // This ensures that 'prerequisites' exists even if the user has old saved data.
   const [formData, setFormData] = useState<AssessmentAnswers>(() => {
-    if (restoredFormData) return restoredFormData;
+    const baseStructure: AssessmentAnswers = {
+      prerequisites: {},
+      academicAptitude: {},
+      technicalSkills: {},
+      careerInterest: {},
+      learningWorkStyle: {},
+    };
+
+    if (restoredFormData) return { ...baseStructure, ...restoredFormData };
+
     try {
       const saved = localStorage.getItem("evaluation-answers");
-      return saved
-        ? JSON.parse(saved)
-        : {
-            academicAptitude: {},
-            technicalSkills: {},
-            careerInterest: {},
-            learningWorkStyle: {},
-          };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Merging ensures new keys (like prerequisites) are never null
+        return { ...baseStructure, ...parsed };
+      }
     } catch (e) {
       console.error("LS error", e);
-      return {
-        academicAptitude: {},
-        technicalSkills: {},
-        careerInterest: {},
-        learningWorkStyle: {},
-      };
     }
+    return baseStructure;
   });
 
   const [currentSection, setCurrentSection] = useState<number>(() => {
@@ -81,6 +83,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showReview, setShowReview] = useState(false);
+  
+  // ✅ ALGORITHM PART 2: Scoring State
   const [programScores, setProgramScores] = useState<ProgramScores>({
     BSCS: 0,
     BSIT: 0,
@@ -89,21 +93,16 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     "BSET-EL": 0,
   });
 
+  // Persist answers to local storage whenever they change
   useEffect(() => {
     localStorage.setItem("evaluation-answers", JSON.stringify(formData));
     localStorage.setItem("currentAssessmentSection", currentSection.toString());
   }, [formData, currentSection]);
 
+  // Show instructions on first load
   useEffect(() => {
-    if (
-      questions &&
-      !hasShownInstructionsRef.current &&
-      !loading &&
-      currentSection === 0
-    ) {
-      const hasSeenBefore = localStorage.getItem(
-        "hasSeenAssessmentInstructions",
-      );
+    if (questions && !hasShownInstructionsRef.current && !loading && currentSection === 0) {
+      const hasSeenBefore = localStorage.getItem("hasSeenAssessmentInstructions");
       if (!hasSeenBefore) {
         setShowInstructions(true);
         hasShownInstructionsRef.current = true;
@@ -113,22 +112,29 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const sectionKey = sections[currentSection];
 
+  // ✅ ALGORITHM PART 3: The Mapping & Weighting Logic
   const handleChange = (
     sectionKey: keyof AssessmentAnswers,
     questionText: string,
     value: number | boolean | string,
     program?: string,
   ) => {
+    // 1. Update UI State
     setFormData((prev) => ({
       ...prev,
       [sectionKey]: { ...prev[sectionKey], [questionText]: value },
     }));
+
+    // 2. Sync with Global Store
     updateAnswer(`${sectionKey}.${questionText}`, value);
 
+    // 3. Weighting Algorithm: If it's a numeric Likert scale (1-5)
     if (typeof value === "number" && value >= 1 && value <= 5 && program) {
       setProgramScores((prev) => {
         const newScores = { ...prev };
-        newScores[program as keyof ProgramScores] += (value - 1) * 2;
+        const key = program as keyof ProgramScores;
+        // Transform 1-5 scale into points (e.g., (Score - 1) * 2)
+        newScores[key] = (newScores[key] || 0) + (value - 1) * 2;
         return newScores;
       });
     }
@@ -139,11 +145,11 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setShowReview(false);
   };
 
+  // ✅ ALGORITHM PART 4: Validation Logic
   const { validateSection } = useAssessmentValidation({
     formData,
     section: sectionKey,
-    currentQuestions:
-      (questions as unknown as AssessmentQuestions)[sectionKey] || [],
+    currentQuestions: (questions as unknown as AssessmentQuestions)[sectionKey] || [],
     setCurrentQuestionIndex,
     categoryTitles,
   });
@@ -190,9 +196,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     onStartNew?.();
   };
 
-  if (questionsLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!questions) return <div>No questions loaded</div>;
+  if (questionsLoading) return <div className="p-5 text-center">Loading Questions...</div>;
+  if (error) return <div className="p-5 text-danger text-center">Error: {error}</div>;
+  if (!questions) return <div className="p-5 text-center">No questions available.</div>;
 
   return (
     <div className="assessment-container">
@@ -212,20 +218,24 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             onHide={() => setShowInstructions(false)}
             show={showInstructions}
           />
+          
+          {/* SECTION 0: PREREQUISITES */}
           {currentSection === 0 && (
             <PrerequisitesSection
-              currentQuestionIndex={currentQuestionIndex}
-              currentSection={currentSection}
+              questions={questions.prerequisites}
               formData={formData}
               onChange={handleChange}
               onNext={handleNext}
               onPrevious={handlePrevious}
               onReset={handleStartNew}
-              questions={questions.prerequisites}
-              setCurrentQuestionIndex={setCurrentQuestionIndex}
+              currentSection={currentSection}
               totalSections={sections.length}
+              currentQuestionIndex={currentQuestionIndex}
+              setCurrentQuestionIndex={setCurrentQuestionIndex}
             />
           )}
+
+          {/* SECTION 1: ACADEMIC */}
           {currentSection === 1 && (
             <AcademicAptitudeSection
               questions={questions.academicAptitude}
@@ -240,6 +250,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               setCurrentQuestionIndex={setCurrentQuestionIndex}
             />
           )}
+
+          {/* SECTION 2: TECHNICAL */}
           {currentSection === 2 && (
             <TechnicalSkillsSection
               questions={questions.technicalSkills}
@@ -252,6 +264,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               totalSections={sections.length}
             />
           )}
+
+          {/* SECTION 3: CAREER */}
           {currentSection === 3 && (
             <CareerInterestSection
               questions={questions.careerInterest}
@@ -266,6 +280,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
               setCurrentQuestionIndex={setCurrentQuestionIndex}
             />
           )}
+
+          {/* SECTION 4: LEARNING STYLE */}
           {currentSection === 4 && (
             <LearningStyleSection
               questions={questions.learningWorkStyle}
@@ -282,14 +298,13 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
           )}
         </>
       )}
-      {/* Fixed instruction button in lower-right */}
-      {/* Fixed instruction button */}
+
+      {/* Instruction FAB */}
       <div className="assessment-instruction-fab">
         <button
           type="button"
           className="btn instruction-btn"
           onClick={() => setShowInstructions(true)}
-          aria-label="Show assessment instructions"
         >
           <Info size={30} strokeWidth={2.5} color="white" />
         </button>

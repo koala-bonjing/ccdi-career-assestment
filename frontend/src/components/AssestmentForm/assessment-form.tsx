@@ -21,6 +21,7 @@ import "./AssessmentForm.css";
 import { Info } from "lucide-react";
 import { AssessmentInstructionsModal } from "../ui/modals/instruction-modal";
 import { PrerequisitesSection } from "./question-sections/prerequisites";
+import { StorageEncryptor } from "../ResultPage/utils/encryption";
 
 interface AssessmentFormProps {
   currentUser?: User;
@@ -83,7 +84,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showReview, setShowReview] = useState(false);
-  
+
   // ✅ ALGORITHM PART 2: Scoring State
   const [programScores, setProgramScores] = useState<ProgramScores>({
     BSCS: 0,
@@ -101,8 +102,15 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   // Show instructions on first load
   useEffect(() => {
-    if (questions && !hasShownInstructionsRef.current && !loading && currentSection === 0) {
-      const hasSeenBefore = localStorage.getItem("hasSeenAssessmentInstructions");
+    if (
+      questions &&
+      !hasShownInstructionsRef.current &&
+      !loading &&
+      currentSection === 0
+    ) {
+      const hasSeenBefore = localStorage.getItem(
+        "hasSeenAssessmentInstructions",
+      );
       if (!hasSeenBefore) {
         setShowInstructions(true);
         hasShownInstructionsRef.current = true;
@@ -149,7 +157,9 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const { validateSection } = useAssessmentValidation({
     formData,
     section: sectionKey,
-    currentQuestions: (questions as unknown as AssessmentQuestions)[sectionKey] || [],
+    currentQuestions: questions
+      ? (questions as unknown as AssessmentQuestions)[sectionKey]
+      : [],
     setCurrentQuestionIndex,
     categoryTitles,
   });
@@ -190,15 +200,18 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setCurrentSection(0);
     setShowReview(false);
     setProgramScores({ BSCS: 0, BSIT: 0, BSIS: 0, "BSET-E": 0, "BSET-EL": 0 });
-    localStorage.removeItem("evaluation-answers");
-    localStorage.removeItem("currentAssessmentSection");
+    StorageEncryptor.removeItem("evaluation-answers");
+    StorageEncryptor.removeItem("currentAssessmentSection");
     clearAllAnswers();
     onStartNew?.();
   };
 
-  if (questionsLoading) return <div className="p-5 text-center">Loading Questions...</div>;
-  if (error) return <div className="p-5 text-danger text-center">Error: {error}</div>;
-  if (!questions) return <div className="p-5 text-center">No questions available.</div>;
+  if (questionsLoading)
+    return <div className="p-5 text-center">Loading Questions...</div>;
+  if (error)
+    return <div className="p-5 text-danger text-center">Error: {error}</div>;
+  if (!questions)
+    return <div className="p-5 text-center">No questions available.</div>;
 
   return (
     <div className="assessment-container">
@@ -218,7 +231,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
             onHide={() => setShowInstructions(false)}
             show={showInstructions}
           />
-          
+
           {/* SECTION 0: PREREQUISITES */}
           {currentSection === 0 && (
             <PrerequisitesSection

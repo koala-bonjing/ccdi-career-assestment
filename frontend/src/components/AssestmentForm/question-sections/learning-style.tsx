@@ -315,7 +315,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   >
                     {isComplete
                       ? "Complete"
-                      : `${group.questions.length} questions`}
+                      : `${group.questions.length} Items`}
                   </div>
                   {isComplete && (
                     <CheckCircle2

@@ -125,16 +125,10 @@ export const useAssessmentQuestions = () => {
               isActive: question.isActive,
             };
 
-            // Debug logging for learningWorkStyle questions
-            if (question.category === "learningWorkStyle") {
-              console.log(`📝 Processing learningWorkStyle question:`, {
-                text: question.questionText.substring(0, 50),
-                subCategory: question.subCategory,
-                hasSubCategory: !!question.subCategory,
-              });
-            }
-
             switch (question.category) {
+              case "prerequisites":
+                transformedQuestions.prerequisites.push(questionData);
+                break;
               case "academicAptitude":
                 transformedQuestions.academicAptitude.push(questionData);
                 break;

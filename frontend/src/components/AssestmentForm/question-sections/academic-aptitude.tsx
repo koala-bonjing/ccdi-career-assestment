@@ -219,7 +219,7 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
         onReset={onReset}
         isLastSection={currentSection === totalSections - 1}
         isComplete={calculateProgress() === 100}
-        nextLabel="Next Section →"
+        nextLabel="Technicall Skills and Interests →"
       />
     </Card>
   );

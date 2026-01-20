@@ -372,7 +372,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
     // AI Evaluation
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-3-flash-preview",
     });
 
     const aiResponse = await model.generateContent(prompt);
@@ -413,6 +413,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       },
       categoryExplanations: parsed.categoryExplanations,
       submissionDate: new Date(),
+      prerequisites: parsed.prerequisites,
     });
 
     // ✅ Add preparationNeeded if it exists
@@ -444,6 +445,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       categoryScores: parsed.categoryScores,
       preparationNeeded: parsed.preparationNeeded || null,
       evaluationId: evaluationDoc._id,
+      prerequisites: parsed.prerequisites,
     };
 
     console.log("✅ Sending response to client");

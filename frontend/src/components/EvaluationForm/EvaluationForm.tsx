@@ -15,7 +15,7 @@ import WelcomeScreenComponent from "../../components/WelcomeScreen/WelcomePage";
 import AuthComponent from "../Auth/AuthComponent/AuthComponent";
 import LoadingSpinner from "../ui/LoadingSpinner/index";
 import axios from "axios";
-import { ToastContainer } from "react-bootstrap";
+import { StorageEncryptor } from "../ResultPage/utils/encryption";
 
 export interface SubmissionData {
   answers: AssessmentAnswers;
@@ -57,7 +57,7 @@ const EvaluationForm = () => {
 
   const loadSavedData = (): void => {
     try {
-      const savedAnswers = localStorage.getItem("evaluation-answers");
+      const savedAnswers = StorageEncryptor.getItem("evaluation-answers");
       if (savedAnswers) {
         const parsed: AssessmentAnswers = JSON.parse(savedAnswers);
         console.log("📥 Loaded saved answers:", parsed);
@@ -89,7 +89,7 @@ const EvaluationForm = () => {
 
     if (nested.prerequisites) {
       Object.entries(nested.prerequisites).forEach(([questios, value]) => {
-        flat[`prequisits.${questios}`] = value; 
+        flat[`prequisits.${questios}`] = value;
       });
     }
 
@@ -117,8 +117,8 @@ const EvaluationForm = () => {
   };
 
   const handleStartNew = (): void => {
-    localStorage.removeItem("evaluation-answers");
-    localStorage.removeItem("currentAssessmentSection");
+    StorageEncryptor.removeItem("evaluation-answers");
+    StorageEncryptor.removeItem("currentAssessmentSection");
     clearAllAnswers();
     setRestoredFormData({
       prerequisites: {},
@@ -161,7 +161,7 @@ const EvaluationForm = () => {
 
     try {
       // Save to localStorage (optional, for recovery)
-      localStorage.setItem("evaluation-answers", JSON.stringify(answers));
+      StorageEncryptor.setItem("evaluation-answers", JSON.stringify(answers));
 
       // ✅ SEND TO YOUR EXPRESS BACKEND INSTEAD OF CALLING AI HERE
       console.log(
@@ -207,8 +207,8 @@ const EvaluationForm = () => {
       setResult(transformed);
 
       // Clear localStorage
-      localStorage.removeItem("evaluation-answers");
-      localStorage.removeItem("currentAssessmentSection");
+      StorageEncryptor.removeItem("evaluation-answers");
+      StorageEncryptor.removeItem("currentAssessmentSection");
 
       console.log("✅ Evaluation complete and stored");
     } catch (err: unknown) {
@@ -272,7 +272,6 @@ const EvaluationForm = () => {
 
   return (
     <div className="evaluation-form">
-      <ToastContainer />
       <AssessmentForm
         currentUser={currentUser}
         onSubmit={handleSubmitAnswers}

@@ -12,6 +12,13 @@
   padding: 2rem 0;
 }
 
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+
 /* Card enhancements */
 .card {
   backdrop-filter: blur(10px);
@@ -49,8 +56,6 @@
   background-color: #0d6efd;
   border-color: #0d6efd;
 }
-
-
 
 .form-check-label {
   cursor: pointer;
@@ -330,7 +335,6 @@
 .choices-container .form-option {
   margin-bottom: 0.5rem;
 }
-
 
 /* Keep section header and navigation fixed */
 .section-header {

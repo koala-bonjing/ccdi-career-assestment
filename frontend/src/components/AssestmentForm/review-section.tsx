@@ -17,6 +17,7 @@ import { type ProgramScores } from "./types";
 interface ReviewSectionProps {
   formData: AssessmentAnswers;
   questions: {
+    prerequisites: Question[];
     academicAptitude: Question[];
     technicalSkills: Question[];
     careerInterest: Question[];
@@ -40,6 +41,8 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
 }) => {
   const getQuestionsBySection = (sectionKey: string): Question[] => {
     switch (sectionKey) {
+      case "prerequisites":
+        return questions.prerequisites || [];
       case "academicAptitude":
         return questions.academicAptitude || [];
       case "technicalSkills":
@@ -58,7 +61,11 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     _question: string,
     value: number | boolean | null | undefined,
   ): string => {
-    if (sectionKey === "academicAptitude" || sectionKey === "careerInterest") {
+    if (
+      sectionKey === "academicAptitude" ||
+      sectionKey === "careerInterest" ||
+      sectionKey === "prerequisites"
+    ) {
       const labels = [
         "Strongly Agree",
         "Agree",
@@ -126,6 +133,11 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
       bg: "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)",
       text: "white",
       accent: "#2B3176",
+    },
+    {
+      bg: "linear-gradient(135deg, #2B3176 0%, #A41D31 100%)",
+      text: "white",
+      accent: "#1C6CB3",
     },
   ];
 
@@ -223,7 +235,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                           className="d-flex flex-column p-3 rounded text-center"
                           style={{
                             background: "white",
-                            border: `2px solid ${isComplete ? sectionColors[idx].accent : "#e9ecef"}`,
+                            border: `2px solid ${isComplete ? sectionColors[idx]?.accent || "#2B3176" : "#e9ecef"}`,
                             height: "100%",
                           }}
                         >
@@ -555,12 +567,14 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                         {answeredQuestions.length > 0 ? (
                           <div>
                             {answeredQuestions.map((question, qIndex) => {
-                              const answer =
-                                formData[sectionKey as keyof AssessmentAnswers][
-                                  question.questionText
-                                ];
+                              const answer = formData[
+                                sectionKey as keyof AssessmentAnswers
+                              ][question.questionText] as
+                                | number
+                                | boolean
+                                | undefined;
                               const answerColor = getAnswerColor(
-                                sectionKey,
+                                sectionKey as keyof AssessmentAnswers,
                                 answer,
                               );
                               const answerLabel = getAnswerLabel(

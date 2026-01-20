@@ -57,14 +57,24 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
     if (!result?.answers) return null;
 
     const {
+      foundationalAssessment,
       academicAptitude,
       technicalSkills,
       careerInterest,
       learningWorkStyle,
     } = result.answers;
 
-    // Academic: average of 1–5 → scale to 0–100
-    const academicValues = Object.values(academicAptitude).filter(
+    // ========== FOUNDATIONAL ASSESSMENT ==========
+    const foundationalValues = Object.values(
+      foundationalAssessment || {},
+    ).filter((v) => typeof v === "string" && v.trim() !== "") as string[];
+    const foundational = foundationalValues.length
+      ? Math.min(100, Math.round((foundationalValues.length / 37) * 100))
+      : 0;
+
+    // ========== ACADEMIC APTITUDE ==========
+    // ✅ FIXED: Add null check with || {}
+    const academicValues = Object.values(academicAptitude || {}).filter(
       (v) => typeof v === "number",
     ) as number[];
     const academic = academicValues.length
@@ -74,8 +84,9 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
         )
       : 0;
 
-    // Technical: % of "true" answers
-    const techValues = Object.values(technicalSkills).filter(
+    // ========== TECHNICAL SKILLS ==========
+    // ✅ FIXED: Add null check
+    const techValues = Object.values(technicalSkills || {}).filter(
       (v) => typeof v === "boolean",
     );
     const technical = techValues.length
@@ -84,8 +95,9 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
         )
       : 0;
 
-    // Career: average of 1–5 → 0–100
-    const careerValues = Object.values(careerInterest).filter(
+    // ========== CAREER INTEREST ==========
+    // ✅ FIXED: Add null check
+    const careerValues = Object.values(careerInterest || {}).filter(
       (v) => typeof v === "number",
     ) as number[];
     const career = careerValues.length
@@ -94,7 +106,9 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
         )
       : 0;
 
-    const logisticsValues = Object.values(learningWorkStyle).filter(
+    // ========== LEARNING WORK STYLE ==========
+    // ✅ FIXED: Add null check
+    const logisticsValues = Object.values(learningWorkStyle || {}).filter(
       (v) => typeof v === "boolean",
     );
     const logistics = logisticsValues.length
@@ -104,7 +118,13 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
         )
       : 0;
 
-    return { academic, technical, career, logistics };
+    return {
+      foundational, // New score
+      academic,
+      technical,
+      career,
+      logistics,
+    };
   };
   const sectionScores = computeSectionScores();
   // ✅ NOW check if result exists from ANY source

@@ -74,6 +74,13 @@ const evaluationSchema = new mongoose.Schema(
       default: Date.now,
     },
 
+    categoryExplanations: {
+      academicReason: { type: String, default: "" },
+      technicalReason: { type: String, default: "" },
+      careerReason: { type: String, default: "" },
+      logisticsReason: { type: String, default: "" },
+    },
+
     // Optional: Store raw answers
     rawAnswers: {
       type: mongoose.Schema.Types.Mixed,

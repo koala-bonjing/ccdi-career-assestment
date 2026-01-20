@@ -6,7 +6,7 @@ interface RadarChartProps {
   technical: number;
   career: number;
   logistics: number;
-  recommendedProgram: string;
+  recommendedProgram: string; 
 }
 
 const RadarChart: React.FC<RadarChartProps> = ({

@@ -1,167 +1,167 @@
-  const express = require("express");
-  const router = express.Router();
-  const mongoose = require("mongoose");
-  require("dotenv").config();
-  const { GoogleGenerativeAI } = require("@google/generative-ai");
-  const Evaluation = require("../models/Evaluation");
+const express = require("express");
+const router = express.Router();
+const mongoose = require("mongoose");
+require("dotenv").config();
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const Evaluation = require("../models/Evaluation");
 
-  const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
 
-  // Save evaluation results
-  router.post("/save-evaluation", async (req, res) => {
-    try {
-      const {
-        userId,
-        userName,
-        userEmail,
-        evaluation,
-        detailedEvaluation,
-        recommendations,
-        recommendedCourse,
-        percent,
-        programScores,
-      } = req.body;
+// Save evaluation results
+router.post("/save-evaluation", async (req, res) => {
+  try {
+    const {
+      userId,
+      userName,
+      userEmail,
+      evaluation,
+      detailedEvaluation,
+      recommendations,
+      recommendedCourse,
+      percent,
+      programScores,
+    } = req.body;
 
-      if (!userId || !recommendedCourse || !percent) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Missing required fields: userId, recommendedCourse, or percent",
-        });
-      }
-
-      const evaluationDoc = new Evaluation({
-        userId,
-        userName: userName || "Anonymous User",
-        userEmail: userEmail || "",
-        evaluation: evaluation || "No evaluation details provided",
-        detailedEvaluation:
-          detailedEvaluation || "No evaluation details provided",
-        recommendations: recommendations || "No specific recommendations",
-        recommendedCourse,
-        percent,
-        programScores: programScores || {},
-        submissionDate: new Date(),
-      });
-
-      await evaluationDoc.save();
-
-      console.log("✅ Evaluation saved for user:", userId);
-      res.status(201).json({
-        success: true,
-        message: "Evaluation saved successfully",
-        evaluationId: evaluationDoc._id,
-        data: evaluationDoc,
-      });
-    } catch (error) {
-      console.error("❌ Error saving evaluation:", error);
-      res.status(500).json({
+    if (!userId || !recommendedCourse || !percent) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to save evaluation",
-        error: error.message,
+        message:
+          "Missing required fields: userId, recommendedCourse, or percent",
       });
     }
-  });
 
-  router.get("/get-evaluations/:userId", async (req, res) => {
-    try {
-      const { userId } = req.params;
+    const evaluationDoc = new Evaluation({
+      userId,
+      userName: userName || "Anonymous User",
+      userEmail: userEmail || "",
+      evaluation: evaluation || "No evaluation details provided",
+      detailedEvaluation:
+        detailedEvaluation || "No evaluation details provided",
+      recommendations: recommendations || "No specific recommendations",
+      recommendedCourse,
+      percent,
+      programScores: programScores || {},
+      submissionDate: new Date(),
+    });
 
-      // 1. Check if the ID is valid hex string
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid ID format" });
-      }
+    await evaluationDoc.save();
 
-      // 2. Query the EVALUATIONS collection, not the user collection
-      // We look for any evaluation where the userId field matches the ID in the URL
-      const evaluations = await Evaluation.find({ userId: userId }).sort({
-        submissionDate: -1,
-      });
+    console.log("✅ Evaluation saved for user:", userId);
+    res.status(201).json({
+      success: true,
+      message: "Evaluation saved successfully",
+      evaluationId: evaluationDoc._id,
+      data: evaluationDoc,
+    });
+  } catch (error) {
+    console.error("❌ Error saving evaluation:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to save evaluation",
+      error: error.message,
+    });
+  }
+});
 
-      // 3. Return the data. If it's empty, data will just be [] (empty array)
-      // This PREVENTS the 500 error because [] is a valid response.
-      return res.status(200).json({
-        success: true,
-        count: evaluations.length,
-        data: evaluations,
-      });
-    } catch (error) {
-      console.error("🔥 Backend Error:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-        error: error.message,
-      });
+router.get("/get-evaluations/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // 1. Check if the ID is valid hex string
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid ID format" });
     }
-  });
 
-  function flattenAnswers(nested) {
-    const flat = {};
-    if (nested.academicAptitude)
-      Object.entries(nested.academicAptitude).forEach(([q, v]) => {
-        flat[`academicAptitude.${q}`] = v;
-      });
-    if (nested.technicalSkills)
-      Object.entries(nested.technicalSkills).forEach(([q, v]) => {
-        flat[`technicalSkills.${q}`] = v;
-      });
-    if (nested.careerInterest)
-      Object.entries(nested.careerInterest).forEach(([q, v]) => {
-        flat[`careerInterest.${q}`] = v;
-      });
-    if (nested.learningWorkStyle)
-      Object.entries(nested.learningWorkStyle).forEach(([q, v]) => {
-        flat[`learningStyle.${q}`] = v;
-      });
-    return flat;
+    // 2. Query the EVALUATIONS collection, not the user collection
+    // We look for any evaluation where the userId field matches the ID in the URL
+    const evaluations = await Evaluation.find({ userId: userId }).sort({
+      submissionDate: -1,
+    });
+
+    // 3. Return the data. If it's empty, data will just be [] (empty array)
+    // This PREVENTS the 500 error because [] is a valid response.
+    return res.status(200).json({
+      success: true,
+      count: evaluations.length,
+      data: evaluations,
+    });
+  } catch (error) {
+    console.error("🔥 Backend Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
+});
 
-  function formatAnswers(flat) {
-    return Object.entries(flat)
-      .map(([question, value]) => {
-        if (typeof value === "number") return `- ${question}: ${value}/5`;
-        if (typeof value === "boolean")
-          return value ? `- ${question}: Yes` : null;
-        return `- ${question}: ${value}`;
-      })
-      .filter(Boolean)
-      .join("\n");
-  }
+function flattenAnswers(nested) {
+  const flat = {};
+  if (nested.academicAptitude)
+    Object.entries(nested.academicAptitude).forEach(([q, v]) => {
+      flat[`academicAptitude.${q}`] = v;
+    });
+  if (nested.technicalSkills)
+    Object.entries(nested.technicalSkills).forEach(([q, v]) => {
+      flat[`technicalSkills.${q}`] = v;
+    });
+  if (nested.careerInterest)
+    Object.entries(nested.careerInterest).forEach(([q, v]) => {
+      flat[`careerInterest.${q}`] = v;
+    });
+  if (nested.learningWorkStyle)
+    Object.entries(nested.learningWorkStyle).forEach(([q, v]) => {
+      flat[`learningStyle.${q}`] = v;
+    });
+  return flat;
+}
 
-  // ✅ MAIN EVALUATION ROUTE - FIXED
-  // Updated evaluation endpoint - ADDS prerequisites analysis to existing system
+function formatAnswers(flat) {
+  return Object.entries(flat)
+    .map(([question, value]) => {
+      if (typeof value === "number") return `- ${question}: ${value}/5`;
+      if (typeof value === "boolean")
+        return value ? `- ${question}: Yes` : null;
+      return `- ${question}: ${value}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+}
 
-  router.post("/evaluate-assessment", async (req, res) => {
-    console.log("🎯 /api/evaluate-assessment endpoint hit!");
-    console.log("📦 Request body:", JSON.stringify(req.body, null, 2));
+// ✅ MAIN EVALUATION ROUTE - FIXED
+// Updated evaluation endpoint - ADDS prerequisites analysis to existing system
 
-    try {
-      const { userId, fullName, email, preferredCourse, answers, programScores } =
-        req.body;
+router.post("/evaluate-assessment", async (req, res) => {
+  console.log("🎯 /api/evaluate-assessment endpoint hit!");
+  console.log("📦 Request body:", JSON.stringify(req.body, null, 2));
 
-      // Validation
-      if (!userId || !answers) {
-        console.error("❌ Validation failed: Missing userId or answers");
-        return res.status(400).json({ error: "Missing required fields" });
-      }
+  try {
+    const { userId, fullName, email, preferredCourse, answers, programScores } =
+      req.body;
 
-      const flatAnswers = flattenAnswers(answers);
-      const formatted = formatAnswers(flatAnswers);
+    // Validation
+    if (!userId || !answers) {
+      console.error("❌ Validation failed: Missing userId or answers");
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
-      if (!formatted.trim()) {
-        console.error("❌ No valid answers after formatting");
-        return res.status(400).json({ error: "No valid answers provided" });
-      }
+    const flatAnswers = flattenAnswers(answers);
+    const formatted = formatAnswers(flatAnswers);
 
-      console.log("📝 Formatted answers length:", formatted.length);
+    if (!formatted.trim()) {
+      console.error("❌ No valid answers after formatting");
+      return res.status(400).json({ error: "No valid answers provided" });
+    }
 
-      // ✅ NEW: Calculate prerequisites readiness if available
-      let prerequisitesSection = "";
-      if (answers.prerequisites) {
-        const prereqAnalysis = analyzePrerequisites(answers.prerequisites);
-        prerequisitesSection = `\n\nPREREQUISITE READINESS ASSESSMENT:
+    console.log("📝 Formatted answers length:", formatted.length);
+
+    // ✅ NEW: Calculate prerequisites readiness if available
+    let prerequisitesSection = "";
+    if (answers.prerequisites) {
+      const prereqAnalysis = analyzePrerequisites(answers.prerequisites);
+      prerequisitesSection = `\n\nPREREQUISITE READINESS ASSESSMENT:
   ${prereqAnalysis.summary}
 
   Key Indicators:
@@ -175,10 +175,10 @@
 
   ${prereqAnalysis.recommendations.length > 0 ? "\n📚 PREPARATION RECOMMENDATIONS:\n" + prereqAnalysis.recommendations.map((r) => `  - ${r}`).join("\n") : ""}
   `;
-      }
+    }
 
-      // ✅ KEEP YOUR EXISTING PROMPT - Just add prerequisites section
-      const prompt = `
+    // ✅ KEEP YOUR EXISTING PROMPT - Just add prerequisites section
+    const prompt = `
             You are a career guidance assistant for CCDI Sorsogon, helping students identify the most suitable technology program based on their aptitudes, interests, and circumstances.
 
             AVAILABLE PROGRAMS:
@@ -281,95 +281,100 @@
               }
               `;
 
-      console.log("🤖 Calling Gemini API...");
+    console.log("🤖 Calling Gemini API...");
 
-      // AI Evaluation
-      const model = genAI.getGenerativeModel({
-        model: "gemini-3-flash-preview",
-      });
+    // AI Evaluation
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3-flash-preview",
+    });
 
-      const aiResponse = await model.generateContent(prompt);
-      const raw = aiResponse.response.text();
-      console.log("📥 Raw AI response:", raw.substring(0, 200) + "...");
+    const aiResponse = await model.generateContent(prompt);
+    const raw = aiResponse.response.text();
+    console.log("📥 Raw AI response:", raw.substring(0, 200) + "...");
 
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("AI did not return valid JSON format");
-      }
-      const parsed = JSON.parse(jsonMatch[0]);
-
-      if (!parsed.recommendedCourse || !parsed.percent) {
-        throw new Error(
-          "Invalid AI response: missing recommendedCourse or percent",
-        );
-      }
-
-      console.log("✅ AI response parsed successfully");
-      console.log("📊 Recommended course:", parsed.recommendedCourse);
-
-      // ✅ Build evaluation document
-      const evaluationDoc = new Evaluation({
-        userId,
-        userName: fullName || "Anonymous User",
-        userEmail: email || "",
-        evaluation: parsed.result || "No evaluation details provided",
-        detailedEvaluation:
-          parsed.detailedEvaluation || "No evaluation details provided",
-        recommendations: parsed.recommendations || "No specific recommendations",
-        percent: parsed.percent,
-        recommendedCourse: parsed.recommendedCourse,
-        categoryScores: parsed.categoryScores || {
-          academic: 0,
-          technical: 0,
-          career: 0,
-          logistics: 0,
-        },
-        categoryExplanations: parsed.categoryExplanations,
-        submissionDate: new Date(),
-        prerequisites: parsed.prerequisites,
-      });
-
-      // ✅ Add preparationNeeded if it exists
-      if (parsed.preparationNeeded) {
-        evaluationDoc.preparationNeeded = parsed.preparationNeeded;
-      }
-
-      await evaluationDoc.save();
-
-      const result = {
-        success: true,
-        summary: parsed.summary,
-        evaluation: parsed.result,
-        detailedEvaluation: parsed.detailedEvaluation,
-        recommendations: parsed.recommendations,
-        recommendedProgram: parsed.recommendedCourse,
-        user: {
-          _id: userId,
-          name: fullName || "Student",
-          email: email || "",
-          preferredCourse: preferredCourse || "Undecided",
-        },
-        percent: parsed.percent,
-        programScores: programScores || {},
-        submissionDate: new Date().toISOString(),
-        answers,
-        aiAnswer: parsed.aiAnswer,
-        categoryExplanations: parsed.categoryExplanations,
-        categoryScores: parsed.categoryScores,
-        preparationNeeded: parsed.preparationNeeded || null,
-        evaluationId: evaluationDoc._id,
-        prerequisites: parsed.prerequisites,
-      };
-
-      console.log("✅ Sending response to client");
-      res.json(result);
-    } catch (error) {
-      console.error("❌ Evaluation error:", error);
-      res.status(500).json({
-        error: "Failed to generate evaluation",
-        message: error.message || "Unknown error",
-      });
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("AI did not return valid JSON format");
     }
-  });
+    const parsed = JSON.parse(jsonMatch[0]);
 
-  module.exports = router;
+    if (!parsed.recommendedCourse || !parsed.percent) {
+      throw new Error(
+        "Invalid AI response: missing recommendedCourse or percent",
+      );
+    }
+
+    console.log("✅ AI response parsed successfully");
+    console.log("📊 Recommended course:", parsed.recommendedCourse);
+
+    // ✅ Build evaluation document
+    const evaluationDoc = new Evaluation({
+      userId,
+      userName: fullName || "Anonymous User",
+      userEmail: email || "",
+      evaluation: parsed.result || "No evaluation details provided",
+      detailedEvaluation:
+        parsed.detailedEvaluation || "No evaluation details provided",
+      recommendations: parsed.recommendations || "No specific recommendations",
+      percent: parsed.percent,
+      recommendedCourse: parsed.recommendedCourse,
+      categoryScores: parsed.categoryScores || {
+        academic: 0,
+        technical: 0,
+        career: 0,
+        logistics: 0,
+      },
+      categoryExplanations: parsed.categoryExplanations || {
+        academicReason: "No explanation provided",
+        technicalReason: "No explanation provided",
+        careerReason: "No explanation provided",
+        logisticsReason: "No explanation provided",
+      },
+      submissionDate: new Date(),
+      prerequisites: parsed.prerequisites,
+    });
+
+    // ✅ Add preparationNeeded if it exists
+    if (parsed.preparationNeeded) {
+      evaluationDoc.preparationNeeded = parsed.preparationNeeded;
+    }
+
+    await evaluationDoc.save();
+
+    const result = {
+      success: true,
+      summary: parsed.summary,
+      evaluation: parsed.result,
+      detailedEvaluation: parsed.detailedEvaluation,
+      recommendations: parsed.recommendations,
+      recommendedProgram: parsed.recommendedCourse,
+      user: {
+        _id: userId,
+        name: fullName || "Student",
+        email: email || "",
+        preferredCourse: preferredCourse || "Undecided",
+      },
+      percent: parsed.percent,
+      programScores: programScores || {},
+      submissionDate: new Date().toISOString(),
+      answers,
+      aiAnswer: parsed.aiAnswer,
+      categoryExplanations: parsed.categoryExplanations,
+      categoryScores: parsed.categoryScores,
+      preparationNeeded: parsed.preparationNeeded || null,
+      evaluationId: evaluationDoc._id,
+      prerequisites: parsed.prerequisites,
+    };
+
+    console.log("✅ Sending response to client");
+    res.json(result);
+  } catch (error) {
+    console.error("❌ Evaluation error:", error);
+    res.status(500).json({
+      error: "Failed to generate evaluation",
+      message: error.message || "Unknown error",
+    });
+  }
+});
+
+module.exports = router;

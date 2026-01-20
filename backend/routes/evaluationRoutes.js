@@ -3,7 +3,6 @@ const router = express.Router();
 require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Evaluation = require("../models/Evaluation");
-const { parse } = require("dotenv");
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
 
@@ -63,32 +62,33 @@ router.post("/save-evaluation", async (req, res) => {
   }
 });
 
-// Get all evaluations for a specific user
 router.get("/get-evaluations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID is required",
-      });
+    // 1. Validate if the ID is a valid MongoDB ObjectId to prevent CastError
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid User ID format" });
     }
 
-    const evaluations = await Evaluation.find({ userId })
-      .sort({ submissionDate: -1 })
-      .select("-__v");
+    // 2. Find the evaluations
+    const evaluations = await Evaluation.find({ userId: userId }).sort({
+      submissionDate: -1,
+    });
 
-    res.status(200).json({
+    // 3. Always return a 200, even if the array is empty
+    return res.status(200).json({
       success: true,
-      count: evaluations.length,
       data: evaluations,
     });
   } catch (error) {
-    console.error("❌ Error fetching evaluations:", error);
+    // 4. This catch prevents the 500 crash and tells you what happened
+    console.error("❌ GET EVALUATIONS ERROR:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch evaluations",
+      message: "Server error while fetching evaluations",
       error: error.message,
     });
   }

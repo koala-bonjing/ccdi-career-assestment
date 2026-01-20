@@ -16,8 +16,10 @@ export const StorageEncryptor = {
 
     if (!encryptData) return null;
     try {
-      const bytes = CryptoJS.AES.decrypt(encryptData, key);
+      const bytes = CryptoJS.AES.decrypt(encryptData, SECRET_KEY);
       const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+
+      if (!decryptedString) return null;  
       return JSON.parse(decryptedString);
     } catch (error) {
       console.error("Decrypted failed", error);

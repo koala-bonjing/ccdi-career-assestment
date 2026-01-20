@@ -28,29 +28,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const getInitialAuthState = (): { user: User | null; loading: boolean } => {
   try {
-    const savedUser = StorageEncryptor.getItem("user");
-    console.log("🔍 Checking localStorage for user:", savedUser);
+    const parsed = StorageEncryptor.getItem("user"); // This now returns the object
 
-    if (savedUser) {
-      const parsed = JSON.parse(savedUser);
+    if (parsed) {
       console.log("📦 Parsed user data:", parsed);
 
-      // Check for _id (MongoDB style) or id
-      if ((savedUser._id || savedUser.id) && savedUser.email) {
+      // FIX: Check 'parsed', not 'savedUser'
+      if ((parsed._id || parsed.id) && parsed.email) {
         const normalizedUser = {
-          ...savedUser,
-          _id: savedUser._id || savedUser.id,
+          ...parsed,
+          _id: parsed._id || parsed.id,
         };
         return { user: normalizedUser, loading: false };
-      } else {
-        console.warn("⚠️ Invalid user data in localStorage:", parsed);
       }
     }
   } catch (e) {
-    console.error("❌ Failed to parse user from localStorage:", e);
+    console.error("❌ Failed to parse user:", e);
   }
-
-  console.log("ℹ️ No valid user in localStorage");
   return { user: null, loading: false };
 };
 

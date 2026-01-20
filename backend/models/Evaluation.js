@@ -41,6 +41,10 @@ const evaluationSchema = new mongoose.Schema(
       "BSET Electronics Technology": { type: Number, default: 0 },
       "BSET Electrical Technology": { type: Number, default: 0 },
     },
+    summary: {
+      type: String,
+      required: false, 
+    },
 
     categoryScores: {
       academic: { type: Number, default: 0 },

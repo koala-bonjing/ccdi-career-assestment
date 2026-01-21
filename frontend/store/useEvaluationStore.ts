@@ -1,6 +1,7 @@
 // src/store/useEvaluationStore.ts
 import { create } from "zustand";
 import type { AssessmentResult } from "../src/types";
+import { persist } from "zustand/middleware";
 
 type EvaluationState = {
   name: string;
@@ -27,49 +28,56 @@ type EvaluationState = {
   prevSection: () => void;
 };
 
-export const useEvaluationStore = create<EvaluationState>((set) => ({
-  name: "",
-  setName: (name) => set({ name }),
+export const useEvaluationStore = create<EvaluationState>()(
+  persist(
+    (set) => ({
+      name: "",
+      setName: (name) => set({ name }),
 
-  answers: {},
-  setAnswers: (answers) => set({ answers }),
-  updateAnswer: (key, value) =>
-    set((state) => ({ answers: { ...state.answers, [key]: value } })),
-  
-  // ADD THIS FUNCTION
-  clearAllAnswers: () => set({ 
-    answers: {},
-    result: null,
-    error: null,
-    currentSectionIndex: 0 
-  }),
+      answers: {},
+      setAnswers: (answers) => set({ answers }),
+      updateAnswer: (key, value) =>
+        set((state) => ({ answers: { ...state.answers, [key]: value } })),
 
-  result: null,
-  setResult: (result) => set({ result }),
+      clearAllAnswers: () =>
+        set({
+          answers: {},
+          result: null,
+          error: null,
+          currentSectionIndex: 0,
+        }),
 
-  loading: false,
-  setLoading: (loading) => set({ loading }),
+      result: null,
+      setResult: (result) => set({ result }),
 
-  error: null,
-  setError: (error) => set({ error }),
+      loading: false,
+      setLoading: (loading) => set({ loading }),
 
-  sectionKeys: [
-    "academicAptitude",
-    "technicalSkills",
-    "careerInterest",
-    "learningWorkStyle",
-  ],
-  currentSectionIndex: 0,
-  setCurrentSectionIndex: (index) => set({ currentSectionIndex: index }),
-  nextSection: () =>
-    set((state) => ({
-      currentSectionIndex: Math.min(
-        state.currentSectionIndex + 1,
-        state.sectionKeys.length - 1
-      ),
-    })),
-  prevSection: () =>
-    set((state) => ({
-      currentSectionIndex: Math.max(state.currentSectionIndex - 1, 0),
-    })),
-}));
+      error: null,
+      setError: (error) => set({ error }),
+
+      sectionKeys: [
+        "academicAptitude",
+        "technicalSkills",
+        "careerInterest",
+        "learningWorkStyle",
+      ],
+      currentSectionIndex: 0,
+      setCurrentSectionIndex: (index) => set({ currentSectionIndex: index }),
+      nextSection: () =>
+        set((state) => ({
+          currentSectionIndex: Math.min(
+            state.currentSectionIndex + 1,
+            state.sectionKeys.length - 1,
+          ),
+        })),
+      prevSection: () =>
+        set((state) => ({
+          currentSectionIndex: Math.max(state.currentSectionIndex - 1, 0),
+        })),
+    }),
+    {
+      name: "evaluation-storage", // 2. Unique name for localStorage key
+    },
+  ),
+);

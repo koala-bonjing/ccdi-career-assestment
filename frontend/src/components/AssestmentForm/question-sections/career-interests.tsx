@@ -32,7 +32,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
 
   const calculateProgress = () => {
     const answered = questions.filter(
-      (q) => typeof formData.careerInterest[q.questionText] === "number"
+      (q) => typeof formData.careerInterest[q.questionText] === "number",
     ).length;
     return Math.round((answered / questions.length) * 100);
   };
@@ -128,7 +128,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
                 const isSelected =
                   formData.careerInterest[currentQuestion.questionText] === val;
                 return (
-                    <label
+                  <label
                     key={val}
                     className="d-flex align-items-center p-3 p-md-4 border border-secondary rounded-3 text-start fs-5 mb-2"
                     style={{
@@ -167,7 +167,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
                           "careerInterest",
                           currentQuestion.questionText,
                           val,
-                          currentQuestion.program
+                          currentQuestion.program,
                         );
                         if (currentIndex < questions.length - 1) {
                           setTimeout(() => {
@@ -219,7 +219,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
         onReset={onReset}
         isLastSection={currentSection === totalSections - 1}
         isComplete={calculateProgress() === 100}
-        nextLabel="Next Section →"
+        nextLabel="Learning & Work Style   →"
       />
     </Card>
   );

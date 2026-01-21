@@ -1,7 +1,7 @@
 // src/hooks/useAssessmentValidation.ts
 import { useCallback } from "react";
 import { toast, Bounce } from "react-toastify";
-import type { AssessmentAnswers, Question } from "../types";
+import type { AssessmentAnswers, Question, SectionAnswers } from "../types";
 
 interface UseAssessmentValidationProps {
   formData: AssessmentAnswers;
@@ -26,6 +26,35 @@ const isBooleanAnswer = (value: unknown): value is boolean => {
   return typeof value === "boolean";
 };
 
+const isStringAnswer = (value: unknown): value is string => {
+  return typeof value === "string" && value.trim().length > 0;
+};
+
+// Helper function to get answer from answers object
+const getAnswerValue = (
+  answers: SectionAnswers | undefined,
+  question: Question,
+): unknown => {
+  if (!answers || typeof answers !== "object") {
+    return undefined;
+  }
+
+  // Try multiple possible keys to find the answer
+  const possibleKeys = [
+    question._id,
+    question.questionText,
+    question.questionText?.trim(),
+  ].filter((key): key is string => typeof key === "string" && key.length > 0);
+
+  for (const key of possibleKeys) {
+    if (key in answers) {
+      return answers[key];
+    }
+  }
+
+  return undefined;
+};
+
 export const useAssessmentValidation = ({
   formData,
   section,
@@ -36,44 +65,113 @@ export const useAssessmentValidation = ({
   const validateSection = useCallback((): ValidationResult => {
     const answers = formData[section as keyof AssessmentAnswers];
 
-    if (section === "prerequisites") {
-      // Custom validation for prerequisites
+    // If no answers object exists for this section
+    if (!answers || typeof answers !== "object") {
+      return {
+        isValid: false,
+        message: `Please answer all ${categoryTitles[section] || section} questions.`,
+        firstUnansweredIndex: 0,
+      };
+    }
+
+    // COMMON VALIDATION FOR ALL SECTIONS (except technicalSkills which has different rules)
+    if (section !== "technicalSkills" && section !== "learningWorkStyle") {
       const firstUnansweredIndex = currentQuestions.findIndex((q: Question) => {
-        const answer = answers[q._id] || answers[q.questionText]; // Try both keys
-        return answer === undefined || answer === null || answer === "";
+        const answer = getAnswerValue(answers, q);
+
+        // Check if answer is undefined/null/empty string
+        if (answer === undefined || answer === null || answer === "") {
+          return true;
+        }
+
+        // Additional type-specific validation based on section
+        if (section === "academicAptitude" || section === "careerInterest") {
+          return !isNumberAnswer(answer);
+        }
+
+        if (section === "learningWorkStyle") {
+          return !isBooleanAnswer(answer);
+        }
+
+        if (section === "foundationalAssessment") {
+          return !isStringAnswer(answer);
+        }
+
+        // For prerequisites and other sections, just check if it exists
+        return false;
       });
 
       if (firstUnansweredIndex !== -1) {
+        const categoryName = categoryTitles[section] || section;
+
+        let specificMessage = "";
+
+        // Provide more specific guidance based on section
+        if (section === "academicAptitude" || section === "careerInterest") {
+          specificMessage = `Please rate question ${firstUnansweredIndex + 1} on a scale of 1-5`;
+        } else if (section === "learningWorkStyle") {
+          specificMessage = `Please select Yes or No for question ${firstUnansweredIndex + 1}`;
+        } else if (section === "foundationalAssessment") {
+          specificMessage = `Please select an option for question ${firstUnansweredIndex + 1}`;
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          specificMessage = `Please answer question ${firstUnansweredIndex + 1}`;
+        }
+
         return {
           isValid: false,
-          message: `Please answer all ${categoryTitles[section]} questions.`,
+          message: `Please answer all ${categoryName} questions.`,
           firstUnansweredIndex,
         };
       }
     }
 
-    if (section === "academicAptitude" || section === "careerInterest") {
-      const firstUnansweredIndex = currentQuestions.findIndex((q: Question) => {
-        const answer = answers[q.questionText];
-        return !isNumberAnswer(answer);
+    // SECTION-SPECIFIC ADDITIONAL VALIDATION
+
+    if (section === "foundationalAssessment") {
+      // Group questions by subCategory to check each category separately
+      const questionsBySubCategory: Record<string, Question[]> = {};
+      currentQuestions.forEach((question) => {
+        const subCategory = question.subCategory || "prerequisites";
+        if (!questionsBySubCategory[subCategory]) {
+          questionsBySubCategory[subCategory] = [];
+        }
+        questionsBySubCategory[subCategory].push(question);
       });
 
-      if (firstUnansweredIndex !== -1) {
-        return {
-          isValid: false,
-          message: `Please answer all ${categoryTitles[section]} questions.`,
-          firstUnansweredIndex,
-        };
+      // Check each category for completeness
+      for (const [, questionsInCategory] of Object.entries(
+        questionsBySubCategory,
+      )) {
+        const firstUnanswered = questionsInCategory.findIndex((q) => {
+          const answer = getAnswerValue(answers, q);
+          return !isStringAnswer(answer);
+        });
+
+        if (firstUnanswered !== -1) {
+          const globalIndex = currentQuestions.findIndex(
+            (q) => q._id === questionsInCategory[firstUnanswered]._id,
+          );
+
+          return {
+            isValid: false,
+            message: `Please complete all questions in the ${categoryTitles[section] || section} section.`,
+            firstUnansweredIndex: globalIndex !== -1 ? globalIndex : 0,
+          };
+        }
       }
     }
 
     if (section === "technicalSkills") {
-      const answerValues = Object.values(answers);
-      const hasAtLeastOne = answerValues.some(
-        (val: unknown) => isBooleanAnswer(val) && val === true,
-      );
+      // Get all boolean answers
+      const booleanAnswers = currentQuestions
+        .map((q) => getAnswerValue(answers, q))
+        .filter((val): val is boolean => isBooleanAnswer(val));
 
-      if (!hasAtLeastOne) {
+      // Check if we have at least one true value
+      const hasAtLeastOneTrue = booleanAnswers.some((val) => val === true);
+
+      if (!hasAtLeastOneTrue) {
         return {
           isValid: false,
           message: "Please select at least one Technical Skill.",
@@ -92,7 +190,7 @@ export const useAssessmentValidation = ({
         questionsBySubCategory[subCategory].push(question);
       });
 
-      // Define required categories
+      // Define required categories (these should match your actual subCategory values)
       const requiredCategories = [
         "Learning Preferences",
         "Work Style Preferences",
@@ -100,22 +198,25 @@ export const useAssessmentValidation = ({
         "Career Goals & Logistics",
       ];
 
-      // Check each required category
+      // Check each required category has at least one "Yes" answer
       const incompleteCategories: string[] = [];
 
-      requiredCategories.forEach((category) => {
+      for (const category of requiredCategories) {
         const questionsInCategory = questionsBySubCategory[category] || [];
-        const hasAnswerInCategory = questionsInCategory.some(
-          (q) => answers[q.questionText] === true,
-        );
 
-        if (!hasAnswerInCategory && questionsInCategory.length > 0) {
+        // Check if at least one answer is true in this category
+        const hasTrueAnswer = questionsInCategory.some((q) => {
+          const answer = getAnswerValue(answers, q);
+          return isBooleanAnswer(answer) && answer === true;
+        });
+
+        if (!hasTrueAnswer && questionsInCategory.length > 0) {
           incompleteCategories.push(category);
         }
-      });
+      }
 
       if (incompleteCategories.length > 0) {
-        // Find the first unanswered question in the first incomplete category
+        // Find the first question in the first incomplete category
         const firstIncompleteCategory = incompleteCategories[0];
         const questionsInCategory =
           questionsBySubCategory[firstIncompleteCategory] || [];
@@ -124,14 +225,18 @@ export const useAssessmentValidation = ({
           ? currentQuestions.findIndex(
               (q) => q._id === firstQuestionInCategory._id,
             )
-          : -1;
+          : 0;
 
-        // Create a more detailed message
-        let message = "Please select at least one option from each category: ";
+        // Create a user-friendly message
+        let message = "Please select at least one option from each category. ";
+
         if (incompleteCategories.length > 2) {
-          message += `Missing ${incompleteCategories.length} categories`;
+          message += `${incompleteCategories.length} categories need at least one selection`;
         } else {
-          message += incompleteCategories.join(", ");
+          const formattedCategories = incompleteCategories.map((cat) =>
+            cat.replace(/ & /g, " and "),
+          );
+          message += `Please check: ${formattedCategories.join(", ")}`;
         }
 
         return {
@@ -150,42 +255,29 @@ export const useAssessmentValidation = ({
     const result = validateSection();
 
     if (!result.isValid && result.message) {
-      const isLearningWorkStyleError = section === "learningWorkStyle";
-      const isTechnicalSkillError = section === "technicalSkills";
-
-      // Determine toast style based on section
-      let toastStyle = {};
-      if (isLearningWorkStyleError) {
-        toastStyle = {
-          backgroundColor: "rgba(255, 193, 7, 0.35)", // Yellow/orange for learning style
-          color: "#856404",
-          border: "2px solid rgba(255, 193, 7, 0.7)",
-        };
-      } else if (isTechnicalSkillError) {
-        toastStyle = {
-          backgroundColor: "rgba(255, 140, 0, 0.35)", // Orange for technical skills
-          color: "#fff",
-          border: "2px solid rgba(255, 120, 0, 0.7)",
-        };
-      } else {
-        toastStyle = {
-          backgroundColor: "rgba(33, 150, 243, 0.3)", // Blue for other sections
-          color: "#fff",
-          border: "2px solid #2196F3",
-        };
-      }
+      // Clean, professional toast styling without neon effects
+      const toastStyle = {
+        backgroundColor: "#ffffff",
+        color: "#333333",
+        border: "1px solid #e5e7eb",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        fontSize: "14px",
+        fontWeight: "500",
+        padding: "12px 16px",
+      };
 
       toast.warning(result.message, {
         position: "top-right",
-        autoClose: 4000, // Longer timeout for learning style errors
-        style: {
-          ...toastStyle,
-          borderRadius: "10px",
-          fontWeight: "500",
-          fontFamily: "Poppins",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-        },
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        style: toastStyle,
         transition: Bounce,
       });
 
@@ -195,7 +287,7 @@ export const useAssessmentValidation = ({
     }
 
     return result.isValid;
-  }, [validateSection, setCurrentQuestionIndex, section]);
+  }, [validateSection, setCurrentQuestionIndex]);
 
   return {
     validateSection: validateSectionWithToast,

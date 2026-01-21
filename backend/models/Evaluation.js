@@ -1,4 +1,3 @@
-// Optional Schema Update - Only add if you want to store preparation recommendations
 const mongoose = require("mongoose");
 
 const evaluationSchema = new mongoose.Schema(
@@ -47,6 +46,7 @@ const evaluationSchema = new mongoose.Schema(
       required: false,
     },
 
+    // Category scores
     categoryScores: {
       academic: { type: Number, default: 0 },
       technical: { type: Number, default: 0 },
@@ -54,26 +54,7 @@ const evaluationSchema = new mongoose.Schema(
       logistics: { type: Number, default: 0 },
     },
 
-    categoryExplanations: {
-      academicReason: String,
-      technicalReason: String,
-      careerReason: String,
-      logisticsReason: String,
-    },
-
-    // ✅ OPTIONAL NEW FIELD: Only add if you want to store preparation recommendations
-    preparationNeeded: {
-      mathReview: { type: Boolean, default: false },
-      readingSupport: { type: Boolean, default: false },
-      timeManagement: { type: Boolean, default: false },
-      estimatedPrepTime: { type: String, default: "ready now" },
-    },
-
-    submissionDate: {
-      type: Date,
-      default: Date.now,
-    },
-
+    // Category explanations - FIXED: Only one definition
     categoryExplanations: {
       academicReason: { type: String, default: "" },
       technicalReason: { type: String, default: "" },
@@ -81,10 +62,47 @@ const evaluationSchema = new mongoose.Schema(
       logisticsReason: { type: String, default: "" },
     },
 
-    // Optional: Store raw answers
-    rawAnswers: {
-      type: mongoose.Schema.Types.Mixed,
+    // ✅ Preparation recommendations - Updated to match route
+    preparationNeeded: {
+      type: [String], // Array of strings
+      default: [],
+    },
+
+    // ✅ New fields for better analysis
+    successRoadmap: {
+      type: String,
+      default: "",
+    },
+
+    examAnalysis: {
+      type: String,
+      default: "",
+    },
+
+    prerequisites: {
+      type: String,
+      default: "",
+    },
+
+    // ✅ Foundational assessment data
+    foundationalScore: {
+      type: Number,
+      default: 0,
+    },
+
+    weaknesses: {
+      type: [String],
+      default: [],
+    },
+
+    answers: {
+      type: Object,
       required: false,
+    },
+
+    submissionDate: {
+      type: Date,
+      default: Date.now,
     },
   },
   {

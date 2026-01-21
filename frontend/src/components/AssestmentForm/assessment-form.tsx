@@ -61,7 +61,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     if (restoredFormData) return { ...baseStructure, ...restoredFormData };
 
     try {
-      const saved = localStorage.getItem("evaluation-answers");
+      const saved = StorageEncryptor.getItem("evaluation-answers");
       if (saved) {
         const parsed = JSON.parse(saved);
         // Merging ensures new keys (like foundationalAssessment) are never null
@@ -175,6 +175,15 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setCurrentQuestionIndex,
     categoryTitles,
   });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    const container = document.querySelector(".assessment-container");
+    if (container) {
+      container.scrollTop = 0;
+    }
+  }, [currentSection, showReview]);
 
   const handleNext = (): void => {
     if (validateSection()) {

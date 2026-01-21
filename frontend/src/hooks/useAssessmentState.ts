@@ -9,7 +9,10 @@ import type {
   AssessmentDisplayResult,
   ProgramType,
   AssessmentAnswers,
+  CategoryExplanations,
+  PreparationNeeded,
 } from "../types";
+import { StorageEncryptor } from "../components/ResultPage/utils/encryption";
 
 export const deriveDisplayData = (
   result: AssessmentResult | null,
@@ -56,7 +59,7 @@ export const deriveDisplayData = (
 
 const hasExistingProgress = (): boolean => {
   try {
-    const answers = localStorage.getItem("evaluation-answers");
+    const answers = StorageEncryptor.getItem("evaluation-answers");
     if (!answers) return false;
     const parsed = JSON.parse(answers);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
@@ -104,6 +107,7 @@ export const useAssessmentState = () => {
           summary:
             latest.summary || latest.evaluation || "No summary available",
           evaluation: latest.evaluation || "",
+          recommendations: latest.recommendations || "",
           detailedEvaluation: latest.detailedEvaluation || "",
           recommendedProgram: latest.recommendedCourse as ProgramType,
           user: {
@@ -125,6 +129,9 @@ export const useAssessmentState = () => {
             career: 0,
             logistics: 0,
           },
+          categoryExplanations:
+            latest.categoryExplanations as CategoryExplanations,
+          preperationNeeded: latest.PreparationNeeded as PreparationNeeded,
         };
 
         setRawResult(result);
@@ -155,7 +162,7 @@ export const useAssessmentState = () => {
     hasCompleted,
     loading,
     clearAssessmentStorage: () => {
-      localStorage.removeItem("evaluation-answers");
+      StorageEncryptor.removeItem("evaluation-answers");
       setHasProgress(false);
     },
     refetch: checkAssessmentStatus,

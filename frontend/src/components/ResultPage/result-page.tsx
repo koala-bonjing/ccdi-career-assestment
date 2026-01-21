@@ -27,6 +27,7 @@ import type { AssessmentResult } from "../../types";
 import { useResultsHydration } from "../../hooks/useResultHydaration";
 import RadarChart from "./chart/radar-chart";
 import ProgramBreakdownChart from "./chart/program-breakdown-chart";
+import FoundationalExamCard from "./cards/foundational-exam-card";
 
 interface ResultsPageProps {
   result?: AssessmentResult; // Make it optional
@@ -46,87 +47,12 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   // ✅ Priority: prop > store > assessment state
   const result = propResult || storeResult || assessmentResult;
 
-  console.log("result.categoryScores:", result?.categoryScores);
+  console.log("Answer received:", Object.keys(result?.answers.foundationalAssessment || {}));
 
   // ✅ Call all hooks BEFORE any conditional returns
   const normalizedPercent = useNormalizedPercentages(result?.percent);
   useResultsHydration();
 
-  // Derive section scores (0–100)
-  const computeSectionScores = () => {
-    if (!result?.answers) return null;
-
-    const {
-      foundationalAssessment,
-      academicAptitude,
-      technicalSkills,
-      careerInterest,
-      learningWorkStyle,
-    } = result.answers;
-
-    // ========== FOUNDATIONAL ASSESSMENT ==========
-    const foundationalValues = Object.values(
-      foundationalAssessment || {},
-    ).filter((v) => typeof v === "string" && v.trim() !== "") as string[];
-    const foundational = foundationalValues.length
-      ? Math.min(100, Math.round((foundationalValues.length / 37) * 100))
-      : 0;
-
-    // ========== ACADEMIC APTITUDE ==========
-    // ✅ FIXED: Add null check with || {}
-    const academicValues = Object.values(academicAptitude || {}).filter(
-      (v) => typeof v === "number",
-    ) as number[];
-    const academic = academicValues.length
-      ? Math.round(
-          (academicValues.reduce((a, b) => a + b, 0) / academicValues.length) *
-            20,
-        )
-      : 0;
-
-    // ========== TECHNICAL SKILLS ==========
-    // ✅ FIXED: Add null check
-    const techValues = Object.values(technicalSkills || {}).filter(
-      (v) => typeof v === "boolean",
-    );
-    const technical = techValues.length
-      ? Math.round(
-          (techValues.filter((v) => v).length / techValues.length) * 100,
-        )
-      : 0;
-
-    // ========== CAREER INTEREST ==========
-    // ✅ FIXED: Add null check
-    const careerValues = Object.values(careerInterest || {}).filter(
-      (v) => typeof v === "number",
-    ) as number[];
-    const career = careerValues.length
-      ? Math.round(
-          (careerValues.reduce((a, b) => a + b, 0) / careerValues.length) * 20,
-        )
-      : 0;
-
-    // ========== LEARNING WORK STYLE ==========
-    // ✅ FIXED: Add null check
-    const logisticsValues = Object.values(learningWorkStyle || {}).filter(
-      (v) => typeof v === "boolean",
-    );
-    const logistics = logisticsValues.length
-      ? Math.round(
-          (logisticsValues.filter((v) => v).length / logisticsValues.length) *
-            100,
-        )
-      : 0;
-
-    return {
-      foundational, // New score
-      academic,
-      technical,
-      career,
-      logistics,
-    };
-  };
-  const sectionScores = computeSectionScores();
   // ✅ NOW check if result exists from ANY source
   if (!result) {
     console.log("❌ No result found from any source - showing NoResultsView");
@@ -199,7 +125,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 {showDetailed && (
                   <DetailedExplanationSection
                     evaluation={result.detailedEvaluation}
-                    recommendations={result.evaluation}
+                    recommendations={result.recommendations}
                   />
                 )}
 
@@ -209,9 +135,18 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 />
 
                 <CompatibilityLegend />
+
                 {/* Advanced Insights */}
-                {result.categoryScores && sectionScores && (
+                {result.categoryScores && (
                   <>
+                    <ProgramBreakdownChart
+                      programName={result.recommendedProgram}
+                      academic={result.categoryScores.academic}
+                      technical={result.categoryScores.technical}
+                      career={result.categoryScores.career}
+                      logistics={result.categoryScores.logistics}
+                      categoryExplanations={result.categoryExplanations}
+                    />
                     <h4
                       className="text-center mt-5 mb-3 fw-bold"
                       style={{ color: "#2B3176" }}
@@ -225,16 +160,15 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                       logistics={result.categoryScores.logistics}
                       recommendedProgram={result.recommendedProgram}
                     />
-
-                    <ProgramBreakdownChart
-                      programName={result.recommendedProgram}
-                      academic={sectionScores.academic}
-                      technical={sectionScores.technical}
-                      career={sectionScores.career}
-                      logistics={sectionScores.logistics}
-                      categoryExplanations={result.categoryExplanations}
-                    />
                   </>
+                )}
+
+                {result.answers?.foundationalAssessment ? (
+                  <FoundationalExamCard
+                    userAnswers={result.answers.foundationalAssessment}
+                  />
+                ) : (
+                  <p>No foundational data found in result object.</p>
                 )}
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, Row, Col, ProgressBar } from "react-bootstrap";
 import {
   CheckCircle2,
@@ -23,6 +23,16 @@ interface QuestionGroup {
   questions: Question[];
 }
 
+// Fisher-Yates shuffle algorithm for randomizing arrays
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   questions,
   formData,
@@ -35,6 +45,23 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   setCurrentQuestionIndex,
 }) => {
   const [activeGroup, setActiveGroup] = useState(0);
+  const [shuffledOptionsMap, setShuffledOptionsMap] = useState<Record<string, string[]>>({});
+
+  // Initialize shuffled options once when questions load
+  useEffect(() => {
+    const newShuffledOptionsMap: Record<string, string[]> = {};
+    
+    questions.forEach((q) => {
+      if (q.options && q.options.length > 0) {
+        // Create a unique key for each question
+        const questionKey = `${q.questionText}-${q.subCategory || 'default'}`;
+        // Shuffle once and store it
+        newShuffledOptionsMap[questionKey] = shuffleArray(q.options);
+      }
+    });
+    
+    setShuffledOptionsMap(newShuffledOptionsMap);
+  }, [questions]); // Only re-shuffle when questions prop changes (on reload)
 
   // 1. Logic to calculate completion percentage
   const calculateProgress = () => {
@@ -171,7 +198,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
               <Col key={group.id} xs={4}>
                 <button
                   onClick={() => setActiveGroup(idx)}
-                  className="w-100 p-3 border-0 transition-all"
+                  className="w-100 p-3 transition-all border-2"
                   style={{
                     borderRadius: "12px",
                     background: isActive ? `${group.color}15` : "white",
@@ -186,7 +213,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                   <div
                     className="mt-2 fw-bold text-uppercase d-none d-md-block"
                     style={{
-                      fontSize: "0.7rem",
+                      fontSize: "0.9rem",
                       color: isActive ? group.color : "#666",
                     }}
                   >
@@ -225,6 +252,10 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
             {currentGroup.questions.map((q, qIdx) => {
               const selectedValue =
                 formData.foundationalAssessment[q.questionText];
+              const questionKey = `${q.questionText}-${q.subCategory || 'default'}`;
+              // Get the pre-shuffled options from our map
+              const randomizedOptions = shuffledOptionsMap[questionKey] || q.options || [];
+              
               return (
                 <Col key={qIdx} xs={12}>
                   <div className="mb-2 fw-bold d-flex align-items-center gap-2">
@@ -242,7 +273,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                   )}
 
                   <Row className="g-3">
-                    {q.options?.map((option, optIdx) => (
+                    {randomizedOptions.map((option, optIdx) => (
                       <Col key={optIdx} md={6}>
                         <div
                           onClick={() =>
@@ -305,7 +336,6 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
         onNext={handleNextWithValidation}
         onReset={onReset}
         isLastSection={false}
-        // 2. Added the requested logic here
         isComplete={isSectionComplete}
       />
     </Card>

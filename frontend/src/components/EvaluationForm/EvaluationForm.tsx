@@ -89,8 +89,8 @@ const EvaluationForm = () => {
 
     if (nested.foundationalAssessment) {
       Object.entries(nested.foundationalAssessment).forEach(
-        ([questios, value]) => {
-          flat[`prequisits.${questios}`] = value;
+        ([questionId, value]) => {
+          flat[`prerequisites.${questionId}`] = value;
         },
       );
     }
@@ -193,18 +193,21 @@ const EvaluationForm = () => {
         success: backendResult.success,
         summary: backendResult.summary,
         evaluation: backendResult.evaluation,
+        recommendations: backendResult.recommendations,
         detailedEvaluation: backendResult.detailedEvaluation,
         recommendedProgram: backendResult.recommendedProgram as ProgramType,
         user: backendResult.user,
         percent: backendResult.percent,
         programScores: backendResult.programScores || programScores,
         submissionDate: backendResult.submissionDate,
-        answers: backendResult.answers || answers,
+        answers: answers,
         aiAnswer: backendResult.aiAnswer,
         categoryExplanations: backendResult.categoryExplanations,
         categoryScores: backendResult.categoryScores,
+        preperationNeeded: backendResult.PreparationNeeded,
       };
 
+      console.log(transformed.answers.foundationalAssessment || {});
       // Store result in Zustand
       setResult(transformed);
 

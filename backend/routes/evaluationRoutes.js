@@ -7,6 +7,210 @@ const Evaluation = require("../models/Evaluation");
 
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY);
 
+// COMPLETE 37-QUESTION ANSWER KEY
+const FOUNDATIONAL_ANSWER_KEY = {
+  // Prerequisite Questions
+  found_prereq_001: "Grade 12 Math or higher",
+  found_prereq_002: "x = 5",
+  found_prereq_003: "20",
+  found_prereq_004: "I'm very comfortable reading in English",
+  found_prereq_005: "Click on Forgot Password",
+  found_prereq_006:
+    "I'm very comfortable - I can fix problems and install programs",
+  found_prereq_007: "Yes, and I can organize files into multiple folders",
+  found_prereq_008: "Yes, regularly",
+  found_prereq_009: "Adult",
+  found_prereq_010: "Took advanced science courses",
+  found_prereq_011: "Yes, I understand these concepts well",
+  found_prereq_012:
+    "Multiple tools including soldering iron or circuit testing equipment",
+  found_prereq_013: "Storage",
+  found_prereq_014: "Getting a file from the internet to your computer",
+  found_prereq_015: "The amount of electricity flowing",
+
+  // Study Habit Questions
+  found_study_001: "More than 15 hours",
+  found_study_002: "No, I can focus mostly on studies",
+  found_study_003: "As soon as I get the assignment",
+  found_study_004: "I create study schedules and use multiple study techniques",
+  found_study_005: "I ask the teacher and keep trying until I understand",
+  found_study_006: "I try for an hour or more before asking",
+  found_study_007: "Yes, and I have a good computer/internet too",
+  found_study_008: "Excellent internet access always available",
+  found_study_009: "I have an organized system (planner, app, etc.)",
+  found_study_010: "90 and above (excellent)",
+  found_study_011: "I handle pressure well and stay focused",
+  found_study_012: "I learn best in study groups",
+
+  // Problem Solving Questions
+  found_problem_001: "13 pesos",
+  found_problem_002: "10",
+  found_problem_003: "Check if the battery is charged",
+  found_problem_004: "6",
+  found_problem_005: "100 items",
+  found_problem_006: "John might be a programmer",
+  found_problem_007: "Set up a network (WiFi or cables with a router)",
+  found_problem_008: "Sales are increasing by 50 each week",
+  found_problem_009: "Electricity flows through your body",
+  found_problem_010: "Voltage doubles (adds together)",
+};
+
+// Helper to analyze readiness
+function analyzePrerequisites(foundational) {
+  if (!foundational)
+    return {
+      summary: "No foundational data provided",
+      mathScore: 0,
+      technicalScore: 0,
+      communicationScore: 0,
+      timeScore: 0,
+      overallScore: 0,
+      warnings: [],
+      recommendations: [],
+    };
+
+  // Calculate scores based on actual answers
+  let mathScore = 0;
+  let techScore = 0;
+  let communicationScore = 0;
+  let timeScore = 0;
+  let totalPossible = 0;
+
+  // Math questions (1-3)
+  if (
+    foundational["found_prereq_001"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_001"]
+  )
+    mathScore += 2;
+  if (
+    foundational["found_prereq_002"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_002"]
+  )
+    mathScore += 2;
+  if (
+    foundational["found_prereq_003"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_003"]
+  )
+    mathScore += 1;
+
+  // Technical questions (6-12)
+  if (
+    foundational["found_prereq_006"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_006"]
+  )
+    techScore += 2;
+  if (
+    foundational["found_prereq_007"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_007"]
+  )
+    techScore += 1;
+  if (
+    foundational["found_prereq_008"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_008"]
+  )
+    techScore += 1;
+  if (
+    foundational["found_prereq_009"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_009"]
+  )
+    techScore += 1;
+
+  // Communication (4-5, 13-15)
+  if (
+    foundational["found_prereq_004"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_004"]
+  )
+    communicationScore += 2;
+  if (
+    foundational["found_prereq_005"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_005"]
+  )
+    communicationScore += 1;
+  if (
+    foundational["found_prereq_013"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_013"]
+  )
+    communicationScore += 1;
+  if (
+    foundational["found_prereq_014"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_014"]
+  )
+    communicationScore += 1;
+  if (
+    foundational["found_prereq_015"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_prereq_015"]
+  )
+    communicationScore += 1;
+
+  // Time/Study habits (16-27)
+  if (
+    foundational["found_study_001"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_study_001"]
+  )
+    timeScore += 2;
+  if (
+    foundational["found_study_002"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_study_002"]
+  )
+    timeScore += 1;
+  if (
+    foundational["found_study_003"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_study_003"]
+  )
+    timeScore += 1;
+  if (
+    foundational["found_study_004"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_study_004"]
+  )
+    timeScore += 1;
+  if (
+    foundational["found_study_005"] ===
+    FOUNDATIONAL_ANSWER_KEY["found_study_005"]
+  )
+    timeScore += 1;
+
+  // Convert to 0-5 scale
+  mathScore = Math.min(5, Math.round(mathScore));
+  techScore = Math.min(5, Math.round((techScore * 5) / 6));
+  communicationScore = Math.min(5, Math.round((communicationScore * 5) / 6));
+  timeScore = Math.min(5, Math.round((timeScore * 5) / 5));
+  const overallScore = Math.round(
+    (mathScore + techScore + communicationScore + timeScore) / 4,
+  );
+
+  // Generate warnings and recommendations
+  const warnings = [];
+  const recommendations = [];
+
+  if (mathScore < 3) {
+    warnings.push("Limited math background");
+    recommendations.push("Review basic algebra and percentages");
+  }
+
+  if (techScore < 3) {
+    warnings.push("Limited technical experience");
+    recommendations.push("Practice basic computer skills before classes start");
+  }
+
+  if (timeScore < 3) {
+    warnings.push("Limited study time available");
+    recommendations.push(
+      "Consider part-time enrollment or time management strategies",
+    );
+  }
+
+  return {
+    summary: `Student shows ${overallScore >= 4 ? "strong" : overallScore >= 3 ? "moderate" : "basic"} foundational readiness`,
+    mathScore,
+    technicalScore: techScore,
+    communicationScore,
+    timeScore,
+    overallScore,
+    warnings,
+    recommendations,
+  };
+}
+
 // Save evaluation results
 router.post("/save-evaluation", async (req, res) => {
   try {
@@ -141,6 +345,22 @@ router.post("/evaluate-assessment", async (req, res) => {
     const { userId, fullName, email, preferredCourse, answers, programScores } =
       req.body;
 
+    // 2. IDENTIFY WEAKNESSES
+    const userFoundational = answers.foundationalAssessment || {};
+    let weaknesses = [];
+    let correctCount = 0;
+    const totalQuestions = Object.keys(FOUNDATIONAL_ANSWER_KEY).length;
+
+    Object.entries(FOUNDATIONAL_ANSWER_KEY).forEach(([id, data]) => {
+      if (userFoundational[id] === data.correct) {
+        correctCount++;
+      } else {
+        weaknesses.push(data.text);
+      }
+    });
+
+    const foundationalScore = Math.round((correctCount / totalQuestions) * 100);
+
     // Validation
     if (!userId || !answers) {
       console.error("❌ Validation failed: Missing userId or answers");
@@ -192,6 +412,16 @@ router.post("/evaluate-assessment", async (req, res) => {
             - Name: ${fullName || "Student"}
             - Initially Interested In: ${preferredCourse || "Not specified"}
             ${prerequisitesSection}
+            - Foundational Score: ${foundationalScore}%
+            - Areas where student struggled: ${weaknesses.length > 0 ? weaknesses.join(", ") : "None! Perfect score."}
+
+              PREREQUISITE READINESS (1-5 scale):
+              • Math Foundation: ${prereqAnalysis.mathScore}/5
+              • Technical Aptitude: ${prereqAnalysis.technicalScore}/5
+              • Communication Skills: ${prereqAnalysis.communicationScore}/5
+              • Time Commitment: ${prereqAnalysis.timeScore}/5
+              • Overall Readiness: ${prereqAnalysis.overallScore}/5
+
 
             STUDENT ASSESSMENT RESPONSES:
             ${formatted}
@@ -238,11 +468,15 @@ router.post("/evaluate-assessment", async (req, res) => {
             - technical: How well their technical interests and hands-on skills fit the program's focus
             - career: How aligned their career goals and job preferences are with typical outcomes of this program
             - logistics: How feasible the program is given their resources, time, equipment, and personal situation
+            8. **successRoadmap**: A list of 3-5 specific topics or skills the student should study BEFORE starting ${result.recommendedCourse} to ensure they prosper.
+            9. **examAnalysis**: A brief comment on their foundational exam performance.   
+            10. **preparationNeeded**: An array of 3 specific study topics based on their weaknesses (${weaknesses.join(", ")}).
             IMPORTANT GUIDELINES:
             - Base your recommendation on the ASSESSMENT DATA, not just their initial preference
             - Be specific and personalized in category explanations
             - Use the student's actual answers to justify each category
             - Make explanations actionable and encouraging
+
 
             CRITICAL RULES FOR PERCENTAGES:
             - If student shows EXTREME alignment with one program (e.g., loves math + theoretical work + wants research career), top score MUST be 85-95
@@ -255,7 +489,7 @@ router.post("/evaluate-assessment", async (req, res) => {
               "summary": "string",
               "result": "string",
               "detailedEvaluation": "string",
-              "recommendations": "string",
+              "recommendations": "A personalized advice based on the answers of the students make it ateast 1 paragraph make it simple and beginner friendly as possible and atainable and realistics",
               "recommendedCourse": "BSCS|BSIT|BSIS|BSET Electronics Technology|BSET Electrical Technology",
               "percent": {
                 "BSCS": number,
@@ -276,8 +510,12 @@ router.post("/evaluate-assessment", async (req, res) => {
                   "careerReason": "string",
                   "logisticsReason": "string"
                 },
+                "successRoadmap": "string",
+                "examAnalysis": "string",
                "prerequisites": "A 2-sentence summary of their foundational readiness (Math/Logic/Habits)",
-                "aiAnswer": "string"
+                "preparationNeeded": ["topic 1", "topic 2", "topic 3"] 
+    
+                
               }
               `;
 
@@ -286,17 +524,16 @@ router.post("/evaluate-assessment", async (req, res) => {
     // AI Evaluation
     const model = genAI.getGenerativeModel({
       model: "gemini-3-flash-preview",
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
     });
 
     const aiResponse = await model.generateContent(prompt);
     const raw = aiResponse.response.text();
     console.log("📥 Raw AI response:", raw.substring(0, 200) + "...");
 
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("AI did not return valid JSON format");
-    }
-    const parsed = JSON.parse(jsonMatch[0]);
+    const parsed = JSON.parse(raw);
 
     if (!parsed.recommendedCourse || !parsed.percent) {
       throw new Error(
@@ -332,6 +569,13 @@ router.post("/evaluate-assessment", async (req, res) => {
       },
       submissionDate: new Date(),
       prerequisites: parsed.prerequisites,
+      examAnalysis: parsed.examAnalysis,
+      prerequisites: parsed.prerequisites,
+      successRoadmap: parsed.successRoadmap,
+      preparationNeeded: parsed.preparationNeeded,
+      answers: answers,
+      foundationalScore: parsed.foundationalScore,
+      weaknesses: weaknesses,
     });
 
     // ✅ Add preparationNeeded if it exists
@@ -358,12 +602,16 @@ router.post("/evaluate-assessment", async (req, res) => {
       programScores: programScores || {},
       submissionDate: new Date().toISOString(),
       answers,
-      aiAnswer: parsed.aiAnswer,
       categoryExplanations: parsed.categoryExplanations,
       categoryScores: parsed.categoryScores,
       preparationNeeded: parsed.preparationNeeded || null,
       evaluationId: evaluationDoc._id,
       prerequisites: parsed.prerequisites,
+      successRoadmap: parsed.successRoadmap,
+      preparationNeeded: parsed.preparationNeeded,
+      foundationalScore: foundationalScore,
+      weaknesses: weaknesses,
+      prerequisiteAnalysis: prereqAnalysis,
     };
 
     console.log("✅ Sending response to client");

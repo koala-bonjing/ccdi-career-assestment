@@ -117,7 +117,16 @@ export interface PreparationNeeded {
   timeManagement: string;
 }
 
-
+export interface PrereqAnalysis {
+  summary: string;
+  mathScore: number;
+  technicalScore: number;
+  communicationScore: number;
+  timeScore: number;
+  overallScore: number;
+  warnings: string[];
+  recommendations: string[];
+}
 // 🔹 AssessmentResult — post-processed, ready for UI/storage
 export interface AssessmentResult {
   success: boolean;
@@ -142,6 +151,7 @@ export interface AssessmentResult {
   categoryScores: CategoryScores;
   preparationNeeded?: PreparationNeeded;
   examAnalysis: string;
+  prereqAnalysis: PrereqAnalysis;
 }
 
 // 🔹 Props for AssessmentForm

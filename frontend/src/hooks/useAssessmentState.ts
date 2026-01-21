@@ -11,6 +11,7 @@ import type {
   AssessmentAnswers,
   CategoryExplanations,
   PreparationNeeded,
+  PrereqAnalysis,
 } from "../types";
 
 export const deriveDisplayData = (
@@ -132,6 +133,7 @@ export const useAssessmentState = () => {
             latest.categoryExplanations as CategoryExplanations,
           preparationNeeded: latest.preparationNeeded as PreparationNeeded,
           examAnalysis: latest.examAnalysis || "",
+          prereqAnalysis: latest.prereqAnalysis as PrereqAnalysis,
         };
 
         console.log("Backend result:", latest);

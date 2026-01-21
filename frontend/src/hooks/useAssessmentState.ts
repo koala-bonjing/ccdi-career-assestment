@@ -12,7 +12,6 @@ import type {
   CategoryExplanations,
   PreparationNeeded,
 } from "../types";
-import { StorageEncryptor } from "../components/ResultPage/utils/encryption";
 
 export const deriveDisplayData = (
   result: AssessmentResult | null,
@@ -59,7 +58,7 @@ export const deriveDisplayData = (
 
 const hasExistingProgress = (): boolean => {
   try {
-    const answers = StorageEncryptor.getItem("evaluation-answers");
+    const answers = localStorage.getItem("evaluation-answers");
     if (!answers) return false;
     const parsed = JSON.parse(answers);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
@@ -131,8 +130,12 @@ export const useAssessmentState = () => {
           },
           categoryExplanations:
             latest.categoryExplanations as CategoryExplanations,
-          preperationNeeded: latest.PreparationNeeded as PreparationNeeded,
+          preparationNeeded: latest.preparationNeeded as PreparationNeeded,
+          examAnalysis: latest.examAnalysis || "",
         };
+
+        console.log("Backend result:", latest);
+        console.log("prereqAnalysis:", latest.prereqAnalysis);
 
         setRawResult(result);
         setHasCompleted(true);
@@ -162,7 +165,7 @@ export const useAssessmentState = () => {
     hasCompleted,
     loading,
     clearAssessmentStorage: () => {
-      StorageEncryptor.removeItem("evaluation-answers");
+      localStorage.removeItem("evaluation-answers");
       setHasProgress(false);
     },
     refetch: checkAssessmentStatus,

@@ -41,47 +41,51 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
 
   return (
     <Card
-      className="border-0 shadow-lg w-100 mt-5 mb-5"
-      style={{ maxWidth: "1200px", borderRadius: "16px" }}
+      // Responsive vertical margins: mt-3 on mobile, mt-5 on desktop
+      className="border-0 shadow-lg w-100 mt-3 mt-md-5 mb-3 mb-md-5 mx-auto"
+      style={{ maxWidth: "1300px", borderRadius: "16px" }}
     >
       <SectionHeader
         title="Technical Skills & Interests"
-        icon={<Wrench size={28} />}
+        // Slightly smaller icon for mobile
+        icon={<Wrench size={window.innerWidth < 768 ? 28 : 40} />}
         variant="warning"
         sectionType="technicalSkills"
       />
 
-      <Card.Body className="p-4 p-md-5">
-        {/* Progress Header */}
+      <Card.Body className="p-3 p-md-5">
+        {/* Progress Header - Stacks on extra small screens */}
         <div className="mb-4">
-          <div className="d-flex justify-content-between align-items-end mb-2">
+          <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-end mb-2 gap-2">
             <div>
-              <h5 className="fw-bold mb-1">Skills & Experience</h5>
+              <h5 className="fw-bold mb-1" style={{ fontSize: "1.1rem" }}>
+                Skills & Experience
+              </h5>
               <small className="text-muted">
                 Select all skills you have experience with
               </small>
             </div>
-            <div className="text-end">
-              <span className="fw-bold" style={{ color: "#f59e0b" }}>
+            <div className="text-sm-end w-100 w-sm-auto">
+              <span className="fw-bold d-block" style={{ color: "#f59e0b" }}>
                 {selectedCount} / {questions.length} Selected
               </span>
             </div>
           </div>
         </div>
 
-        {/* Info Text */}
-        <div className="text-center mb-4 px-3">
-          <p className="text-muted mb-0">
+        {/* Info Text - Smaller font and padding for mobile */}
+        <div className="text-center mb-4 px-1 px-md-3">
+          <p className="text-muted mb-0 small" style={{ lineHeight: "1.4" }}>
             {selectedCount === 0
               ? "Click on any skills you're familiar with. Don't worry if you're still learning!"
               : selectedCount === questions.length
-                ? "🎉 Awesome! You've selected all skills. Feel free to deselect any you're less confident about."
-                : `Great! ${selectedCount} skill${selectedCount !== 1 ? "s" : ""} selected. Keep going or move on when ready.`}
+                ? "🎉 Awesome! You've selected all skills."
+                : `Great! ${selectedCount} skill${selectedCount !== 1 ? "s" : ""} selected.`}
           </p>
         </div>
 
-        {/* Skills Grid */}
-        <Row className="g-3">
+        {/* Skills Grid - Reduced gutter for mobile (g-2) */}
+        <Row className="g-2 g-md-3">
           {questions.map((skill) => {
             const isSelected = !!formData.technicalSkills[skill.questionText];
 
@@ -96,6 +100,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                       skill.program,
                     )
                   }
+                  // Balanced padding for mobile thumbs
                   className="p-3 rounded-3 h-100 d-flex align-items-center gap-3"
                   style={{
                     cursor: "pointer",
@@ -107,23 +112,20 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                       : "none",
                   }}
                   role="button"
-                  tabIndex={0}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      onChange(
-                        "technicalSkills",
-                        skill.questionText,
-                        !isSelected,
-                        skill.program,
-                      );
-                    }
-                  }}
                 >
-                  <div className="flex-shrink-0">
+                  {/* flex-shrink-0 ensures the icon never squishes */}
+                  <div className="flex-shrink-0 d-flex align-items-center">
                     {isSelected ? (
-                      <CheckCircle2 size={24} style={{ color: "#f59e0b" }} />
+                      <CheckCircle2
+                        size={24}
+                        style={{ color: "#f59e0b", flexShrink: 0 }}
+                      />
                     ) : (
-                      <Circle size={24} className="text-muted" />
+                      <Circle
+                        size={24}
+                        className="text-muted"
+                        style={{ flexShrink: 0 }}
+                      />
                     )}
                   </div>
                   <span
@@ -131,7 +133,8 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                     style={{
                       fontWeight: isSelected ? "600" : "400",
                       color: isSelected ? "#292524" : "#57534e",
-                      fontSize: "0.95rem",
+                      fontSize: "0.9rem", // Slightly smaller for better text fitting
+                      lineHeight: "1.2",
                     }}
                   >
                     {skill.questionText}
@@ -142,12 +145,13 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           })}
         </Row>
 
-        {/* Helper Text */}
+        {/* Helper Text - Simplified padding for mobile */}
         <div className="mt-4 p-3 rounded-3" style={{ background: "#fef3c7" }}>
-          <p className="text-muted small mb-0 text-center">
-            💡 <strong>Tip:</strong> Include skills you're currently learning or
-            have basic knowledge of. This helps us recommend programs that match
-            your experience level.
+          <p
+            className="text-muted small mb-0 text-center"
+            style={{ fontSize: "0.8rem" }}
+          >
+            💡 <strong>Tip:</strong> Include skills you're currently learning.
           </p>
         </div>
       </Card.Body>

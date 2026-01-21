@@ -47,7 +47,10 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   // ✅ Priority: prop > store > assessment state
   const result = propResult || storeResult || assessmentResult;
 
-  console.log("Answer received:", Object.keys(result?.answers.foundationalAssessment || {}));
+  console.log(
+    "Answer received:",
+    Object.keys(result?.answers.foundationalAssessment || {}),
+  );
 
   // ✅ Call all hooks BEFORE any conditional returns
   const normalizedPercent = useNormalizedPercentages(result?.percent);
@@ -163,12 +166,11 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                   </>
                 )}
 
-                {result.answers?.foundationalAssessment ? (
+                {result.answers?.foundationalAssessment && (
                   <FoundationalExamCard
                     userAnswers={result.answers.foundationalAssessment}
+                    result={result}
                   />
-                ) : (
-                  <p>No foundational data found in result object.</p>
                 )}
               </div>
             </div>

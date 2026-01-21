@@ -1,6 +1,6 @@
 // src/components/WelcomeScreen/components/Modals/ContinueProgressModal.tsx
-import { Button, Modal } from 'react-bootstrap';
-import { History, Sparkles, } from 'lucide-react';
+import { Button, Modal } from "react-bootstrap";
+import { History, Sparkles } from "lucide-react";
 
 interface ContinueProgressModalProps {
   show: boolean;
@@ -18,16 +18,19 @@ export const ContinueProgressModal = ({
   <Modal show={show} onHide={onHide} centered className="modern-modal">
     <Modal.Header closeButton className="modern-modal-header border-0">
       <Modal.Title className="w-100 text-center">
-        <div className="modal-icon-wrapper"><History size={32} /></div>
+        <div className="modal-icon-wrapper">
+          <History size={32} />
+        </div>
         <h4 className="fw-bold mt-3">Continue Your Progress?</h4>
       </Modal.Title>
     </Modal.Header>
 
     <Modal.Body className="text-center pt-0">
       <p className="text-muted mb-4 modern-modal-text">
-        We found an incomplete assessment from your previous session. Choose to continue or start fresh.
+        We found an incomplete assessment from your previous session. Choose to
+        continue or start fresh.
       </p>
-        
+
       <div className="d-flex flex-column flex-sm-row justify-content-center gap-3">
         <Button
           variant="outline-primary"

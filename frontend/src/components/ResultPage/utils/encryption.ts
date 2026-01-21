@@ -4,6 +4,12 @@ import CryptoJS from "crypto-js";
 const SECRET_KEY =
   import.meta.env.VITE_STORAGE_ENCRYPTION_KEY || "fallback-secret-key";
 
+export interface EncryptedStorage {
+  getItem: (key: string) => string | null | Promise<string | null>;
+  setItem: (key: string, value: string) => void | Promise<void>;
+  removeItem: (key: string) => void | Promise<void>;
+}
+
 export const StorageEncryptor = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setItem: (key: string, data: any) => {
@@ -43,7 +49,7 @@ export const StorageEncryptor = {
       return null;
     }
   },
-
+    
   removeItem: (key: string) => {
     localStorage.removeItem(key);
   },

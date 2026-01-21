@@ -387,10 +387,10 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                           <ChevronDown size={20} />
                         )}
                       </Button>
-                      <h5 className="mb-0 fw-bold">
+                      <h5 className="mb-0 fw-bold ">
                         {categoryTitles[sectionKey]}
                       </h5>
-                      <Badge className="  me-1" bg="light" text="dark">
+                      <Badge className="ml-1 mr-1" bg="light" text="dark">
                         {answeredQuestions.length}
                       </Badge>
                     </div>

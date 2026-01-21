@@ -1,7 +1,8 @@
 // src/store/useEvaluationStore.ts
 import { create } from "zustand";
 import type { AssessmentResult } from "../src/types";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { StorageEncryptor } from "./../src/components/ResultPage/utils/encryption";
 
 type EvaluationState = {
   name: string;
@@ -57,6 +58,7 @@ export const useEvaluationStore = create<EvaluationState>()(
       setError: (error) => set({ error }),
 
       sectionKeys: [
+        "foundationalAssessment",
         "academicAptitude",
         "technicalSkills",
         "careerInterest",
@@ -78,6 +80,7 @@ export const useEvaluationStore = create<EvaluationState>()(
     }),
     {
       name: "evaluation-storage", // 2. Unique name for localStorage key
+      storage: createJSONStorage(() => StorageEncryptor),
     },
   ),
 );

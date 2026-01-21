@@ -20,20 +20,26 @@ import { CarouselSection } from "./sections/carousel-section";
 
 import { useAssessmentState } from "../../hooks/useAssessmentState";
 import { AssessmentCompletedModal } from "../ui/modals/assessment-completed-modal";
+import type { AssessmentAnswers } from "../../types";
+
 
 type Props = {
   onStartNew?: () => void;
+  restoredFormData?: AssessmentAnswers;
 };
 
-export default function WelcomeScreenComponent({ onStartNew }: Props) {
+export default function WelcomeScreenComponent({
+  restoredFormData,
+  onStartNew,
+}: Props) {
   const { hideWelcome } = useWelcomeScreen();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { setResult } = useEvaluationStore(); // ✅ ADD THIS
 
-  const [showProgressModal, setShowProgressModal] = useState(false);
   const [showProgressToast, setShowProgressToast] = useState(false);
   const [showCompletedModal, setShowCompletedModal] = useState(true);
+  const [showContinueModal, setShowContinueModal] = useState(false);
 
   const {
     assessmentResult,
@@ -46,11 +52,51 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
   useEffect(() => {
     if (isAuthenticated) {
       if (hasProgress && !hasCompleted) {
-        setShowProgressModal(true);
         setShowProgressToast(true);
       }
     }
   }, [isAuthenticated, hasCompleted, hasProgress]);
+  // In WelcomeScreenComponent.tsx
+  useEffect(() => {
+    const savedProgress = () => {
+      try {
+        // Check BOTH possible storage locations
+        const savedAnswers = localStorage.getItem("evaluation-answers");
+        const savedStorage = localStorage.getItem("evaluation-storage");
+
+        // Check if there are actual answers saved
+        if (savedAnswers) {
+          const parsedAnswers = JSON.parse(savedAnswers);
+          const hasAnswers = Object.values(parsedAnswers).some(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (section: any) => section && Object.keys(section).length > 0,
+          );
+          return hasAnswers;
+        }
+
+        // Or check Zustand storage
+        if (savedStorage) {
+          const parsed = JSON.parse(savedStorage);
+          // Zustand stores everything under state property
+          const hasAnswers =
+            parsed?.state?.answers &&
+            Object.keys(parsed.state.answers).length > 0;
+          return hasAnswers;
+        }
+      } catch (error) {
+        console.error("Error checking saved progress", error);
+      }
+      return false;
+    };
+
+    if (!restoredFormData && savedProgress()) {
+      const timer = setTimeout(() => {
+        setShowContinueModal(true);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [restoredFormData]);
 
   if (!isAuthenticated) {
     return (
@@ -79,9 +125,10 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
     hideWelcome();
   };
 
-  const continueAssessment = () => {
+  const handleContinueAssessment = () => {
     hideWelcome();
     navigate("/assessment");
+    setShowContinueModal(false);
   };
 
   // ✅ FIX: Load result into store BEFORE navigating
@@ -101,10 +148,10 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
   };
 
   const handleStartAssessment = () => {
-    if (hasProgress) setShowProgressModal(true);
-    else startNewAssessment();
+    startNewAssessment();
   };
 
+  
   return (
     <div className="welcome-assessment-container">
       <NavigationBar />
@@ -118,15 +165,15 @@ export default function WelcomeScreenComponent({ onStartNew }: Props) {
 
       <AssessmentCompletedModal
         assessmentResult={assessmentResult}
-        show={hasCompleted && showCompletedModal} // ✅
-        onHide={() => setShowCompletedModal(false)} // ✅ Now this works!
+        show={hasCompleted && showCompletedModal}
+        onHide={() => setShowCompletedModal(false)}
         onViewResults={viewResults}
       />
 
       <ContinueProgressModal
-        show={showProgressModal}
-        onHide={() => setShowProgressModal(false)}
-        onContinue={continueAssessment}
+        show={showContinueModal}
+        onHide={() => setShowContinueModal(false)}
+        onContinue={handleContinueAssessment}
         onStartNew={startNewAssessment}
       />
 

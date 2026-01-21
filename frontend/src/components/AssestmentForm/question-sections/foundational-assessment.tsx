@@ -13,6 +13,7 @@ import AssessmentActionFooter from "../assessment-action-footer";
 import { useAssessmentValidation } from "../../../hooks/useAssessmentValidation";
 import type { AssessmentSectionProps } from "../types";
 import { type Question } from "./../../../hooks/useAssessmentQuestions";
+import "./FoundationalAssessment.css";
 
 interface QuestionGroup {
   id: string;
@@ -45,33 +46,26 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   setCurrentQuestionIndex,
 }) => {
   const [activeGroup, setActiveGroup] = useState(0);
-  const [shuffledOptionsMap, setShuffledOptionsMap] = useState<Record<string, string[]>>({});
+  const [shuffledOptionsMap, setShuffledOptionsMap] = useState<
+    Record<string, string[]>
+  >({});
 
-  // Initialize shuffled options once when questions load
   useEffect(() => {
     const newShuffledOptionsMap: Record<string, string[]> = {};
-    
     questions.forEach((q) => {
       if (q.options && q.options.length > 0) {
-        // Create a unique key for each question
-        const questionKey = `${q.questionText}-${q.subCategory || 'default'}`;
-        // Shuffle once and store it
+        const questionKey = `${q.questionText}-${q.subCategory || "default"}`;
         newShuffledOptionsMap[questionKey] = shuffleArray(q.options);
       }
     });
-    
     setShuffledOptionsMap(newShuffledOptionsMap);
-  }, [questions]); // Only re-shuffle when questions prop changes (on reload)
+  }, [questions]);
 
-  // 1. Logic to calculate completion percentage
   const calculateProgress = () => {
     if (!questions || questions.length === 0) return 0;
-
-    // Count how many of the questions in this section have a value in formData
     const answeredCount = questions.filter(
       (q) => !!formData.foundationalAssessment[q.questionText],
     ).length;
-
     return Math.round((answeredCount / questions.length) * 100);
   };
 
@@ -81,19 +75,19 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
       label: "Basic Skills",
       icon: <GraduationCap size={24} />,
       color: "#2B3176",
-      description: "Math, English, and Basic Computer Literacy.",
+      description: "Math, English, and Computer Literacy.",
     },
     studyHabits: {
-      label: "Study Habits",
+      label: "Habits",
       icon: <ClipboardList size={24} />,
       color: "#EC2326",
-      description: "Your schedule, environment, and how you approach learning.",
+      description: "Your approach to learning.",
     },
     problemSolving: {
-      label: "Logic & Puzzles",
+      label: "Logic",
       icon: <BrainCircuit size={24} />,
       color: "#28a745",
-      description: "Simple logical challenges to see how you think.",
+      description: "Logical thinking challenges.",
     },
   };
 
@@ -104,13 +98,9 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
       if (!groups[sub]) groups[sub] = [];
       groups[sub].push(q as Question);
     });
-
     return Object.keys(categoryConfig).map((key) => ({
       id: key,
-      label: categoryConfig[key].label,
-      icon: categoryConfig[key].icon,
-      color: categoryConfig[key].color,
-      description: categoryConfig[key].description,
+      ...categoryConfig[key],
       questions: groups[key] || [],
     }));
   }, [questions]);
@@ -121,160 +111,146 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
     currentQuestions: questions as Question[],
     categoryTitles: { foundationalAssessment: "Foundational Assessment" },
     setCurrentQuestionIndex: (index) => {
-      // 1. Find which category/tab the question belongs to
       const question = questions[index];
       const subCategory = (question as Question).subCategory || "prerequisites";
-
-      // 2. Switch the active tab automatically if an error is found there
       const groupIndex = questionGroups.findIndex((g) => g.id === subCategory);
-      if (groupIndex !== -1) {
-        setActiveGroup(groupIndex);
-      }
-
-      // 3. Call the parent's setter to handle the index state
+      if (groupIndex !== -1) setActiveGroup(groupIndex);
       setCurrentQuestionIndex?.(index);
     },
   });
 
   const isGroupComplete = (groupIndex: number) => {
     const group = questionGroups[groupIndex];
-    if (group.questions.length === 0) return true;
-    return group.questions.every(
-      (q) => !!formData.foundationalAssessment[q.questionText],
+    return (
+      group.questions.length > 0 &&
+      group.questions.every(
+        (q) => !!formData.foundationalAssessment[q.questionText],
+      )
     );
-  };
-
-  const handleNextWithValidation = () => {
-    const isValid = validateSection();
-    if (isValid) onNext();
   };
 
   const currentGroup = questionGroups[activeGroup];
   const progressPercent = calculateProgress();
   const isSectionComplete = progressPercent === 100;
 
+    
+
   return (
-    <Card
-      className="border-0 shadow-lg w-100 mt-5 mb-5"
-      style={{ maxWidth: "1200px", borderRadius: "16px" }}
-    >
+    <Card className="assessment-card shadow-lg mx-auto">
       <SectionHeader
-        icon={<BrainCircuit />}
+        icon={<BrainCircuit size={40}/>}
         sectionType="foundationalAssessment"
         title="Foundational Assessment"
         variant="primary"
       />
 
-      <Card.Body className="p-4 p-md-5">
-        {/* Visual Progress Bar */}
-        <div className="mb-4">
+      <Card.Body className="p-3 p-md-5">
+        {/* Progress Bar */}
+        <div className="progress-container">
           <div className="d-flex justify-content-between align-items-end mb-2">
-            <div>
+            <div className="progress-header">
               <h5 className="fw-bold mb-0">Foundational Readiness</h5>
-              <small className="text-muted">
-                Answer all questions to unlock the next section
+              <small className="text-muted d-none d-sm-block">
+                Answer all questions to proceed
               </small>
             </div>
             <div className="text-end">
               <span className="fw-bold" style={{ color: "#2B3176" }}>
-                {progressPercent}% Complete
+                {progressPercent}%
               </span>
             </div>
           </div>
           <ProgressBar
             now={progressPercent}
             variant={isSectionComplete ? "success" : "primary"}
-            style={{ height: "10px", borderRadius: "5px" }}
+            style={{ height: "8px", borderRadius: "4px" }}
             animated={!isSectionComplete}
           />
         </div>
 
         {/* Tab Navigation */}
         <Row className="mb-4 g-2">
-          {questionGroups.map((group, idx) => {
-            const isActive = activeGroup === idx;
-            const complete = isGroupComplete(idx);
-            return (
-              <Col key={group.id} xs={4}>
-                <button
-                  onClick={() => setActiveGroup(idx)}
-                  className="w-100 p-3 transition-all border-2"
-                  style={{
-                    borderRadius: "12px",
-                    background: isActive ? `${group.color}15` : "white",
-                    border: `2px solid ${isActive ? group.color : "#eee"}`,
-                    transition: "0.3s ease",
-                    position: "relative",
-                  }}
+          {questionGroups.map((group, idx) => (
+            <Col key={group.id} xs={4}>
+              <button
+                onClick={() => setActiveGroup(idx)}
+                className={`tab-button ${activeGroup === idx ? "active" : ""}`}
+                style={
+                  {
+                    "--category-color": group.color,
+                    "--bg-active": `${group.color}15`,
+                  } as React.CSSProperties
+                }
+              >
+                <div
+                  className="tab-icon"
+                  style={{ color: activeGroup === idx ? group.color : "#999" }}
                 >
-                  <div style={{ color: isActive ? group.color : "#999" }}>
-                    {group.icon}
-                  </div>
-                  <div
-                    className="mt-2 fw-bold text-uppercase d-none d-md-block"
-                    style={{
-                      fontSize: "0.9rem",
-                      color: isActive ? group.color : "#666",
-                    }}
-                  >
-                    {group.label}
-                  </div>
-                  {complete && (
-                    <CheckCircle2
-                      size={16}
-                      className="text-success position-absolute"
-                      style={{ top: "8px", right: "8px" }}
-                    />
-                  )}
-                </button>
-              </Col>
-            );
-          })}
+                  {group.icon}
+                </div>
+                <div
+                  className="tab-label d-none d-md-block"
+                  style={{ color: activeGroup === idx ? group.color : "#666" }}
+                >
+                  {group.label}
+                </div>
+                {isGroupComplete(idx) && (
+                  <CheckCircle2
+                    size={16}
+                    className="text-success position-absolute"
+                    style={{ top: "5px", right: "5px" }}
+                  />
+                )}
+              </button>
+            </Col>
+          ))}
         </Row>
 
         {/* Content Area */}
         <div
-          className="p-4 rounded-4"
-          style={{
-            background: `linear-gradient(135deg, ${currentGroup.color}05 0%, #ffffff 100%)`,
-            border: `1px solid ${currentGroup.color}20`,
-            minHeight: "400px",
-          }}
+          className="content-area"
+          style={
+            {
+              "--category-color": currentGroup.color,
+              "--border-color": `${currentGroup.color}20`,
+              "--bg-gradient": `${currentGroup.color}05`,
+            } as React.CSSProperties
+          }
         >
           <div className="mb-4 text-center">
             <h4 className="fw-bold" style={{ color: currentGroup.color }}>
               {currentGroup.label}
             </h4>
-            <p className="text-muted">{currentGroup.description}</p>
+            <p className="text-muted small">{currentGroup.description}</p>
           </div>
 
           <Row className="g-4">
             {currentGroup.questions.map((q, qIdx) => {
               const selectedValue =
                 formData.foundationalAssessment[q.questionText];
-              const questionKey = `${q.questionText}-${q.subCategory || 'default'}`;
-              // Get the pre-shuffled options from our map
-              const randomizedOptions = shuffledOptionsMap[questionKey] || q.options || [];
-              
+              const questionKey = `${q.questionText}-${q.subCategory || "default"}`;
+              const randomizedOptions =
+                shuffledOptionsMap[questionKey] || q.options || [];
+
               return (
                 <Col key={qIdx} xs={12}>
-                  <div className="mb-2 fw-bold d-flex align-items-center gap-2">
-                    <span className="badge rounded-circle bg-light text-dark border">
+                  <div className="question-text mb-2">
+                    <span className="question-number badge rounded-circle bg-light text-dark border">
                       {qIdx + 1}
                     </span>
                     {q.questionText}
                   </div>
 
                   {q.helperText && (
-                    <div className="small text-muted mb-3 d-flex align-items-start gap-1">
+                    <div className="small text-muted mb-3 d-flex align-items-start gap-1 ps-4">
                       <Info size={14} className="mt-1 flex-shrink-0" />
                       <i>{q.helperText}</i>
                     </div>
                   )}
 
-                  <Row className="g-3">
+                  <Row className="g-2 g-md-3">
                     {randomizedOptions.map((option, optIdx) => (
-                      <Col key={optIdx} md={6}>
+                      <Col key={optIdx} xs={12} md={6}>
                         <div
                           onClick={() =>
                             onChange(
@@ -283,33 +259,31 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                               option,
                             )
                           }
-                          className="p-3 rounded-3 transition-all h-100"
-                          style={{
-                            cursor: "pointer",
-                            border: `2px solid ${selectedValue === option ? currentGroup.color : "#eee"}`,
-                            background:
-                              selectedValue === option
-                                ? `${currentGroup.color}08`
-                                : "white",
-                            boxShadow:
-                              selectedValue === option
-                                ? `0 4px 12px ${currentGroup.color}15`
-                                : "none",
-                          }}
+                          className={`option-card ${selectedValue === option ? "selected" : ""}`}
+                          style={
+                            {
+                              "--category-color": currentGroup.color,
+                              "--bg-selected": `${currentGroup.color}08`,
+                              "--shadow-color": `${currentGroup.color}15`,
+                            } as React.CSSProperties
+                          }
                         >
-                          <div className="d-flex align-items-center gap-3">
-                            {selectedValue === option ? (
-                              <CheckCircle2
-                                size={20}
-                                style={{ color: currentGroup.color }}
-                              />
-                            ) : (
-                              <Circle
-                                size={20}
-                                className="text-light-emphasis"
-                              />
-                            )}
+                          <div className="option-content">
+                            <div className="status-icon">
+                              {selectedValue === option ? (
+                                <CheckCircle2
+                                  size={20}
+                                  style={{ color: currentGroup.color }}
+                                />
+                              ) : (
+                                <Circle
+                                  size={20}
+                                  className="text-light-emphasis"
+                                />
+                              )}
+                            </div>
                             <span
+                              className="option-text"
                               style={{
                                 fontWeight:
                                   selectedValue === option ? "600" : "400",
@@ -333,7 +307,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
         currentSection={currentSection}
         totalSections={totalSections}
         onPrevious={onPrevious}
-        onNext={handleNextWithValidation}
+        onNext={() => validateSection() && onNext()}
         onReset={onReset}
         isLastSection={false}
         isComplete={isSectionComplete}

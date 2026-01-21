@@ -1,24 +1,23 @@
 import React from "react";
-// Ensure the import path to your map file is correct
 import { FOUNDATIONAL_QUESTIONS_MAP } from "../../../config/foundationalQuesdtions";
+import type { AssessmentResult } from "../../../types";
 
 interface Props {
   userAnswers: Record<string, string>;
+  result: AssessmentResult;
 }
 
-const FoundationalExamCard: React.FC<Props> = ({ userAnswers }) => {
-  // 1. Convert the Map into an array we can loop through
+const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
   const questionEntries = Object.entries(FOUNDATIONAL_QUESTIONS_MAP);
-
   let correctCount = 0;
   const totalQuestions = questionEntries.length;
 
-  // 2. Map the data and check for matches
+  // Process data for the display
   const processedResults = questionEntries.map(([id, data]) => {
-    // BRIDGE THE GAP: Check if answer is stored by ID OR by the Text
+    // Lookup by ID or Text key
     const userAnswerValue = userAnswers[id] || userAnswers[data.text];
-
     const isCorrect = userAnswerValue === data.correct;
+
     if (isCorrect && userAnswerValue) {
       correctCount++;
     }
@@ -30,10 +29,11 @@ const FoundationalExamCard: React.FC<Props> = ({ userAnswers }) => {
       helperText: data.helper,
       userAnswer: userAnswerValue,
       isCorrect,
+      // Subjective label if study-habit or explicitly marked
+      isSubjective: data.isSubjective || id.startsWith("found_study"),
     };
   });
 
-  // 3. If there are absolutely no answers found at all
   if (!userAnswers || Object.keys(userAnswers).length === 0) {
     return (
       <div className="card border-0 shadow-sm mt-5 p-4 text-center">
@@ -44,15 +44,15 @@ const FoundationalExamCard: React.FC<Props> = ({ userAnswers }) => {
 
   return (
     <div
-      className="card border-0 shadow-sm mt-5"
-      style={{ borderRadius: "20px" }}
+      className="card border-0 shadow-lg mt-5"
+      style={{ borderRadius: "24px" }}
     >
       <div className="card-header bg-white py-4 border-0">
         <h4 className="fw-bold mb-0" style={{ color: "#2B3176" }}>
-          Foundational Assessment Review
+          Foundational Readiness Review
         </h4>
         <p className="text-muted small mb-0">
-          Comparing your logical and technical responses to program requirements
+          Analysis of your background, habits, and logical reasoning skills
         </p>
       </div>
 
@@ -71,14 +71,14 @@ const FoundationalExamCard: React.FC<Props> = ({ userAnswers }) => {
               >
                 <p
                   className="fw-bold mb-2"
-                  style={{ fontSize: "0.9rem", color: "#333" }}
+                  style={{ fontSize: "0.95rem", color: "#2B3176" }}
                 >
                   {item.questionText}
                 </p>
 
-                <div className="d-flex flex-wrap gap-3">
+                <div className="d-flex flex-wrap gap-3 align-items-center">
                   <div className="small">
-                    <span className="text-muted">Your Answer: </span>
+                    <span className="text-muted">Your Response: </span>
                     <span
                       className={
                         item.isCorrect
@@ -91,8 +91,12 @@ const FoundationalExamCard: React.FC<Props> = ({ userAnswers }) => {
                   </div>
 
                   {!item.isCorrect && item.userAnswer && (
-                    <div className="small">
-                      <span className="text-muted">Correct Answer: </span>
+                    <div className="small d-flex align-items-center">
+                      <span className="text-muted me-1">
+                        {item.isSubjective
+                          ? "💡 Recommended:"
+                          : "✅ Correct Answer:"}
+                      </span>
                       <span className="text-success fw-bold">
                         {item.correctAnswer}
                       </span>
@@ -101,8 +105,7 @@ const FoundationalExamCard: React.FC<Props> = ({ userAnswers }) => {
                 </div>
 
                 {!item.isCorrect && item.userAnswer && (
-                  <div className="mt-2 p-2 bg-white rounded-3 small text-muted">
-                    💡{" "}
+                  <div className="mt-2 p-2 bg-white rounded-3 small text-muted border border-light">
                     <span style={{ fontStyle: "italic" }}>
                       {item.helperText}
                     </span>
@@ -114,15 +117,27 @@ const FoundationalExamCard: React.FC<Props> = ({ userAnswers }) => {
         </div>
 
         {/* Accuracy Summary */}
-        <div className="mt-4 p-4 bg-light rounded-4 text-center">
-          <div className="h5 fw-bold mb-1" style={{ color: "#2B3176" }}>
-            Foundational Accuracy:{" "}
+        <div
+          className="mt-5 p-4 text-center"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(43, 49, 118, 0.05) 0%, rgba(236, 35, 38, 0.05) 100%)",
+            borderRadius: "18px",
+            border: "1px solid rgba(43, 49, 118, 0.1)",
+          }}
+        >
+          <div className="h4 fw-bold mb-1" style={{ color: "#2B3176" }}>
+            Readiness Alignment:{" "}
             {Math.round((correctCount / totalQuestions) * 100)}%
           </div>
-          <div className="text-muted small">
-            You answered {correctCount} out of {totalQuestions} questions
-            correctly.
-          </div>
+          {result?.examAnalysis && (
+            <div className="alert alert-info mt-4">
+              <h6 className="fw-bold">
+                AI Evaluation of Your Foundational Assessment:
+              </h6>
+              <p className="mb-0">{result.examAnalysis}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

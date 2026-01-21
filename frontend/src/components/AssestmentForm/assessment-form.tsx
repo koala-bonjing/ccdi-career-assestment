@@ -20,7 +20,6 @@ import "./AssessmentForm.css";
 import { Info } from "lucide-react";
 import { AssessmentInstructionsModal } from "../ui/modals/instruction-modal";
 import FoundationalAssessmentSection from "./question-sections/foundational-assessment";
-import { StorageEncryptor } from "../ResultPage/utils/encryption";
 
 interface AssessmentFormProps {
   currentUser?: User;
@@ -61,7 +60,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     if (restoredFormData) return { ...baseStructure, ...restoredFormData };
 
     try {
-      const saved = StorageEncryptor.getItem("evaluation-answers");
+      const saved = localStorage.getItem("evaluation-answers");
       if (saved) {
         const parsed = JSON.parse(saved);
         // Merging ensures new keys (like foundationalAssessment) are never null
@@ -83,6 +82,7 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showReview, setShowReview] = useState(false);
+  const sectionKey = sections[currentSection];
 
   // ✅ ALGORITHM PART 2: Scoring State
   const [programScores, setProgramScores] = useState<ProgramScores>({
@@ -116,8 +116,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
       }
     }
   }, [questions, loading, currentSection]);
-
-  const sectionKey = sections[currentSection];
 
   // ✅ ALGORITHM PART 3: The Mapping & Weighting Logic
   const handleChange = (
@@ -221,8 +219,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setCurrentSection(0);
     setShowReview(false);
     setProgramScores({ BSCS: 0, BSIT: 0, BSIS: 0, "BSET-E": 0, "BSET-EL": 0 });
-    StorageEncryptor.removeItem("evaluation-answers");
-    StorageEncryptor.removeItem("currentAssessmentSection");
+    localStorage.removeItem("evaluation-answers");
+    localStorage.removeItem("currentAssessmentSection");
     clearAllAnswers();
     onStartNew?.();
   };
@@ -233,6 +231,8 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     return <div className="p-5 text-danger text-center">Error: {error}</div>;
   if (!questions)
     return <div className="p-5 text-center">No questions available.</div>;
+
+
 
   return (
     <div className="assessment-container">

@@ -61,7 +61,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
     >
       <SectionHeader
         title="Career Interest"
-        icon={<Workflow size={28} />}
+        icon={<Workflow size={40} />}
         variant="info"
         currentQuestionIndex={currentIndex}
         totalQuestions={questions.length}
@@ -79,7 +79,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
             <div className="d-flex gap-2 justify-content-center">
               <Button
                 variant="outline-primary"
-                size="lg"
+                size="sm"
                 onClick={() =>
                   setCurrentQuestionIndex(Math.max(0, currentIndex - 1))
                 }
@@ -90,7 +90,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
               </Button>
               <Button
                 variant="outline-primary"
-                size="lg"
+                size="sm"
                 onClick={() =>
                   setCurrentQuestionIndex(Math.max(0, currentIndex + 1))
                 }

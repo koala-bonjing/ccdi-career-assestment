@@ -57,7 +57,8 @@ const EvaluationForm = () => {
 
   const loadSavedData = (): void => {
     try {
-      const savedAnswers = StorageEncryptor.getItem("evaluation-answers");
+      const savedAnswers = localStorage.getItem("evaluation-answers");
+      console.log(savedAnswers);
       if (savedAnswers) {
         const parsed: AssessmentAnswers = JSON.parse(savedAnswers);
         console.log("📥 Loaded saved answers:", parsed);
@@ -204,10 +205,12 @@ const EvaluationForm = () => {
         aiAnswer: backendResult.aiAnswer,
         categoryExplanations: backendResult.categoryExplanations,
         categoryScores: backendResult.categoryScores,
-        preperationNeeded: backendResult.PreparationNeeded,
+        preparationNeeded: backendResult.preparationNeeded,
+        examAnalysis: backendResult.examAnalysis,
       };
+      console.log("Backend result:", backendResult);
+      console.log("prereqAnalysis:", backendResult.prereqAnalysis);
 
-      console.log(transformed.answers.foundationalAssessment || {});
       // Store result in Zustand
       setResult(transformed);
 
@@ -249,7 +252,12 @@ const EvaluationForm = () => {
   }
 
   if (showWelcome) {
-    return <WelcomeScreenComponent onStartNew={handleStartNew} />;
+    return (
+      <WelcomeScreenComponent
+        onStartNew={handleStartNew}
+        restoredFormData={restoredFormData}
+      />
+    );
   }
 
   if (result) {

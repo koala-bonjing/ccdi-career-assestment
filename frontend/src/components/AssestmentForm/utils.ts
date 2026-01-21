@@ -6,7 +6,7 @@ export const getRecommendedProgram = (scores: ProgramScores): ProgramType => {
   const entries = Object.entries(scores) as [keyof ProgramScores, number][];
   const [highestKey] = entries.reduce(
     (max, entry) => (entry[1] > max[1] ? entry : max),
-    ["BSCS", -1] as [keyof ProgramScores, number]
+    ["BSCS", -1] as [keyof ProgramScores, number],
   );
 
   const SHORT_TO_FULL: Record<keyof ProgramScores, ProgramType> = {
@@ -24,16 +24,17 @@ export const isSectionComplete = (
   sectionKey: keyof AssessmentAnswers,
   questions: { questionText: string }[],
   formData: {
+    foundationalAssessment: Record<string, string>;
     academicAptitude: Record<string, number>;
     technicalSkills: Record<string, boolean>;
     careerInterest: Record<string, number>;
     learningWorkStyle: Record<string, number>;
   },
-  requireFullCompletion = true
+  requireFullCompletion = true,
 ): boolean => {
   if (sectionKey === "technicalSkills") {
     return questions.some(
-      (q) => formData[sectionKey]?.[q.questionText] === true
+      (q) => formData[sectionKey]?.[q.questionText] === true,
     );
   }
 

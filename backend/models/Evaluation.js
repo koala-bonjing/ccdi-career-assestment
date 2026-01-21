@@ -64,7 +64,7 @@ const evaluationSchema = new mongoose.Schema(
 
     // ✅ Preparation recommendations - Updated to match route
     preparationNeeded: {
-      type: [String], // Array of strings
+      type: [String],
       default: [],
     },
 

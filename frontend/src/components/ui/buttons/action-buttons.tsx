@@ -1,5 +1,5 @@
 // src/pages/ResultsPage/components/ActionButtons.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Download, FileText } from "lucide-react";
 
 interface ActionButtonsProps {
@@ -13,12 +13,27 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   saving,
   onPrint,
 }) => {
+  // Logic to check for mobile/tablet view (breakpoint 992px)
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
-    <div className="text-center mb-4">
+    <div 
+      className={`mb-4 ${isMobile ? "d-flex flex-column gap-3 px-3" : "text-center"}`}
+    >
       <button
         onClick={onSave}
         disabled={saving}
-        className="btn btn-lg px-5 py-3 fw-bold me-3 m-2"
+        // Conditionally apply classes: 
+        // Mobile: full width, bottom margin handled by parent gap
+        // Desktop: specific padding (px-5), right margin (me-3), and general margin (m-2)
+        className={`btn btn-lg fw-bold ${isMobile ? "w-100 py-3" : "px-5 py-3 me-3 m-2"}`}
         style={{
           background: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
           color: "white",
@@ -53,7 +68,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 
       <button
         onClick={onPrint}
-        className="btn btn-lg px-5 py-3 fw-bold"
+        className={`btn btn-lg fw-bold ${isMobile ? "w-100 py-3" : "px-5 py-3"}`}
         style={{
           background: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
           color: "white",

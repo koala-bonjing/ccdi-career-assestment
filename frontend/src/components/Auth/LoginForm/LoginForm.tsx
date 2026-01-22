@@ -310,14 +310,14 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   Password
                 </label>
                 <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0">
-                    <Lock size={18} className="text-muted" />
+                  <span className="input-group-text bg-light border-1">
+                    <Lock size={18} className="text-muted border-end-1" />
                   </span>
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    className="form-control border-start-0"
+                    className="form-control "
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleInputChange}

@@ -1,5 +1,5 @@
 // src/pages/ResultsPage/components/DetailedExplanationSection.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BarChart3, Target } from "lucide-react";
 
 interface DetailedExplanationSectionProps {
@@ -11,8 +11,17 @@ const DetailedExplanationSection: React.FC<DetailedExplanationSectionProps> = ({
   evaluation,
   recommendations,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
-    <div className="row g-4 animate-fadeIn mb-5">
+    <div className={`row g-4 animate-fadeIn ${isMobile ? "mb-4" : "mb-5"}`}>
       {/* Evaluation */}
       <div className="col-lg-6">
         <div className="card border-0 h-100 shadow-sm">
@@ -26,7 +35,7 @@ const DetailedExplanationSection: React.FC<DetailedExplanationSectionProps> = ({
             <BarChart3 size={20} className="me-2" />
             Detailed Evaluation
           </div>
-          <div className="card-body p-4">
+          <div className={`card-body ${isMobile ? "p-3" : "p-4"}`}>
             <p className="text-dark mb-0" style={{ lineHeight: "1.6" }}>
               {evaluation}
             </p>
@@ -47,7 +56,7 @@ const DetailedExplanationSection: React.FC<DetailedExplanationSectionProps> = ({
             <Target size={20} className="me-2" />
             Skills to Learn
           </div>
-          <div className="card-body p-4">
+          <div className={`card-body ${isMobile ? "p-3" : "p-4"}`}>
             <p className="text-dark mb-0" style={{ lineHeight: "1.6" }}>
               {recommendations}
             </p>

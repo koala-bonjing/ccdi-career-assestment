@@ -1,5 +1,5 @@
 // src/pages/ResultsPage/components/DetailedExplanationToggle.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface DetailedExplanationToggleProps {
@@ -11,11 +11,20 @@ const DetailedExplanationToggle: React.FC<DetailedExplanationToggleProps> = ({
   isOpen,
   onToggle,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
-    <div className="text-center mb-4">
+    <div className={`text-center mb-4 ${isMobile ? "px-3" : ""}`}>
       <button
         onClick={onToggle}
-        className="btn btn-lg px-5 py-3 fw-bold"
+        className={`btn btn-lg fw-bold ${isMobile ? "w-100 py-3" : "px-5 py-3"}`}
         style={{
           background: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
           color: "white",

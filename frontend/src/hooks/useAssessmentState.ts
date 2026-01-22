@@ -1,9 +1,9 @@
 // src/components/WelcomeScreen/hooks/useAssessmentState.ts
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext"; // Fixed path
+import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import { BASE_URL } from "../config/constants"; // Fixed path
-
+import { BASE_URL } from "../config/constants";
+import { useEvaluationStore } from "../../store/useEvaluationStore"; // ADD THIS
 import type {
   AssessmentResult,
   AssessmentDisplayResult,
@@ -19,29 +19,7 @@ export const deriveDisplayData = (
 ): AssessmentDisplayResult | null => {
   if (!result) return null;
 
-  const programLabels = [
-    "BSIT",
-    "BSCS",
-    "BSIS",
-    "BSET Electronics Technology",
-    "BSET Electrical Technology",
-  ] as const;
-
-  // Defensive check: Ensure result.percent exists before mapping
-  const percentData = result.percent || {};
-
-  const sortedPrograms = programLabels
-    .map((prog) => ({
-      program: prog,
-      percent: percentData[prog] ?? 0,
-    }))
-    .sort((a, b) => b.percent - a.percent);
-
-  const topPaths = sortedPrograms
-    .filter((p) => p.percent > 0)
-    .slice(0, 3)
-    .map((p) => p.program);
-
+  // Your existing deriveDisplayData logic...
   return {
     ...result,
     completed: result.success,
@@ -49,11 +27,9 @@ export const deriveDisplayData = (
       ? new Date(result.submissionDate).toLocaleDateString()
       : new Date().toLocaleDateString(),
     score: Math.round(
-      Math.max(...programLabels.map((p) => percentData[p] ?? 0), 0),
+      Math.max(...(Object.values(result.percent || {}) as number[]), 0),
     ),
     totalQuestions: 50,
-    recommendedPaths: topPaths,
-    strengths: ["Analytical Thinking", "Problem Solving", "Technical Aptitude"],
   };
 };
 
@@ -77,82 +53,176 @@ const hasExistingProgress = (): boolean => {
   }
 };
 
+// NEW: Helper to check Zustand store
+const checkEvaluationStore = (): AssessmentResult | null => {
+  try {
+    // Get the current state from Zustand store
+    const storeState = useEvaluationStore.getState();
+
+    if (
+      storeState.result &&
+      (storeState.result.recommendedProgram || storeState.result.success)
+    ) {
+      console.log("✅ Found assessment data in evaluation store");
+      return storeState.result;
+    }
+  } catch (error) {
+    console.error("Error accessing evaluation store:", error);
+  }
+  return null;
+};
+
+// NEW: Helper to check localStorage for completed results
+const checkLocalStorageForResult = (): AssessmentResult | null => {
+  try {
+    // Check multiple possible keys
+    const storageKeys = [
+      "assessment-result",
+      "evaluation-storage",
+      "evaluation-result",
+    ];
+
+    for (const key of storageKeys) {
+      const data = localStorage.getItem(key);
+      if (data) {
+        const parsed = JSON.parse(data);
+
+        // Check if it's the result object
+        if (parsed?.state?.result) {
+          console.log(`✅ Found in ${key} (Zustand format)`);
+          return parsed.state.result;
+        }
+
+        // Check if it's the direct result
+        if (parsed?.recommendedProgram || parsed?.success) {
+          console.log(`✅ Found in ${key} (direct result)`);
+          return parsed;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error reading localStorage:", error);
+  }
+  return null;
+};
+
 export const useAssessmentState = () => {
   const { user } = useAuth();
   const [rawResult, setRawResult] = useState<AssessmentResult | null>(null);
   const [hasProgress, setHasProgress] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dataSource, setDataSource] = useState<
+    "store" | "local" | "api" | "none"
+  >("none");
 
   const checkAssessmentStatus = async () => {
-    if (!user?._id) {
+    setLoading(true);
+
+    console.log("🔍 Starting assessment status check...");
+
+    // 1. FIRST: Check Zustand evaluation store (fastest)
+    const storeResult = checkEvaluationStore();
+    if (storeResult) {
+      console.log("📦 Using data from evaluation store");
+      setRawResult(storeResult);
+      setHasCompleted(true);
+      setDataSource("store");
       setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
-      setHasProgress(hasExistingProgress());
-
-      const response = await axios.get(
-        `${BASE_URL}/api/get-evaluations/${user._id}`,
-      );
-
-      if (response.data.success && response.data.data.length > 0) {
-        const latest = response.data.data[0];
-
-        // ✅ FIXED: Mapping logic with fallback objects instead of strings
-        const result: AssessmentResult = {
-          success: true,
-          summary:
-            latest.summary || latest.evaluation || "No summary available",
-          evaluation: latest.evaluation || "",
-          recommendations: latest.recommendations || "",
-          detailedEvaluation: latest.detailedEvaluation || "",
-          recommendedProgram: latest.recommendedCourse as ProgramType,
-          user: {
-            _id: user._id,
-            name: user.fullName || user.name || "Student",
-            email: user.email || "",
-            preferredCourse: user.preferredCourse || "Undecided",
-          },
-          percent: latest.percent || {},
-          programScores: latest.programScores || {},
-          submissionDate: latest.submissionDate || new Date().toISOString(),
-          // ✅ FIX: answers must be an object, not a string ""
-          answers: (latest.answers ||
-            latest.rawAnswers ||
-            {}) as AssessmentAnswers,
-          categoryScores: latest.categoryScores || {
-            academic: 0,
-            technical: 0,
-            career: 0,
-            logistics: 0,
-          },
-          categoryExplanations:
-            latest.categoryExplanations as CategoryExplanations,
-          preparationNeeded: latest.preparationNeeded as PreparationNeeded,
-          examAnalysis: latest.examAnalysis || "",
-          prereqAnalysis: latest.prereqAnalysis as PrereqAnalysis,
-        };
-
-        console.log("Backend result:", latest);
-        console.log("prereqAnalysis:", latest.prereqAnalysis);
-
-        setRawResult(result);
-        setHasCompleted(true);
-      } else {
-        setRawResult(null);
-        setHasCompleted(false);
-      }
-    } catch (error) {
-      // This is where your 500 error is caught
-      console.error("❌ Error fetching assessment status:", error);
-      setRawResult(null);
-      setHasCompleted(false);
-    } finally {
+    // 2. SECOND: Check localStorage for saved results
+    const localResult = checkLocalStorageForResult();
+    if (localResult) {
+      console.log("💾 Using data from localStorage");
+      setRawResult(localResult);
+      setHasCompleted(true);
+      setDataSource("local");
       setLoading(false);
+      return;
     }
+
+    // 3. THIRD: Check for progress (incomplete assessment)
+    const progress = hasExistingProgress();
+    setHasProgress(progress);
+    console.log("📝 Progress check:", progress);
+
+    // 4. FOURTH: Check API for user's assessments (only if we have user ID)
+    if (user?._id) {
+      try {
+        console.log(
+          `📡 Calling API: ${BASE_URL}/api/get-evaluations/${user._id}`,
+        );
+
+        const response = await axios.get(
+          `${BASE_URL}/api/get-evaluations/${user._id}`,
+          { timeout: 5000 },
+        );
+
+        console.log("📡 API Response:", {
+          success: response.data.success,
+          dataCount: response.data.data?.length || 0,
+        });
+
+        if (response.data.success && response.data.data.length > 0) {
+          console.log("🌐 Using data from API");
+          const latest = response.data.data[0];
+
+          const result: AssessmentResult = {
+            success: true,
+            summary:
+              latest.summary || latest.evaluation || "No summary available",
+            evaluation: latest.evaluation || "",
+            recommendations: latest.recommendations || "",
+            detailedEvaluation: latest.detailedEvaluation || "",
+            recommendedProgram: latest.recommendedCourse as ProgramType,
+            user: {
+              _id: user._id,
+              name: user.fullName || user.name || "Student",
+              email: user.email || "",
+              preferredCourse: user.preferredCourse || "Undecided",
+            },
+            percent: latest.percent || {},
+            programScores: latest.programScores || {},
+            submissionDate: latest.submissionDate || new Date().toISOString(),
+            answers: (latest.answers ||
+              latest.rawAnswers ||
+              {}) as AssessmentAnswers,
+            categoryScores: latest.categoryScores || {
+              academic: 0,
+              technical: 0,
+              career: 0,
+              logistics: 0,
+            },
+            categoryExplanations:
+              latest.categoryExplanations as CategoryExplanations,
+            preparationNeeded: latest.preparationNeeded as PreparationNeeded,
+            examAnalysis: latest.examAnalysis || "",
+            prereqAnalysis: latest.prereqAnalysis as PrereqAnalysis,
+            successRoadMap: latest.successRoadMap || "",
+          };
+
+          setRawResult(result);
+          setHasCompleted(true);
+          setDataSource("api");
+
+          // Save to localStorage for future use
+          localStorage.setItem("assessment-result", JSON.stringify(result));
+        } else {
+          console.log("ℹ️ No assessment data found in API");
+          setDataSource("none");
+        }
+      } catch (error) {
+        console.error("❌ API call failed:", error);
+        setDataSource("none");
+      }
+    } else {
+      console.log("👤 No user ID, skipping API check");
+      setDataSource("none");
+    }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -161,6 +231,15 @@ export const useAssessmentState = () => {
 
   const assessmentResult = deriveDisplayData(rawResult);
 
+  console.log("🎯 useAssessmentState final state:", {
+    dataSource,
+    hasCompleted,
+    hasProgress,
+    loading,
+    rawResult: rawResult?.recommendedProgram,
+    displayResult: assessmentResult?.recommendedProgram,
+  });
+
   return {
     assessmentResult,
     hasProgress,
@@ -168,8 +247,16 @@ export const useAssessmentState = () => {
     loading,
     clearAssessmentStorage: () => {
       localStorage.removeItem("evaluation-answers");
+      localStorage.removeItem("assessment-result");
+      localStorage.removeItem("evaluation-storage");
       setHasProgress(false);
+      setHasCompleted(false);
+      setRawResult(null);
+
+      // Also clear from evaluation store
+      useEvaluationStore.getState().clearAllAnswers?.();
     },
     refetch: checkAssessmentStatus,
+    dataSource,
   };
 };

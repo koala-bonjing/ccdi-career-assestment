@@ -318,7 +318,7 @@ function flattenAnswers(nested) {
     Object.entries(nested.learningWorkStyle).forEach(([q, v]) => {
       flat[`learningStyle.${q}`] = v;
     });
-  return flat;
+  return flat;  
 }
 
 function formatAnswers(flat) {

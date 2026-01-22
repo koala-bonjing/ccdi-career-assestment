@@ -208,6 +208,7 @@ const EvaluationForm = () => {
         preparationNeeded: backendResult.preparationNeeded,
         examAnalysis: backendResult.examAnalysis,
         prereqAnalysis: backendResult.prereqAnalysis,
+        successRoadMap: backendResult.successRoadMap,
       };
       console.log("Backend result:", backendResult);
       console.log("prereqAnalysis:", backendResult.prereqAnalysis);

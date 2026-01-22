@@ -1,5 +1,5 @@
 // src/pages/ResultsPage/components/CompatibilityChart.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   BarChart3,
   Cpu, // 🔹 BSCS
@@ -69,7 +69,7 @@ const getProgressBarColor = (percentage: number): string => {
   } else if (percentage >= 60) {
     return "#1E90FF"; // Dodger blue or Bootstrap primary — for "Strong Fit"
   } else if (percentage >= 40) {
-    return "#dc3545"; // Orange/amber — for "Moderate Fit" (more intuitive than warning yellow on progress bar)
+    return "#dc3545"; // Orange/amber — for "Moderate Fit"
   } else {
     return "#dc3545"; // Red — for "Limited Fit"
   }
@@ -79,7 +79,17 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
   percentages,
   recommendedProgram,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const maxPercentage = Math.max(...Object.values(percentages));
+
   return (
     <div
       className="card border-0 shadow-lg"
@@ -89,19 +99,22 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
         borderRadius: "20px",
       }}
     >
-      <div className="card-body p-4 p-lg-5">
+      <div className={`card-body ${isMobile ? "p-3" : "p-5"}`}>
         <h3
           className="text-center mb-1 fw-bold"
-          style={{ color: "#2B3176", fontSize: "2rem" }}
+          style={{ 
+            color: "#2B3176", 
+            fontSize: isMobile ? "1.5rem" : "2rem" 
+          }}
         >
-          <BarChart3 size={32} className="me-3" />
+          <BarChart3 size={isMobile ? 24 : 32} className="me-3" />
           Program Compatibility
         </h3>
-        <p className="text-center text-muted mb-4 fs-5">
+        <p className={`text-center text-muted mb-4 ${isMobile ? "fs-6" : "fs-5"}`}>
           This chart shows how well your profile aligns with each CCDI program
         </p>
 
-        {/* 🔹 Responsive grid: full width on mobile, 2 columns on desktop */}
+        {/* 🔹 Responsive grid: col-lg-6 ensures stacking happens exactly at 992px */}
         <div className="row g-4">
           {Object.entries(ProgramLabels).map(([programType, programLabel]) => {
             const percentage = getPercentage(percentages, programType);
@@ -110,7 +123,7 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
             return (
               <div
                 key={programType}
-                className="col-12 col-md-6" // ✅ Full width on mobile, half on tablet+
+                className="col-12 col-lg-6" 
               >
                 <div
                   className="card border-0 h-100 shadow-sm"
@@ -119,14 +132,12 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
                   }}
                 >
                   <div
-                    className="card-body p-3 p-md-4 "
+                    className={`card-body ${isMobile ? "p-3" : "p-4"}`}
                     style={{
                       border: "3px solid #2B3176",
                       borderRadius: "15px",
                     }}
                   >
-                    {" "}
-                    {/* ✅ Smaller padding on mobile */}
                     <div className="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
                       <div className="d-flex align-items-center flex-shrink-1">
                         <span className="me-2">
@@ -136,7 +147,9 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
                           className={`mb-0 fw-bold ${
                             isRecommended ? "text-primary" : "text-dark"
                           }`}
-                          style={{ fontSize: "1.1rem" }} // Prevent oversized text on mobile
+                          style={{ 
+                            fontSize: isMobile ? "1rem" : "1.1rem" 
+                          }} 
                         >
                           {programLabel}
                         </h5>
@@ -146,7 +159,9 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
                           className={`fw-bold ${
                             isRecommended ? "text-success" : "text-dark"
                           }`}
-                          style={{ fontSize: "1.25rem" }}
+                          style={{ 
+                            fontSize: isMobile ? "1.1rem" : "1.25rem" 
+                          }}
                         >
                           {percentage}%
                         </span>

@@ -22,7 +22,6 @@ import { useAssessmentState } from "../../hooks/useAssessmentState";
 import { AssessmentCompletedModal } from "../ui/modals/assessment-completed-modal";
 import type { AssessmentAnswers } from "../../types";
 
-
 type Props = {
   onStartNew?: () => void;
   restoredFormData?: AssessmentAnswers;
@@ -35,11 +34,20 @@ export default function WelcomeScreenComponent({
   const { hideWelcome } = useWelcomeScreen();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { setResult } = useEvaluationStore(); // ✅ ADD THIS
+  const { setResult } = useEvaluationStore();
 
   const [showProgressToast, setShowProgressToast] = useState(false);
   const [showCompletedModal, setShowCompletedModal] = useState(true);
   const [showContinueModal, setShowContinueModal] = useState(false);
+
+  // Responsive state logic
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const {
     assessmentResult,
@@ -47,6 +55,16 @@ export default function WelcomeScreenComponent({
     hasCompleted,
     clearAssessmentStorage,
   } = useAssessmentState();
+
+  console.log("📋 Assessment Data Check:", {
+    fromHook: {
+      assessmentResult: assessmentResult?.recommendedProgram,
+      hasCompleted,
+      hasProgress,
+    },
+    fromStore: useEvaluationStore.getState().result?.recommendedProgram,
+    areTheyEqual: assessmentResult === useEvaluationStore.getState().result,
+  });
 
   // Side effects on auth change
   useEffect(() => {
@@ -56,7 +74,8 @@ export default function WelcomeScreenComponent({
       }
     }
   }, [isAuthenticated, hasCompleted, hasProgress]);
-  // In WelcomeScreenComponent.tsx
+
+  // Check for saved progress
   useEffect(() => {
     const savedProgress = () => {
       try {
@@ -103,7 +122,7 @@ export default function WelcomeScreenComponent({
       <div className="assessment-container">
         <NavigationBar />
         <div
-          className="main-content d-flex align-items-center justify-content-center"
+          className={`main-content d-flex align-items-center justify-content-center ${isMobile ? "px-3" : ""}`}
           style={{ minHeight: "80vh" }}
         >
           <div className="text-center">
@@ -151,12 +170,15 @@ export default function WelcomeScreenComponent({
     startNewAssessment();
   };
 
-  
   return (
     <div className="welcome-assessment-container">
       <NavigationBar />
 
-      <ToastContainer position="top-center" className="p-3">
+      <ToastContainer 
+        position="top-center" 
+        className={isMobile ? "p-2 w-100" : "p-3"} 
+        style={isMobile ? { maxWidth: "100%" } : {}}
+      >
         <ProgressToast
           show={showProgressToast}
           onClose={() => setShowProgressToast(false)}
@@ -177,11 +199,16 @@ export default function WelcomeScreenComponent({
         onStartNew={startNewAssessment}
       />
 
-      <div className="welcome-main-content">
+      <div className={`welcome-main-content ${isMobile ? "px-2 pb-4" : "pb-5"}`}>
         <div className="d-flex justify-content-center">
-          <div className="w-100">
+          {/* Responsive Wrapper: Full width on mobile, Container on desktop */}
+          <div className={isMobile ? "w-100" : "container-lg"}>
+            
             <HeaderSection hasCompleted={hasCompleted} />
-            <div className="modern-welcome-card p-4 p-lg-5">
+            
+            <div 
+              className={`modern-welcome-card ${isMobile ? "p-3 mt-3" : "p-5 mt-4"}`}
+            >
               <UserSection
                 user={user}
                 hasCompleted={hasCompleted}

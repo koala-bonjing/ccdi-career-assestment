@@ -152,6 +152,7 @@ export interface AssessmentResult {
   preparationNeeded?: PreparationNeeded;
   examAnalysis: string;
   prereqAnalysis: PrereqAnalysis;
+  successRoadMap: string;
 }
 
 // 🔹 Props for AssessmentForm
@@ -185,9 +186,6 @@ export interface AssessmentDisplayResult extends AssessmentResult {
   // Approx total questions (adjust if dynamic)
   totalQuestions: number;
   // Human-readable top 3 programs
-  recommendedPaths: string[]; // e.g., ["BSIT", "BSCS", "BSET Electronics"]
-  // Placeholder for now — can be extracted from evaluation text later
-  strengths: string[];
 }
 
 export type SectionAnswers = Record<

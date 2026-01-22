@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Navbar, Nav, Container, Button } from "react-bootstrap";
+// 1. Added OverlayTrigger and Tooltip to imports
+import {
+  Navbar,
+  Nav,
+  Container,
+  Button,
+  OverlayTrigger,
+  Tooltip,
+  type TooltipProps,
+} from "react-bootstrap";
 import { LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +19,6 @@ import { LogoutModal } from "../ui/modals/logout-modal";
 function NavigationBar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { isAuthenticated, logout } = useAuth();
-
   const navigate = useNavigate();
 
   const handleLogoutClick = (e: { preventDefault: () => void }) => {
@@ -28,49 +36,57 @@ function NavigationBar() {
     navigate("/welcome");
   };
 
+  // 2. Define the Tooltip component
+  const renderHomeTooltip = (props: TooltipProps) => (
+    <Tooltip id="home-tooltip" {...props}>
+      ← Click to go to Home
+    </Tooltip>
+  );
+
   return (
     <>
       <Navbar variant="dark" expand="lg" fixed="top" className="custom-navbar">
         <Container fluid>
-          {/* Brand: Responsive flex layout */}
-          <Navbar.Brand
-            href="#home"
-            onClick={handleHome}
-            className="d-flex align-items-center"
+          {/* 3. Wrap Navbar.Brand with OverlayTrigger */}
+          <OverlayTrigger
+            placement="bottom"
+            delay={{ show: 250, hide: 400 }}
+            overlay={renderHomeTooltip}
           >
-            {/* Logo: shrink on sm/md */}
-            <img
-              src={LOGO}
-              alt="CCDI Logo"
-              width="70"
-              height="70"
-              className="me-2"
-              style={{ objectFit: "contain" }}
-            />
+            <Navbar.Brand
+              href="#home"
+              onClick={handleHome}
+              className="d-flex align-items-center"
+              style={{ cursor: "pointer" }}
+            >
+              <img
+                src={LOGO}
+                alt="CCDI Logo"
+                width="70"
+                height="70"
+                className="me-2"
+                style={{ objectFit: "contain" }}
+              />
 
-            {/* Text: smaller & tighter spacing on mobile */}
-            <div className="d-flex flex-column">
-              <span className="fw-bold fs-5 fs-md-4 fs-lg-3 text-nowrap">
-                CCDI
-              </span>
-              <span
-                className="fw-light text-nowrap "
-                style={{
-                  fontSize: "clamp(0.7rem, 2.5vw, 1rem)", // responsive font
-                  lineHeight: 1.2,
-                  fontWeight: 400,
-                }}
-              >
-                Career Assessment Test
-              </span>
-            </div>
-          </Navbar.Brand>
+              <div className="d-flex flex-column">
+                <span className="fw-bold fs-5 fs-md-4 fs-lg-3 text-nowrap">
+                  CCDI
+                </span>
+                <span
+                  className="fw-light text-nowrap "
+                  style={{
+                    fontSize: "clamp(0.7rem, 2.5vw, 1rem)",
+                    lineHeight: 1.2,
+                    fontWeight: 400,
+                  }}
+                >
+                  Career Assessment Test
+                </span>
+              </div>
+            </Navbar.Brand>
+          </OverlayTrigger>
 
-          {/* Toggle button — stays on same line */}
-          <Navbar.Toggle
-            aria-controls="basic-navbar-nav"
-            className="ms-auto" // pushes toggle to right
-          />
+          <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-auto" />
 
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto d-flex align-items-center">

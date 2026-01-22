@@ -152,7 +152,7 @@ export interface AssessmentResult {
   preparationNeeded?: PreparationNeeded;
   examAnalysis: string;
   prereqAnalysis: PrereqAnalysis;
-  successRoadMap: string;
+  successRoadMap: string[];
 }
 
 // 🔹 Props for AssessmentForm

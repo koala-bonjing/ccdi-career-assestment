@@ -95,11 +95,6 @@ const evaluationSchema = new mongoose.Schema(
       default: [],
     },
 
-    answers: {
-      type: Object,
-      required: false,
-    },
-
     submissionDate: {
       type: Date,
       default: Date.now,

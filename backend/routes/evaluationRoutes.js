@@ -318,7 +318,7 @@ function flattenAnswers(nested) {
     Object.entries(nested.learningWorkStyle).forEach(([q, v]) => {
       flat[`learningStyle.${q}`] = v;
     });
-  return flat;  
+  return flat;
 }
 
 function formatAnswers(flat) {
@@ -364,14 +364,17 @@ router.post("/evaluate-assessment", async (req, res) => {
     let foundationalScore = 0;
     let weaknesses = [];
 
-    if (answers.foundationalAssessment && Object.keys(answers.foundationalAssessment).length > 0) {
+    if (
+      answers.foundationalAssessment &&
+      Object.keys(answers.foundationalAssessment).length > 0
+    ) {
       // Calculate prerequisite analysis
       prereqAnalysis = analyzePrerequisites(answers.foundationalAssessment);
-      
+
       // Calculate foundational score
       let correctCount = 0;
       const totalQuestions = Object.keys(FOUNDATIONAL_ANSWER_KEY).length;
-      
+
       Object.entries(FOUNDATIONAL_ANSWER_KEY).forEach(([id, correctAnswer]) => {
         if (answers.foundationalAssessment[id] === correctAnswer) {
           correctCount++;
@@ -379,9 +382,9 @@ router.post("/evaluate-assessment", async (req, res) => {
           weaknesses.push(id);
         }
       });
-      
+
       foundationalScore = Math.round((correctCount / totalQuestions) * 100);
-      
+
       // Build foundational section for the prompt
       foundationalSection = `
 FOUNDATIONAL ASSESSMENT:
@@ -541,7 +544,6 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       examAnalysis: parsed.examAnalysis || "",
       successRoadmap: parsed.successRoadmap || "",
       preparationNeeded: parsed.preparationNeeded || [],
-      answers: answers,
       foundationalScore: foundationalScore,
       weaknesses: weaknesses,
       prereqAnalysis: prereqAnalysis,

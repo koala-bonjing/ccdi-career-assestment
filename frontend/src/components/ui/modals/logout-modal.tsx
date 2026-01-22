@@ -24,9 +24,7 @@ export const LogoutModal = ({ show, onHide, onConfirm }: LogoutModalProps) => {
       </Modal.Header>
 
       <Modal.Body className="text-center pt-0">
-        <p className="text-muted mb-4 modern-modal-text">
-          You have unsaved progress in your assessment.
-          <br />
+        <p className="text-muted m-4 modern-modal-text">
           Are you sure you want to <strong>logout?</strong>
         </p>
 

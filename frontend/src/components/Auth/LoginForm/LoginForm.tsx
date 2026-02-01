@@ -15,6 +15,9 @@ import {
   EyeOff,
   Eye,
   User,
+  Sparkles,
+  ArrowRight,
+  Fingerprint,
 } from "lucide-react";
 import type { LoginFormProps, FormData, Message } from "./types/login";
 import { useNavigate } from "react-router-dom";
@@ -23,8 +26,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToSignup,
   onLoginSuccess,
 }) => {
-  // const BASE_URL = import.meta.env.BASE_URL;
-
   const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
   const [formData, setFormData] = useState<FormData>({
@@ -35,6 +36,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<Message>({ type: "", text: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState<Record<string, boolean>>({});
 
   const navigate = useNavigate();
 
@@ -50,10 +52,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     try {
       const response = await axios.post(`${BASE_URL}/api/auth/login`, formData);
       setMessage({ type: "success", text: response.data.message });
-
       navigate("/welcome");
-
-      // Call the success handler which will update auth context and navigate
       onLoginSuccess(response.data.user);
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -80,332 +79,317 @@ const LoginForm: React.FC<LoginFormProps> = ({
     }));
   };
 
+  const handleFocus = (field: string) => {
+    setIsFocused((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const handleBlur = (field: string) => {
+    setIsFocused((prev) => ({ ...prev, [field]: false }));
+  };
+
   return (
-    <div
-      className="container-fluid min-vh-100"
-      style={{
-        background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
-      }}
-    >
-      <div className="row min-vh-100">
-        {/* Left Side - CCDI System Introduction */}
-        <div className="col-lg-7 d-none d-lg-flex align-items-center justify-content-center text-white p-5">
-          <div className="text-center" style={{ maxWidth: "700px" }}>
-            {/* Header */}
-            <div className="mb-1">
-              <div className="d-flex align-items-center justify-content-center mb-4">
-                <Cpu
-                  size={48}
-                  className="text-white me-3"
-                  style={{ color: "#EC2326" }}
-                />
-                <h1 className="display-4 fw-bold text-white">
-                  CCDI Automated Career Assessment Test
+    <div className="min-h-screen bg-gradient-to-br from-[#2B3176] via-[#1C6CB3] to-[#2B3176] relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#EC2326]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-40 -left-40 w-80 h-80 bg-[#1C6CB3]/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-[#A41D31]/10 to-[#EC2326]/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative min-h-screen flex">
+        {/* Left Side - Modern Hero Section */}
+        <div className="hidden lg:flex flex-col w-7/12 p-12 text-white">
+          {/* Header with modern badge */}
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#EC2326] to-[#A41D31] rounded-xl blur-md opacity-60"></div>
+                <Cpu size={44} className="relative text-white" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full mb-2">
+                  <Sparkles size={14} />
+                  <span className="text-xs font-semibold">
+                    AI-POWERED PLATFORM
+                  </span>
+                </div>
+                <h1 className="text-4xl font-bold tracking-tight">
+                  CCDI Career Intelligence
                 </h1>
               </div>
-              <p className="lead mb-5 fs-5" style={{ color: "#ffffffcc" }}>
-                Discover Your Perfect Academic Path at Computer Communication
-                Development Institute
-              </p>
             </div>
+            <p className="text-lg text-white/80 leading-relaxed max-w-2xl">
+              Discover your ideal academic path through intelligent AI analysis
+              tailored specifically for CCDI Sorsogon students.
+            </p>
+          </div>
 
-            {/* System Purpose */}
-            <div
-              className="rounded p-4 mb-5 border"
-              style={{ backgroundColor: "#1C6CB3", borderColor: "#2B3176" }}
-            >
-              <p className="mb-3">
-                The <strong>CCDI Automated Career Assessment Test</strong> is
-                developed to assist incoming students of CCDI Sorsogon in
-                identifying academic programs that best align with their
-                interests, skills, and potential career paths.
-              </p>
-              <p className="mb-0">
-                Through intelligent AI-based analysis and systematic evaluation,
-                this platform helps you gain deeper self-awareness and make
-                well-informed decisions about your academic future.
-              </p>
-            </div>
+          {/* Modern features grid */}
+          <div className="grid grid-cols-2 gap-6 mb-12">
+            {[
+              {
+                icon: <GraduationCap size={24} />,
+                title: "Smart Program Matching",
+                desc: "AI aligns your profile with CCDI's programs",
+              },
+              {
+                icon: <Brain size={24} />,
+                title: "Gemini AI Insights",
+                desc: "Advanced AI-driven career recommendations",
+              },
+              {
+                icon: <Target size={24} />,
+                title: "Career Readiness",
+                desc: "Reduce uncertainty with data-backed guidance",
+              },
+              {
+                icon: <Users size={24} />,
+                title: "Personalized Path",
+                desc: "Tailored to your unique skills and interests",
+              },
+            ].map((feature, idx) => (
+              <div
+                key={idx}
+                className="group bg-white/5 backdrop-blur-sm rounded-2xl p-5 border border-white/10 hover:border-[#EC2326]/30 transition-all duration-300 hover:bg-white/10 cursor-pointer"
+              >
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-2 bg-gradient-to-br from-[#EC2326] to-[#A41D31] rounded-lg">
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-bold text-lg">{feature.title}</h3>
+                </div>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  {feature.desc}
+                </p>
+              </div>
+            ))}
+          </div>
 
-            {/* Features Grid */}
-            <div className="row g-4 mb-5">
-              <div className="col-md-6">
-                <div className="d-flex align-items-start text-start">
-                  <GraduationCap
-                    size={28}
-                    className="me-3 mt-1 flex-shrink-0"
-                    style={{ color: "#EC2326" }}
-                  />
-                  <div>
-                    <h5 className="fw-bold">Program Alignment</h5>
-                    <p className="small mb-0" style={{ color: "#ffffffcc" }}>
-                      Matches your profile with CCDI's academic programs:
-                      Computer Science, IT, Information Systems, and more
-                    </p>
-                  </div>
+          {/* Enhanced privacy notice */}
+          <div className="mt-auto">
+            <div className="bg-gradient-to-r from-[#A41D31]/20 to-[#EC2326]/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/10 rounded-lg">
+                  <Shield size={20} />
                 </div>
+                <h4 className="font-bold text-lg">Your Privacy Matters</h4>
               </div>
-              <div className="col-md-6">
-                <div className="d-flex align-items-start text-start">
-                  <Brain
-                    size={28}
-                    className="me-3 mt-1 flex-shrink-0"
-                    style={{ color: "#EC2326" }}
-                  />
-                  <div>
-                    <h5 className="fw-bold">AI-Powered Analysis</h5>
-                    <p className="small mb-0" style={{ color: "#ffffffcc" }}>
-                      Leverages Gemini AI for intelligent, data-driven
-                      recommendations and personalized insights
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-6">
-                <div className="d-flex align-items-start text-start">
-                  <Target
-                    size={28}
-                    className="me-3 mt-1 flex-shrink-0"
-                    style={{ color: "#EC2326" }}
-                  />
-                  <div>
-                    <h5 className="fw-bold">Career Readiness</h5>
-                    <p className="small mb-0" style={{ color: "#ffffffcc" }}>
-                      Reduces uncertainty and promotes career readiness from the
-                      start of your academic journey
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-6">
-                <div className="d-flex align-items-start text-start">
-                  <Users
-                    size={28}
-                    className="me-3 mt-1 flex-shrink-0"
-                    style={{ color: "#EC2326" }}
-                  />
-                  <div>
-                    <h5 className="fw-bold">Personalized Guidance</h5>
-                    <p className="small mb-0" style={{ color: "#ffffffcc" }}>
-                      Tailored feedback that reflects your unique interests,
-                      skills, and learning preferences
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Privacy & Data Protection Notice */}
-            <div
-              className="rounded p-4 border"
-              style={{ backgroundColor: "#A41D31", borderColor: "#EC2326" }}
-            >
-              <div className="d-flex align-items-center mb-3">
-                <Shield size={24} className="text-white me-2" />
-                <h6 className="mb-0 text-white fw-bold">
-                  Data Privacy & Protection Notice
-                </h6>
-              </div>
-              <p className="small mb-2" style={{ color: "#ffffffcc" }}>
-                This system collects and processes personal information
-                including your email address, assessment responses, and academic
-                preferences to generate personalized career recommendations.
+              <p className="text-white/70 text-sm leading-relaxed mb-3">
+                We protect your assessment data with enterprise-grade security.
+                All information is used exclusively for your academic guidance
+                at CCDI.
               </p>
-              <p className="small mb-0" style={{ color: "#ffffffcc" }}>
-                Your data is protected using enterprise-grade security measures
-                and handled in strict compliance with data privacy regulations.
-                All information is used solely for academic guidance purposes
-                within CCDI's educational framework.
-              </p>
+              <div className="flex items-center gap-2 text-xs text-white/50">
+                <Fingerprint size={12} />
+                <span>GDPR Compliant • Encrypted Data • Academic Use Only</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side - Login Form */}
-        <div className="col-lg-5 d-flex align-items-center justify-content-center bg-white p-5">
-          <div style={{ width: "100%", maxWidth: "420px" }}>
-            <div className="text-center mb-4">
-              <div className="d-flex align-items-center justify-content-center mb-3">
-                <Cpu size={32} className="me-2" style={{ color: "#A41D31" }} />
-                <h2 className="fw-bold mb-0" style={{ color: "#2B3176" }}>
-                  Welcome to CCDI
+        {/* Right Side - Modern Login Form */}
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-md">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+              {/* Form header with gradient */}
+              <div className="bg-gradient-to-r from-[#2B3176] to-[#1C6CB3] p-8 text-center">
+                <div className="inline-flex items-center justify-center p-3 bg-white/10 backdrop-blur-sm rounded-2xl mb-4">
+                  <Cpu size={28} className="text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2 leading-snug">
+                  Welcome Future CCDI'ans!
                 </h2>
+                <p className="text-white/80">
+                  Continue your personalized career assessment
+                </p>
               </div>
-              <p className="text-muted">
-                Sign in to continue your career assessment
-              </p>
-            </div>
 
-            {message.text && (
-              <div
-                className={`alert d-flex align-items-center ${
-                  message.type === "success" ? "alert-success" : "alert-danger"
-                } mb-4`}
-              >
-                {message.type === "success" ? (
-                  <CheckCircle size={16} className="me-2" />
-                ) : (
-                  <AlertCircle size={16} className="me-2" />
+              <div className="p-8">
+                {/* Status Message */}
+                {message.text && (
+                  <div
+                    className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
+                      message.type === "success"
+                        ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                        : "bg-red-50 border border-red-200 text-red-700"
+                    }`}
+                  >
+                    {message.type === "success" ? (
+                      <CheckCircle size={20} className="flex-shrink-0" />
+                    ) : (
+                      <AlertCircle size={20} className="flex-shrink-0" />
+                    )}
+                    <span className="font-medium">{message.text}</span>
+                  </div>
                 )}
-                {message.text}
-              </div>
-            )}
 
-            <form onSubmit={handleLogin}>
-              <div className="mb-3">
-                <label
-                  htmlFor="email"
-                  className="form-label fw-semibold"
-                  style={{ color: "#2B3176" }}
-                >
-                  Student's Name
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0">
-                    <User size={18} className="text-muted" />
-                  </span>
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    className="form-control border-start-0"
-                    placeholder="Enter your name"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="mb-3">
-                <label
-                  htmlFor="email"
-                  className="form-label fw-semibold"
-                  style={{ color: "#2B3176" }}
-                >
-                  Email Address
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0">
-                    <Mail size={18} className="text-muted" />
-                  </span>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    className="form-control border-start-0"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
+                <form onSubmit={handleLogin} className="space-y-6">
+                  {/* Full Name Field */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <User size={16} className="text-[#2B3176]" />
+                      Name
+                    </label>
+                    <div
+                      className={`relative rounded-xl transition-all duration-200 ${
+                        isFocused.fullName
+                          ? "ring-2 ring-[#1C6CB3] ring-offset-2"
+                          : ""
+                      }`}
+                    >
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <User size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white text-gray-900 transition-all duration-200"
+                        placeholder="Enter your full name"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        onFocus={() => handleFocus("fullName")}
+                        onBlur={() => handleBlur("fullName")}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="password"
-                  className="form-label fw-semibold"
-                  style={{ color: "#2B3176" }}
-                >
-                  Password
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-1">
-                    <Lock size={18} className="text-muted border-end-1" />
-                  </span>
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    className="form-control "
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  {/* Email Field */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Mail size={16} className="text-[#2B3176]" />
+                      Email Address
+                    </label>
+                    <div
+                      className={`relative rounded-xl transition-all duration-200 ${
+                        isFocused.email
+                          ? "ring-2 ring-[#1C6CB3] ring-offset-2"
+                          : ""
+                      }`}
+                    >
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Mail size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white text-gray-900 transition-all duration-200"
+                        placeholder="student@ccdi.edu.ph"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        onFocus={() => handleFocus("email")}
+                        onBlur={() => handleBlur("email")}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Field */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Lock size={16} className="text-[#2B3176]" />
+                      Password
+                    </label>
+                    <div
+                      className={`relative rounded-xl transition-all duration-200 ${
+                        isFocused.password
+                          ? "ring-2 ring-[#1C6CB3] ring-offset-2"
+                          : ""
+                      }`}
+                    >
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Lock size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white text-gray-900 transition-all duration-200"
+                        placeholder="Enter your password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        onFocus={() => handleFocus("password")}
+                        onBlur={() => handleBlur("password")}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                        onClick={togglePasswordVisibility}
+                      >
+                        {showPassword ? (
+                          <EyeOff
+                            size={20}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                          />
+                        ) : (
+                          <Eye
+                            size={20}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                          />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full group relative overflow-hidden rounded-xl bg-gradient-to-r from-[#A41D31] to-[#EC2326] py-4 px-6 text-white font-semibold text-lg transition-all duration-300 hover:shadow-lg hover:shadow-[#EC2326]/30 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="relative flex items-center justify-center gap-2">
+                      {loading ? (
+                        <>
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          <span>Signing In...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Continue Assessment</span>
+                          <ArrowRight
+                            size={20}
+                            className="group-hover:translate-x-1 transition-transform"
+                          />
+                        </>
+                      )}
+                    </div>
+                  </button>
+                </form>
+
+                {/* Signup Link */}
+                <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+                  <p className="text-gray-600 mb-3">
+                    New to CCDI Career Assessment?
+                  </p>
                   <button
                     type="button"
-                    className="btn btn-outline-secondary d-flex align-items-center justify-content-center border-start-0 border-end-0"
-                    onClick={togglePasswordVisibility}
-                    style={{ width: "44px" }}
+                    onClick={onSwitchToSignup}
+                    className="inline-flex items-center gap-2 text-[#1C6CB3] font-semibold hover:text-[#2B3176] transition-colors group"
                   >
-                    {showPassword ? (
-                      <EyeOff size={20} className="text-muted" />
-                    ) : (
-                      <Eye size={20} className="text-muted" />
-                    )}
+                    <span>Start Your Journey Here</span>
+                    <ArrowRight
+                      size={16}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
                   </button>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn w-100 py-3 mb-3 fw-semibold text-white"
-                style={{
-                  fontSize: "1.1rem",
-                  background:
-                    "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
-                  border: "none",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                  e.currentTarget.style.background =
-                    "linear-gradient(135deg, #EC2326 0%, #A41D31 100%)";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                  e.currentTarget.style.background =
-                    "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                {loading ? (
-                  <>
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                      role="status"
-                      aria-hidden="true"
-                    ></span>
-                    Signing In...
-                  </>
-                ) : (
-                  "Continue Assessment"
-                )}
-              </button>
-
-              <div className="text-center">
-                <span className="text-muted">New to CCDI Assessment? </span>
-                <button
-                  type="button"
-                  onClick={onSwitchToSignup}
-                  className="btn btn-link p-0 ms-1 fw-semibold text-decoration-none"
-                  style={{ color: "#1C6CB3" }}
-                >
-                  Start Your Journey
-                </button>
-              </div>
-            </form>
-
-            {/* Mobile Privacy Notice */}
-            <div className="d-lg-none mt-5">
-              <div className="alert alert-warning">
-                <div className="d-flex align-items-center mb-2">
-                  <Shield
-                    size={16}
-                    className="me-2"
-                    style={{ color: "#A41D31" }}
-                  />
-                  <strong style={{ color: "#A41D31" }}>
-                    Data Privacy Notice
-                  </strong>
+                {/* Mobile Privacy Notice */}
+                <div className="lg:hidden mt-8 p-4 bg-gradient-to-r from-[#A41D31]/5 to-[#EC2326]/5 rounded-xl border border-[#EC2326]/10">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Shield size={18} className="text-[#A41D31]" />
+                    <span className="text-sm font-semibold text-gray-800">
+                      Protected & Private
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Your assessment data is encrypted and used exclusively for
+                    academic guidance at CCDI Sorsogon.
+                  </p>
                 </div>
-                <small className="text-muted">
-                  This system collects personal information for academic
-                  guidance purposes. Your data is protected and handled
-                  according to CCDI's privacy policy and data protection
-                  standards.
-                </small>
               </div>
             </div>
           </div>

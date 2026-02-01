@@ -15,7 +15,7 @@ const questionSchema = new mongoose.Schema(
         "technicalSkills",
         "careerInterest",
         "learningStyle",
-        "learningWorkStyle", // Add this for your new section
+        "learningWorkStyle", 
       ],
       required: true,
     },

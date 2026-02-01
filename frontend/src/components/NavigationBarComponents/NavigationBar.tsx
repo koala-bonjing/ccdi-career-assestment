@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import LOGO from "../../assets/logoCCDI.png";
 import "./NavigationBar.css";
 import { LogoutModal } from "../ui/modals/logout-modal";
+import { StorageEncryptor } from "../ResultPage/utils/encryption";
 
 function NavigationBar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -29,6 +30,9 @@ function NavigationBar() {
   const handleConfirmLogout = () => {
     logout();
     setShowLogoutModal(false);
+    StorageEncryptor.removeItem("user");
+    StorageEncryptor.removeItem("assessmentResults");
+    StorageEncryptor.removeItem("evaluation-storage");
     navigate("/signup");
   };
 

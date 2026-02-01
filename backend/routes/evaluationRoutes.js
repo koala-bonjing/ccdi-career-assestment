@@ -55,6 +55,62 @@ const FOUNDATIONAL_ANSWER_KEY = {
   found_problem_010: "Voltage doubles (adds together)",
 };
 
+// Helper function to normalize answers
+function normalizeAnswer(answer) {
+  if (answer === null || answer === undefined) return "";
+  return String(answer).trim();
+}
+
+// Helper function to calculate foundational score with detailed logging
+function calculateFoundationalScore(studentAnswers) {
+  let correctCount = 0;
+  const results = [];
+  const totalQuestions = Object.keys(FOUNDATIONAL_ANSWER_KEY).length;
+
+  Object.entries(FOUNDATIONAL_ANSWER_KEY).forEach(([id, correctAnswer]) => {
+    const studentAnswer = studentAnswers[id];
+    const normalizedStudent = normalizeAnswer(studentAnswer);
+    const normalizedCorrect = normalizeAnswer(correctAnswer);
+    const isCorrect = normalizedStudent === normalizedCorrect;
+
+    results.push({
+      questionId: id,
+      studentAnswer: normalizedStudent,
+      correctAnswer: normalizedCorrect,
+      isCorrect: isCorrect,
+    });
+
+    if (isCorrect) {
+      correctCount++;
+    }
+  });
+
+  const scorePercent = Math.round((correctCount / totalQuestions) * 100);
+
+  console.log("\n📊 FOUNDATIONAL EXAM BREAKDOWN:");
+  console.log(`Total Questions: ${totalQuestions}`);
+  console.log(`Correct: ${correctCount}`);
+  console.log(`Wrong: ${totalQuestions - correctCount}`);
+  console.log(`Score: ${scorePercent}%\n`);
+
+  // Log first 10 questions as sample
+  console.log("📝 Sample Questions (first 10):");
+  results.slice(0, 10).forEach((r, i) => {
+    console.log(`${i + 1}. ${r.questionId}`);
+    console.log(`   Student: "${r.studentAnswer}"`);
+    console.log(`   Correct: "${r.correctAnswer}"`);
+    console.log(`   ${r.isCorrect ? "✅ CORRECT" : "❌ WRONG"}\n`);
+  });
+
+  return {
+    score: scorePercent,
+    correctCount: correctCount,
+    totalQuestions: totalQuestions,
+    wrongAnswers: results.filter((r) => !r.isCorrect).map((r) => r.questionId),
+    detailedResults: results,
+  };
+}
+
 // Helper to analyze readiness
 function analyzePrerequisites(foundational) {
   if (!foundational)
@@ -363,32 +419,34 @@ router.post("/evaluate-assessment", async (req, res) => {
     let prereqAnalysis = null;
     let foundationalScore = 0;
     let weaknesses = [];
+    let foundationalDetails = null;
 
     if (
       answers.foundationalAssessment &&
       Object.keys(answers.foundationalAssessment).length > 0
     ) {
+      console.log("🔍 Analyzing Foundational Assessment...");
+
       // Calculate prerequisite analysis
       prereqAnalysis = analyzePrerequisites(answers.foundationalAssessment);
 
-      // Calculate foundational score
-      let correctCount = 0;
-      const totalQuestions = Object.keys(FOUNDATIONAL_ANSWER_KEY).length;
+      // Calculate detailed foundational score
+      foundationalDetails = calculateFoundationalScore(
+        answers.foundationalAssessment,
+      );
+      foundationalScore = foundationalDetails.score;
+      weaknesses = foundationalDetails.wrongAnswers;
 
-      Object.entries(FOUNDATIONAL_ANSWER_KEY).forEach(([id, correctAnswer]) => {
-        if (answers.foundationalAssessment[id] === correctAnswer) {
-          correctCount++;
-        } else {
-          weaknesses.push(id);
-        }
-      });
-
-      foundationalScore = Math.round((correctCount / totalQuestions) * 100);
+      console.log(`\n🎯 FINAL FOUNDATIONAL SCORE: ${foundationalScore}%`);
+      console.log(`📉 Weaknesses: ${weaknesses.length} questions incorrect`);
+      console.log(
+        `📈 Strengths: ${foundationalDetails.correctCount} questions correct`,
+      );
 
       // Build foundational section for the prompt
       foundationalSection = `
 FOUNDATIONAL ASSESSMENT:
-- Score: ${foundationalScore}%
+- Score: ${foundationalScore}% (${foundationalDetails.correctCount}/${foundationalDetails.totalQuestions} correct)
 - Math Foundation: ${prereqAnalysis.mathScore}/5
 - Technical Aptitude: ${prereqAnalysis.technicalScore}/5  
 - Communication Skills: ${prereqAnalysis.communicationScore}/5
@@ -397,10 +455,11 @@ FOUNDATIONAL ASSESSMENT:
 
 ${prereqAnalysis.warnings.length > 0 ? "AREAS NEEDING ATTENTION:\n" + prereqAnalysis.warnings.map((w) => `  - ${w}`).join("\n") + "\n" : ""}
 ${prereqAnalysis.recommendations.length > 0 ? "PREPARATION RECOMMENDATIONS:\n" + prereqAnalysis.recommendations.map((r) => `  - ${r}`).join("\n") + "\n" : ""}
+
+Note: Student answered ${foundationalDetails.correctCount} out of ${foundationalDetails.totalQuestions} prerequisite questions correctly, indicating ${foundationalScore >= 70 ? "strong" : foundationalScore >= 50 ? "moderate" : "basic"} foundational readiness.
 `;
     }
 
-    
     const prompt = `
 You are a career guidance assistant for CCDI Sorsogon, helping students identify the most suitable technology program based on their aptitudes, interests, and circumstances.
 
@@ -447,14 +506,24 @@ RESPONSE REQUIREMENTS:
    - careerReason: Why their career goals align with this program
    - logisticsReason: Why this program is logistically feasible for them
 8. **successRoadmap**: A list of 3-5 specific topics or skills the student should study BEFORE starting the recommended program to ensure success.
-9. **examAnalysis**: A brief comment on their foundational exam performance (if available).
-10. **preparationNeeded**: An array of 3 specific study topics based on their assessment responses.
+9. **examAnalysis**: ${
+      foundationalScore > 0
+        ? `The student scored ${foundationalScore}% on the foundational exam. Provide a balanced, encouraging analysis that:
+   - If score is 70%+: Acknowledge strong performance and mention 1-2 areas for minor improvement
+   - If score is 50-69%: Note moderate performance, highlight strengths, and suggest 2-3 specific areas to review
+   - If score is 30-49%: Recognize effort, identify 3-4 key areas needing focused study, provide encouragement
+   - If score is below 30%: Be supportive and constructive, identify foundational gaps, recommend structured review plan
+   Keep the tone positive and actionable in 2-3 sentences.`
+        : "No foundational exam data available."
+    }
+10. **preparationNeeded**: An array of 3 specific study topics based on their assessment responses and exam performance.
 
 IMPORTANT GUIDELINES:
 - Base your recommendation on the ASSESSMENT DATA, not just their initial preference
 - Be specific and personalized in category explanations
 - Use the student's actual answers to justify each category
 - Make explanations actionable and encouraging
+- For examAnalysis, be honest but constructive - low scores should prompt supportive guidance, not harsh criticism
 
 CRITICAL RULES FOR PERCENTAGES:
 - If student shows EXTREME alignment with one program, top score MUST be 85-95

@@ -155,7 +155,7 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
                     lineHeight: "1.4",
                     textAlign: "left",
                   }}
-                  onClick={() => setShowTooltip(false)} // Click tooltip to close it as well
+                  onClick={() => setShowTooltip(false)}
                 >
                   <TooltipContent />
                   <div className="text-end mt-2">
@@ -239,7 +239,9 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
 
                         <div className="small">
                           <div className="mb-1">
-                            <span className="text-muted">Your answer: </span>
+                            <span className="text-muted">
+                              Your answer:{" "}
+                            </span>
                             <span
                               className={`fw-bold ${item.isCorrect ? "text-success" : "text-danger"}`}
                             >
@@ -248,7 +250,7 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
                           </div>
 
                           {!item.isCorrect && item.userAnswer && (
-                            <div className="mb-1">
+                            <div className="mb-1 ">
                               <span className="text-muted">
                                 {item.isSubjective ? "💡 " : "✅ "}
                                 {item.isSubjective
@@ -260,14 +262,6 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
                               </span>
                             </div>
                           )}
-
-                          {!item.isCorrect &&
-                            item.userAnswer &&
-                            item.helperText && (
-                              <div className="text-muted fst-italic mt-1 small">
-                                {item.helperText}
-                              </div>
-                            )}
                         </div>
                       </div>
                     ))}
@@ -484,17 +478,10 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
                       >
                         {item.questionText}
                       </p>
-                      {!item.isCorrect &&
-                        item.userAnswer &&
-                        item.helperText && (
-                          <div className="small text-muted fst-italic mt-1">
-                            {item.helperText}
-                          </div>
-                        )}
                     </div>
                     <div className="col-md-5 border-start">
                       <div className="small ps-md-3">
-                        <div className="d-flex justify-content-between mb-1">
+                        <div className="d-flex justify-content-between mb-1 mr-2">
                           <span className="text-muted">Your Answer:</span>
                           <span
                             className={`fw-bold ${item.isCorrect ? "text-success" : "text-danger"}`}
@@ -504,7 +491,7 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
                         </div>
                         {!item.isCorrect && item.userAnswer && (
                           <div className="d-flex justify-content-between">
-                            <span className="text-muted">
+                            <span className="text-muted mr-2">
                               {item.isSubjective ? "Recommended:" : "Correct:"}
                             </span>
                             <span className="text-success fw-bold">

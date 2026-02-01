@@ -89,20 +89,18 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
       }}
     >
       <NavigationBar />
-
-      {/* 👇 White Card Container — centered, max-width, responsive padding */}
-      {/* 👇 White Card Container — centered, max-width, responsive padding */}
-      <div className="container-fluid py-4 flex-grow-1 d-flex">
-        <div className="row justify-content-center w-100">
-          <div className="col-xxl-10 col-xl-12 col-lg-12">
+      <div className="container-fluid py-4 flex-grow-1 d-flex justify-content-center align-items-start">
+        <div className="row w-100 justify-content-center mx-0">
+          <div className="col-xxl-10 col-xl-11 col-lg-12 col-md-12 col-sm-12 px-3 px-md-4">
             {/* 📄 Main Content Card */}
             <div
-              className="card border-0 shadow-lg"
+              className="card border-0 shadow-lg mx-auto"
               style={{
                 background: "white",
                 borderRadius: "20px",
                 overflow: "hidden",
                 minHeight: "70vh",
+                maxWidth: "100%",
               }}
             >
               <div className="card-body p-4 p-md-5">
@@ -112,7 +110,6 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                   saving={savingDocument}
                   onPrint={handlePrint}
                 />
-
                 {/* All content inside white card */}
                 <StudentInfoCard
                   fullName={(authUser as User)?.fullName}
@@ -120,7 +117,6 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 />
                 <SummaryCard summary={result.summary} />
                 <RecommendedProgramCard program={result.recommendedProgram} />
-
                 <DetailedExplanationToggle
                   isOpen={showDetailed}
                   onToggle={() => setShowDetailed(!showDetailed)}
@@ -131,14 +127,11 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                     recommendations={result.recommendations}
                   />
                 )}
-
                 <CompatibilityChart
                   percentages={normalizedPercent}
                   recommendedProgram={result.recommendedProgram}
                 />
-
                 <CompatibilityLegend />
-
                 {/* Advanced Insights */}
                 {result.categoryScores && (
                   <>
@@ -165,7 +158,6 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                     />
                   </>
                 )}
-
                 {result.answers?.foundationalAssessment && (
                   <FoundationalExamCard
                     userAnswers={result.answers.foundationalAssessment}

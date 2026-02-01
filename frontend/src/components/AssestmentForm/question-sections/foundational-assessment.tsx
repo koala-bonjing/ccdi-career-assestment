@@ -235,7 +235,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
               return (
                 <Col key={qIdx} xs={12}>
                   <div className="question-text mb-2">
-                    <span className="question-number badge rounded-circle bg-light text-dark border">
+                    <span className="question-number badge rounded-circle bg-light text-dark border-2">
                       {qIdx + 1}
                     </span>
                     {q.questionText}

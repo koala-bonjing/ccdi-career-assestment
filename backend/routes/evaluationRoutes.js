@@ -400,7 +400,7 @@ ${prereqAnalysis.recommendations.length > 0 ? "PREPARATION RECOMMENDATIONS:\n" +
 `;
     }
 
-    // ✅ FIXED PROMPT - No undefined variables
+    
     const prompt = `
 You are a career guidance assistant for CCDI Sorsogon, helping students identify the most suitable technology program based on their aptitudes, interests, and circumstances.
 

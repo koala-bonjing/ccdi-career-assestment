@@ -107,28 +107,62 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
     [academic, technical, career, logistics, categoryExplanations],
   );
 
+  // Get full program name
+  const getFullProgramName = (name: string) => {
+    const upperName = name.toUpperCase();
+    if (upperName.includes("BSIT"))
+      return "Bachelor of Science in Information Technology";
+    if (upperName.includes("BSCS"))
+      return "Bachelor of Science in Computer Science";
+    return name;
+  };
+
+  const fullProgramName = getFullProgramName(programName);
+
   const data = useMemo(
     () => ({
-      labels: categories.map((c) =>
-        isMobile ? c.label.split(" ")[0] : c.label,
-      ),
+      labels: isMobile
+        ? ["Academic", "Technical", "Career", "Logistics"]
+        : [
+            "Academic Fitness",
+            "Technical Match",
+            "Career Alignment",
+            "Logistics Feasibility",
+          ],
       datasets: [
         {
           label: `${programName} Fit`,
-          data: categories.map((c) => c.value),
-          backgroundColor: categories.map((c) =>
-            activeCategory !== null && activeCategory !== categories.indexOf(c)
-              ? `${c.color}40`
-              : c.color,
-          ),
+          data: [academic, technical, career, logistics],
+          backgroundColor: [
+            activeCategory !== null && activeCategory !== 0
+              ? "#2B317640"
+              : "#2B3176",
+            activeCategory !== null && activeCategory !== 1
+              ? "#EC232640"
+              : "#EC2326",
+            activeCategory !== null && activeCategory !== 2
+              ? "#1C6CB340"
+              : "#1C6CB3",
+            activeCategory !== null && activeCategory !== 3
+              ? "#28a74540"
+              : "#28a745",
+          ],
           borderRadius: isMobile ? 4 : 8,
           borderSkipped: false,
-          barPercentage: isMobile ? 0.6 : 0.8,
-          categoryPercentage: 0.8,
+          barPercentage: isMobile ? 0.7 : 0.8,
+          categoryPercentage: 0.9,
         },
       ],
     }),
-    [categories, programName, isMobile, activeCategory],
+    [
+      academic,
+      technical,
+      career,
+      logistics,
+      programName,
+      isMobile,
+      activeCategory,
+    ],
   );
 
   const options: ChartOptions<"bar"> = useMemo(
@@ -137,7 +171,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
       maintainAspectRatio: false,
       animation: {
         duration: 400,
-        easing: "easeOutQuart" as const, // Type-safe easing
+        easing: "easeOutQuart" as const,
       },
       scales: {
         y: {
@@ -146,7 +180,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           ticks: {
             callback: (value) => `${value}%`,
             font: {
-              size: isMobile ? 9 : 12,
+              size: isMobile ? 10 : 12,
               weight: "bold",
             },
             color: "#666",
@@ -164,10 +198,12 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           ticks: {
             color: "#333",
             font: {
-              size: isMobile ? 10 : 13,
+              size: isMobile ? 6 : 10,
               weight: "bold",
             },
-            maxRotation: 0,
+            maxRotation: isMobile ? 0 : 0,
+            minRotation: 0,
+            autoSkip: false,
           },
           border: { display: false },
         },
@@ -178,12 +214,12 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         tooltip: {
           enabled: !isMobile,
           backgroundColor: "rgba(0, 0, 0, 0.8)",
-          padding: isMobile ? 6 : 12,
+          padding: 12,
           titleFont: {
-            size: isMobile ? 11 : 13,
+            size: 13,
             weight: "bold",
           },
-          bodyFont: { size: isMobile ? 10 : 12 },
+          bodyFont: { size: 12 },
           cornerRadius: 8,
           displayColors: false,
           callbacks: {
@@ -192,8 +228,15 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         },
       },
       interaction: {
-        mode: "nearest",
+        mode: "index" as const,
         intersect: false,
+      },
+      onHover: (event, activeElements) => {
+        if (!isMobile && activeElements.length > 0) {
+          setActiveCategory(activeElements[0].index);
+        } else if (!isMobile) {
+          setActiveCategory(null);
+        }
       },
     }),
     [isMobile],
@@ -207,11 +250,10 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           className={`fw-bold ${isMobile ? "h5 mb-2" : "h3 mb-3"}`}
           style={{
             color: "#2B3176",
-            textTransform: "uppercase",
             letterSpacing: isMobile ? "0.3px" : "1px",
           }}
         >
-          Why {programName} Fits You
+          Why {fullProgramName} Fits You
         </h3>
         <div
           style={{
@@ -292,7 +334,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
                             letterSpacing: "0.5px",
                           }}
                         >
-                          {isMobile ? cat.label.split(" ")[0] : cat.label}
+                          {cat.label}
                         </span>
                         <span
                           style={{
@@ -380,12 +422,12 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           </div>
         </div>
 
-        {/* Chart Container - ORIGINAL DESKTOP SIZE, smaller mobile */}
+        {/* Chart Container */}
         <div
           className={isMobile ? "order-1 w-100" : "order-2"}
           style={{
             flex: isMobile ? "none" : "1 1 auto",
-            height: isMobile ? "280px" : "480px", // Original desktop height: 480px
+            height: isMobile ? "280px" : "480px",
             minHeight: isMobile ? "250px" : "450px",
           }}
         >
@@ -404,29 +446,56 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         </div>
       </div>
 
-      {/* Legend - HIDDEN ON MOBILE */}
-      {!isMobile && (
-        <div
-          className="text-center mt-4"
-          style={{
-            padding: "16px",
-            background: "rgba(43, 49, 118, 0.05)",
-            borderRadius: "12px",
-          }}
-        >
+      {/* Legend - NOW SHOWN ON BOTH MOBILE AND DESKTOP */}
+      <div
+        className="mt-4"
+        style={{
+          padding: isMobile ? "12px" : "16px",
+          background: "rgba(43, 49, 118, 0.05)",
+          borderRadius: "12px",
+        }}
+      >
+        <div className="row g-2">
+          {categories.map((cat, i) => (
+            <div key={i} className="col-6 col-md-3">
+              <div className="d-flex align-items-center gap-2">
+                <div
+                  style={{
+                    width: isMobile ? "12px" : "16px",
+                    height: isMobile ? "12px" : "16px",
+                    borderRadius: "3px",
+                    background: cat.color,
+                    flexShrink: 0,
+                  }}
+                ></div>
+                <small
+                  style={{
+                    fontSize: isMobile ? "0.7rem" : "0.75rem",
+                    color: "#666",
+                    fontWeight: "600",
+                    lineHeight: "1.2",
+                  }}
+                >
+                  {cat.label}
+                </small>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-3">
           <small
             style={{
-              fontSize: "0.75rem",
-              color: "#666",
+              fontSize: isMobile ? "0.65rem" : "0.7rem",
+              color: "#888",
               textTransform: "uppercase",
-              letterSpacing: "1.5px",
+              letterSpacing: "1px",
               fontWeight: "600",
             }}
           >
             Score Scale: 0 - 100 | Higher scores indicate better fit
           </small>
         </div>
-      )}
+      </div>
     </div>
   );
 };

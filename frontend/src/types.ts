@@ -149,10 +149,10 @@ export interface AssessmentResult {
   categoryExplanations?: CategoryExplanations;
   aiAnswer?: string;
   categoryScores: CategoryScores;
-  preparationNeeded?: PreparationNeeded;
+  preparationNeeded?: string[];
   examAnalysis: string;
   prereqAnalysis: PrereqAnalysis;
-  successRoadMap: string[];
+  successRoadmap?: string;
 }
 
 // 🔹 Props for AssessmentForm
@@ -161,8 +161,8 @@ export interface AssessmentFormProps {
   setCurrentUser: (user: User) => void;
   onSubmit: (data: {
     answers: AssessmentAnswers;
-    programScores: ProgramScores; // ✅ matches interface
-    recommendedProgram: ProgramType; // ✅ stricter: was string → now ProgramType
+    programScores: ProgramScores;
+    recommendedProgram: ProgramType;
   }) => void;
   loading?: boolean;
   restoredFormData: AssessmentAnswers | null;

@@ -10,7 +10,6 @@ import type {
   ProgramType,
   AssessmentAnswers,
   CategoryExplanations,
-  PreparationNeeded,
   PrereqAnalysis,
 } from "../types";
 
@@ -197,10 +196,10 @@ export const useAssessmentState = () => {
             },
             categoryExplanations:
               latest.categoryExplanations as CategoryExplanations,
-            preparationNeeded: latest.preparationNeeded as PreparationNeeded,
+            preparationNeeded: latest.preparationNeeded || "",
             examAnalysis: latest.examAnalysis || "",
             prereqAnalysis: latest.prereqAnalysis as PrereqAnalysis,
-            successRoadMap: latest.successRoadMap || "",
+            successRoadmap: latest.successRoadmap || "",
           };
 
           setRawResult(result);

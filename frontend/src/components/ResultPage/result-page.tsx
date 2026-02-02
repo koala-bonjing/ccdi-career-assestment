@@ -28,6 +28,7 @@ import { useResultsHydration } from "../../hooks/useResultHydaration";
 import RadarChart from "./chart/radar-chart";
 import ProgramBreakdownChart from "./chart/program-breakdown-chart";
 import FoundationalExamCard from "./cards/foundational-exam-card";
+import PreparationAndRoadmapCard from "./cards/preparation-needed-card";
 
 interface ResultsPageProps {
   result?: AssessmentResult; // Make it optional
@@ -80,6 +81,10 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
     window.print();
   };
 
+  console.log("Roadmap Data Check:", {
+    prep: result.preparationNeeded,
+    roadmap: result.successRoadmap,
+  });
   return (
     <div
       className="min-vh-100 d-flex flex-column"
@@ -117,6 +122,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 />
                 <SummaryCard summary={result.summary} />
                 <RecommendedProgramCard program={result.recommendedProgram} />
+
                 <DetailedExplanationToggle
                   isOpen={showDetailed}
                   onToggle={() => setShowDetailed(!showDetailed)}
@@ -124,7 +130,13 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 {showDetailed && (
                   <DetailedExplanationSection
                     evaluation={result.detailedEvaluation}
-                    recommendations={result.recommendations}
+                    recommendations={result.evaluation}
+                  />
+                )}
+                {result.preparationNeeded && (
+                  <PreparationAndRoadmapCard
+                    preparationNeeded={result.preparationNeeded}
+                    successRoadmap={result.successRoadmap}
                   />
                 )}
                 <CompatibilityChart

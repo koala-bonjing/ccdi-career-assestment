@@ -57,7 +57,7 @@ const EvaluationForm = () => {
 
   const loadSavedData = (): void => {
     try {
-      const savedAnswers = localStorage.getItem("evaluation-answers");
+      const savedAnswers = StorageEncryptor.getItem("evaluation-answers");
       console.log(savedAnswers);
       if (savedAnswers) {
         const parsed: AssessmentAnswers = JSON.parse(savedAnswers);
@@ -164,7 +164,7 @@ const EvaluationForm = () => {
 
     try {
       // Save to localStorage (optional, for recovery)
-      StorageEncryptor.setItem("evaluation-answers", JSON.stringify(answers));
+      localStorage.setItem("evaluation-answers", JSON.stringify(answers));
 
       // ✅ SEND TO YOUR EXPRESS BACKEND INSTEAD OF CALLING AI HERE
       console.log(
@@ -208,10 +208,8 @@ const EvaluationForm = () => {
         preparationNeeded: backendResult.preparationNeeded,
         examAnalysis: backendResult.examAnalysis,
         prereqAnalysis: backendResult.prereqAnalysis,
-        successRoadMap: backendResult.successRoadMap,
+        successRoadmap: backendResult.successRoadmap,
       };
-      console.log("Backend result:", backendResult);
-      console.log("prereqAnalysis:", backendResult.prereqAnalysis);
 
       // Store result in Zustand
       setResult(transformed);

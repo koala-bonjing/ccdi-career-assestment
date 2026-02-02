@@ -32,7 +32,7 @@ function NavigationBar() {
     setShowLogoutModal(false);
     StorageEncryptor.removeItem("user");
     StorageEncryptor.removeItem("assessmentResults");
-    StorageEncryptor.removeItem("evaluation-storage");
+    StorageEncryptor.removeItem("assessment-result");
     navigate("/signup");
   };
 

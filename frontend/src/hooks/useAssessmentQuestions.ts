@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { BASE_URL } from "../config/constants";
 export interface Question {
+  id: string;
   _id: string;
   questionText: string;
   program: string;
@@ -116,6 +117,7 @@ export const useAssessmentQuestions = () => {
 
           responseData.forEach((question: ApiQuestion) => {
             const questionData: Question = {
+              id: question._id,
               _id: question._id,
               questionText: question.questionText,
               program: question.program,

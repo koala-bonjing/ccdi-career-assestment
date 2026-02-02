@@ -96,7 +96,10 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
   // Persist answers to local storage whenever they change
   useEffect(() => {
     localStorage.setItem("evaluation-answers", JSON.stringify(formData));
-    localStorage.setItem("currentAssessmentSection", currentSection.toString());
+    localStorage.setItem(
+      "currentAssessmentSection",
+      currentSection.toString(),
+    );
   }, [formData, currentSection]);
 
   // Show instructions on first load
@@ -231,8 +234,6 @@ const AssessmentForm: React.FC<AssessmentFormProps> = ({
     return <div className="p-5 text-danger text-center">Error: {error}</div>;
   if (!questions)
     return <div className="p-5 text-center">No questions available.</div>;
-
-
 
   return (
     <div className="assessment-container">

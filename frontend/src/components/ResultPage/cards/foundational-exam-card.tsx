@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { FOUNDATIONAL_QUESTIONS_MAP } from "../../../config/foundationalQuesdtions";
 import type { AssessmentResult } from "../../../types";
+import type { Question } from "../../../hooks/useAssessmentQuestions";
 
 interface Props {
   userAnswers: Record<string, string>;
   result: AssessmentResult;
+  questions?: Question[];
 }
 
 interface GroupSection {
@@ -17,14 +18,14 @@ interface GroupSection {
   isSubjective: boolean;
 }
 
-const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
+const FoundationalExamCard: React.FC<Props> = ({
+  result,
+  userAnswers,
+  questions,
+}) => {
   const [isMobile, setIsMobile] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-
-  // New state for Desktop Carousel
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-
-  // State for Tooltip (Shared logic, but triggered differently on mobile/desktop)
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
@@ -42,42 +43,55 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
     );
   }
 
-  const questionEntries = Object.entries(FOUNDATIONAL_QUESTIONS_MAP);
-  let correctCount = 0;
-  const totalQuestions = questionEntries.length;
+  const accuracy = result?.foundationalScore || 0;
 
-  // Group questions by category
-  const groupedQuestions = questionEntries.reduce(
-    (acc, [id, data]) => {
-      const userAnswerValue = userAnswers[id] || userAnswers[data.text];
-      const isCorrect = userAnswerValue === data.correct;
+  // ✅ GET PREREQUISITE ANALYSIS DATA
+  const prereqAnalysis = result?.prereqAnalysis;
 
-      if (isCorrect && userAnswerValue) correctCount++;
+  const groupedQuestions: Record<string, GroupSection[]> = {};
 
-      let category = "General";
-      if (id.includes("prereq")) category = "Prerequisites";
-      if (id.includes("study")) category = "Study Habits";
-      if (id.includes("problem")) category = "Problem Solving";
+  if (questions && questions.length > 0) {
+    questions.forEach((q) => {
+      const userAnswerValue = userAnswers[q._id] || userAnswers[q.questionText];
 
-      if (!acc[category]) acc[category] = [];
+      // ✅ Ensure we are comparing correctly
+      const correctAnswer = q.correctAnswer || "";
 
-      acc[category].push({
-        id,
-        questionText: data.text,
-        correctAnswer: data.correct,
-        helperText: data.helper,
-        userAnswer: userAnswerValue,
-        isCorrect,
-        isSubjective: data.isSubjective || id.startsWith("found_study"),
+      const isCorrect =
+        String(userAnswerValue || "")
+          .trim()
+          .toLowerCase() === String(correctAnswer).trim().toLowerCase() &&
+        !!userAnswerValue;
+
+      const cat = q.subCategory || "General";
+      const displayCategory = cat
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (s) => s.toUpperCase());
+
+      if (!groupedQuestions[displayCategory])
+        groupedQuestions[displayCategory] = [];
+
+      groupedQuestions[displayCategory].push({
+        id: q._id,
+        questionText: q.questionText,
+        correctAnswer: correctAnswer,
+        helperText: q.helperText || "",
+        userAnswer: userAnswerValue || "Not Answered",
+        isCorrect: isCorrect,
+        isSubjective: false,
       });
-
-      return acc;
-    },
-    {} as Record<string, GroupSection[]>,
-  );
+    });
+  }
 
   const categories = Object.keys(groupedQuestions);
-  const accuracy = Math.round((correctCount / totalQuestions) * 100);
+  const totalQuestions = questions?.length || 0;
+
+  // ✅ HELPER FUNCTION: Get score badge color
+  const getScoreBadgeClass = (score: number) => {
+    if (score >= 4) return "bg-success";
+    if (score >= 3) return "bg-warning";
+    return "bg-danger";
+  };
 
   // Common Tooltip Content
   const TooltipContent = () => (
@@ -122,7 +136,7 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
               >
                 {accuracy}%
               </span>
-              {/* Tooltip Icon (Click to Toggle on Mobile) */}
+              {/* Tooltip Icon */}
               <div
                 onClick={() => setShowTooltip(!showTooltip)}
                 style={{ cursor: "pointer" }}
@@ -173,6 +187,100 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
         </div>
 
         <div className="card-body p-3">
+          {/* ✅ PREREQUISITE SCORES SECTION - MOBILE */}
+          {prereqAnalysis && (
+            <div
+              className="mb-4 p-3 rounded-3 border"
+              style={{ background: "rgba(43, 49, 118, 0.03)" }}
+            >
+              <h6
+                className="fw-bold mb-3 text-center"
+                style={{ color: "#2B3176" }}
+              >
+                📊 Readiness Breakdown
+              </h6>
+
+              <div className="row g-2 mb-3">
+                <div className="col-6">
+                  <div className="p-2 bg-white rounded-2 border text-center">
+                    <div className="small text-muted mb-1">Math</div>
+                    <span
+                      className={`badge ${getScoreBadgeClass(prereqAnalysis.mathScore)}`}
+                    >
+                      {prereqAnalysis.mathScore}/5
+                    </span>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="p-2 bg-white rounded-2 border text-center">
+                    <div className="small text-muted mb-1">Technical</div>
+                    <span
+                      className={`badge ${getScoreBadgeClass(prereqAnalysis.technicalScore)}`}
+                    >
+                      {prereqAnalysis.technicalScore}/5
+                    </span>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="p-2 bg-white rounded-2 border text-center">
+                    <div className="small text-muted mb-1">Communication</div>
+                    <span
+                      className={`badge ${getScoreBadgeClass(prereqAnalysis.communicationScore)}`}
+                    >
+                      {prereqAnalysis.communicationScore}/5
+                    </span>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="p-2 bg-white rounded-2 border text-center">
+                    <div className="small text-muted mb-1">Time Mgmt</div>
+                    <span
+                      className={`badge ${getScoreBadgeClass(prereqAnalysis.timeScore)}`}
+                    >
+                      {prereqAnalysis.timeScore}/5
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Overall Readiness */}
+              <div className="p-3 bg-white rounded-3 border text-center">
+                <div className="small text-muted mb-2">Overall Readiness</div>
+                <div className="d-flex align-items-center justify-content-center gap-2">
+                  <span
+                    className={`badge ${getScoreBadgeClass(prereqAnalysis.overallScore)} fs-5`}
+                  >
+                    {prereqAnalysis.overallScore}/5
+                  </span>
+                  <span className="small text-muted">
+                    (
+                    {prereqAnalysis.overallScore >= 4
+                      ? "Excellent"
+                      : prereqAnalysis.overallScore >= 3
+                        ? "Good"
+                        : "Needs Work"}
+                    )
+                  </span>
+                </div>
+              </div>
+
+              {/* Warnings if any */}
+              {prereqAnalysis.warnings &&
+                prereqAnalysis.warnings.length > 0 && (
+                  <div className="mt-3 p-2 bg-warning-subtle rounded-3 border border-warning">
+                    <div className="small fw-bold mb-1">
+                      ⚠️ Areas to Improve:
+                    </div>
+                    <ul className="small mb-0 ps-3">
+                      {prereqAnalysis.warnings.map((warning, idx) => (
+                        <li key={idx}>{warning}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+            </div>
+          )}
+
           {/* Mobile Accordion */}
           {categories.map((category) => {
             const questions = groupedQuestions[category];
@@ -239,9 +347,7 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
 
                         <div className="small">
                           <div className="mb-1">
-                            <span className="text-muted">
-                              Your answer:{" "}
-                            </span>
+                            <span className="text-muted">Your answer: </span>
                             <span
                               className={`fw-bold ${item.isCorrect ? "text-success" : "text-danger"}`}
                             >
@@ -279,16 +385,14 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
             <div className="row g-2">
               <div className="col-6">
                 <div className="text-center p-2 bg-white rounded-2 border">
-                  <div className="h4 fw-bold text-success mb-0">
-                    {correctCount}
-                  </div>
+                  <div className="h4 fw-bold text-success mb-0">{accuracy}</div>
                   <small className="text-muted">Correct</small>
                 </div>
               </div>
               <div className="col-6">
                 <div className="text-center p-2 bg-white rounded-2 border">
                   <div className="h4 fw-bold text-danger mb-0">
-                    {totalQuestions - correctCount}
+                    {totalQuestions - accuracy}
                   </div>
                   <small className="text-muted">To Improve</small>
                 </div>
@@ -310,7 +414,7 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
           </div>
 
           {/* AI Analysis for mobile */}
-          {(result?.examAnalysis || result?.successRoadMap) && (
+          {(result?.examAnalysis || result?.successRoadmap) && (
             <div className="mt-4">
               <h6 className="fw-bold mb-2" style={{ color: "#2B3176" }}>
                 AI Insights
@@ -320,9 +424,9 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
                   <p className="small mb-0">{result.examAnalysis}</p>
                 </div>
               )}
-              {result?.successRoadMap && (
+              {result?.successRoadmap && (
                 <div className="p-3 bg-warning-subtle rounded-3 border border-warning">
-                  <p className="small mb-0">{result.successRoadMap}</p>
+                  <p className="small mb-0">{result.successRoadmap}</p>
                 </div>
               )}
             </div>
@@ -332,10 +436,9 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
     );
   }
 
-  // --- DESKTOP VIEW (CAROUSEL / SLIDES WITH HOVER TOOLTIP) ---
-
+  // --- DESKTOP VIEW ---
   const activeCategory = categories[activeSlideIndex];
-  const activeQuestions = groupedQuestions[activeCategory];
+  const activeQuestions = groupedQuestions[activeCategory] || [];
   const activeCorrect = activeQuestions.filter((q) => q.isCorrect).length;
 
   const handleNext = () => {
@@ -413,6 +516,115 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
             <div className="text-muted small">Overall Score</div>
           </div>
         </div>
+
+        {/* ✅ PREREQUISITE SCORES SECTION - DESKTOP */}
+        {prereqAnalysis && (
+          <div
+            className="mb-4 p-4 rounded-3 border"
+            style={{ background: "rgba(43, 49, 118, 0.02)" }}
+          >
+            <div className="row align-items-center g-3">
+              <div className="col-md-8">
+                <h6 className="fw-bold mb-3" style={{ color: "#2B3176" }}>
+                  📊 Readiness Breakdown
+                </h6>
+                <div className="row g-3">
+                  <div className="col-md-3 col-6">
+                    <div className="text-center">
+                      <div className="small text-muted mb-2">
+                        Math Foundation
+                      </div>
+                      <span
+                        className={`badge ${getScoreBadgeClass(prereqAnalysis.mathScore)} fs-6 px-3 py-2`}
+                      >
+                        {prereqAnalysis.mathScore}/5
+                      </span>
+                    </div>
+                  </div>
+                  <div className="col-md-3 col-6">
+                    <div className="text-center">
+                      <div className="small text-muted mb-2">
+                        Technical Skills
+                      </div>
+                      <span
+                        className={`badge ${getScoreBadgeClass(prereqAnalysis.technicalScore)} fs-6 px-3 py-2`}
+                      >
+                        {prereqAnalysis.technicalScore}/5
+                      </span>
+                    </div>
+                  </div>
+                  <div className="col-md-3 col-6">
+                    <div className="text-center">
+                      <div className="small text-muted mb-2">Communication</div>
+                      <span
+                        className={`badge ${getScoreBadgeClass(prereqAnalysis.communicationScore)} fs-6 px-3 py-2`}
+                      >
+                        {prereqAnalysis.communicationScore}/5
+                      </span>
+                    </div>
+                  </div>
+                  <div className="col-md-3 col-6">
+                    <div className="text-center">
+                      <div className="small text-muted mb-2">
+                        Time Management
+                      </div>
+                      <span
+                        className={`badge ${getScoreBadgeClass(prereqAnalysis.timeScore)} fs-6 px-3 py-2`}
+                      >
+                        {prereqAnalysis.timeScore}/5
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-md-4">
+                <div className="p-4 bg-white rounded-3 border text-center">
+                  <div className="small text-muted mb-2">
+                    Overall Readiness Score
+                  </div>
+                  <div className="h2 fw-bold mb-2" style={{ color: "#2B3176" }}>
+                    {prereqAnalysis.overallScore}/5
+                  </div>
+                  <span
+                    className={`badge ${getScoreBadgeClass(prereqAnalysis.overallScore)}`}
+                  >
+                    {prereqAnalysis.overallScore >= 4
+                      ? "Excellent"
+                      : prereqAnalysis.overallScore >= 3
+                        ? "Good Progress"
+                        : "Needs Improvement"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Show warnings if any */}
+            {prereqAnalysis.warnings && prereqAnalysis.warnings.length > 0 && (
+              <div className="mt-3 p-3 bg-warning-subtle rounded-3 border border-warning">
+                <div className="fw-bold mb-2">⚠️ Areas for Improvement:</div>
+                <ul className="mb-0 small">
+                  {prereqAnalysis.warnings.map((warning, idx) => (
+                    <li key={idx}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Show recommendations */}
+            {prereqAnalysis.recommendations &&
+              prereqAnalysis.recommendations.length > 0 && (
+                <div className="mt-3 p-3 bg-info-subtle rounded-3 border border-info">
+                  <div className="fw-bold mb-2">💡 Recommended Actions:</div>
+                  <ul className="mb-0 small">
+                    {prereqAnalysis.recommendations.map((rec, idx) => (
+                      <li key={idx}>{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+          </div>
+        )}
 
         {/* Carousel Tabs Navigation */}
         <div className="d-flex gap-2 border-bottom pb-3">
@@ -549,7 +761,7 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
           <div className="row g-3">
             {result?.examAnalysis && (
               <div
-                className={`${result?.successRoadMap ? "col-md-6" : "col-12"}`}
+                className={`${result?.successRoadmap ? "col-md-6" : "col-12"}`}
               >
                 <div className="p-3 bg-info-subtle rounded-3 h-100 border border-info-subtle">
                   <h6 className="fw-bold mb-2">📊 AI Evaluation</h6>
@@ -557,13 +769,15 @@ const FoundationalExamCard: React.FC<Props> = ({ result, userAnswers }) => {
                 </div>
               </div>
             )}
-            {result?.successRoadMap && (
+            {result?.successRoadmap && (
               <div
                 className={`${result?.examAnalysis ? "col-md-6" : "col-12"}`}
               >
                 <div className="p-3 bg-warning-subtle rounded-3 h-100 border border-warning-subtle">
-                  <h6 className="fw-bold mb-2">🗺️ Success Roadmap</h6>
-                  <p className="small mb-0">{result.successRoadMap}</p>
+                  <h6 className="fw-bold mb-2">🗺️ What to do next?</h6>
+                  <p className="small mb-0">
+                    {result.prereqAnalysis?.recommendations}
+                  </p>
                 </div>
               </div>
             )}

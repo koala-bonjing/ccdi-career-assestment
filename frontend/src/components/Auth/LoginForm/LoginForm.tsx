@@ -48,6 +48,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     e.preventDefault();
     setLoading(true);
     setMessage({ type: "", text: "" });
+    
 
     try {
       const response = await axios.post(`${BASE_URL}/api/auth/login`, formData);

@@ -91,6 +91,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   ): string => {
     // Handle foundationalAssessment (text answers)
     if (sectionKey === "foundationalAssessment") {
+      // If value exists, it is the actual answer string (e.g. "Up to Grade 11 Math")
       if (typeof value === "string" && value.trim() !== "") {
         return value;
       }
@@ -177,6 +178,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     const sectionQuestions = getQuestionsBySection(sectionKey);
     const answeredCount = sectionQuestions.filter((q) => {
       const answer =
+        formData[sectionKey as keyof AssessmentAnswers]?.[q._id] ||
         formData[sectionKey as keyof AssessmentAnswers]?.[q.questionText];
 
       // Different validation for each section type
@@ -245,8 +247,8 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     const sectionQuestions = getQuestionsBySection(sectionKey);
     return sectionQuestions.filter((q) => {
       const answer =
+        formData[sectionKey as keyof AssessmentAnswers]?.[q._id] ||
         formData[sectionKey as keyof AssessmentAnswers]?.[q.questionText];
-
       if (sectionKey === "foundationalAssessment") {
         return typeof answer === "string" && answer.trim() !== "";
       }
@@ -658,13 +660,15 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                               Foundational Readiness Assessment (
                               {answeredQuestions.length})
                             </h6>
-
                             {answeredQuestions.length > 0 ? (
                               Object.entries(foundationalGroups).map(
                                 ([category, catQuestions], catIndex) => {
                                   const answeredCatQuestions =
                                     catQuestions.filter((q) => {
                                       const answer =
+                                        formData.foundationalAssessment?.[
+                                          q._id
+                                        ] ||
                                         formData.foundationalAssessment?.[
                                           q.questionText
                                         ];
@@ -673,10 +677,8 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                         answer.trim() !== ""
                                       );
                                     });
-
                                   if (answeredCatQuestions.length === 0)
                                     return null;
-
                                   return (
                                     <div key={category} className="mb-4">
                                       <div
@@ -711,14 +713,18 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                           </small>
                                         </h6>
                                       </div>
-
                                       <div className="ms-3">
                                         {answeredCatQuestions.map(
                                           (question, qIndex) => {
+                                            // ✅ FIXED: Consistently check both _id and questionText
                                             const answer =
+                                              formData.foundationalAssessment?.[
+                                                question._id
+                                              ] ||
                                               formData.foundationalAssessment?.[
                                                 question.questionText
                                               ];
+
                                             const answerLabel = getAnswerLabel(
                                               "foundationalAssessment",
                                               question.questionText,
@@ -731,7 +737,10 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
 
                                             return (
                                               <div
-                                                key={question._id}
+                                                key={
+                                                  question._id ||
+                                                  question.questionText
+                                                }
                                                 className="d-flex align-items-start p-3 mb-3 rounded"
                                                 style={{
                                                   background:

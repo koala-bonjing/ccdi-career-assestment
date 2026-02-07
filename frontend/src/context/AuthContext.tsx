@@ -2,7 +2,6 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 
@@ -31,7 +30,6 @@ const getInitialAuthState = (): { user: User | null; loading: boolean } => {
     const parsed = StorageEncryptor.getItem("user"); // This now returns the object
 
     if (parsed) {
-      console.log("📦 Parsed user data:", parsed);
 
       // FIX: Check 'parsed', not 'savedUser'
       if ((parsed._id || parsed.id) && parsed.email) {
@@ -53,14 +51,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [state, setState] = useState(() => getInitialAuthState());
 
-  // Debug: Log auth state changes
-  useEffect(() => {
-    console.log("🔐 Auth state changed:", {
-      isAuthenticated: !!state.user,
-      userId: state.user?._id,
-      userEmail: state.user?.email,
-    });
-  }, [state.user]);
 
   const login = (userData: User) => {
     try {

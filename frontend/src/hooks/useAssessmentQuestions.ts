@@ -8,6 +8,7 @@ export interface Question {
   questionText: string;
   program: string;
   weight?: number;
+  correctAnswer: string;
   options?: string[];
   category?: string; // Add this
   subCategory?: string; // ADD THIS LINE - This is what's missing!
@@ -28,6 +29,7 @@ interface ApiQuestion {
   _id: string;
   questionText: string;
   program: string;
+  correctAnswer: string;
   weight: number;
   options?: string[];
   category?: string;
@@ -78,6 +80,14 @@ export const useAssessmentQuestions = () => {
           // It's already in the grouped format
           const groupedData = responseData as ApiResponse;
 
+          const normalizeQuestion = (q: Question): Question => {
+            const id = q._id || q.id || q.questionText;
+            return {
+              ...q,
+              _id: String(id), // Ensure it's a string for the backend key
+              id: String(id),
+            };
+          };
           // Debug: Check what fields are in learningWorkStyle questions
           if (
             groupedData.learningWorkStyle &&
@@ -98,12 +108,17 @@ export const useAssessmentQuestions = () => {
             );
           }
 
+          const normalizeGroup = (qList: Question[] = []) =>
+            qList.map(normalizeQuestion);
+
           setQuestions({
-            foundationalAssessment: groupedData.foundationalAssessment || [],
-            academicAptitude: groupedData.academicAptitude || [],
-            technicalSkills: groupedData.technicalSkills || [],
-            careerInterest: groupedData.careerInterest || [],
-            learningWorkStyle: groupedData.learningWorkStyle || [],
+            foundationalAssessment: normalizeGroup(
+              groupedData.foundationalAssessment,
+            ),
+            academicAptitude: normalizeGroup(groupedData.academicAptitude),
+            technicalSkills: normalizeGroup(groupedData.technicalSkills),
+            careerInterest: normalizeGroup(groupedData.careerInterest),
+            learningWorkStyle: normalizeGroup(groupedData.learningWorkStyle),
           });
         } else if (Array.isArray(responseData)) {
           // Transform flat array to grouped structure
@@ -119,6 +134,7 @@ export const useAssessmentQuestions = () => {
             const questionData: Question = {
               id: question._id,
               _id: question._id,
+              correctAnswer: question.correctAnswer,
               questionText: question.questionText,
               program: question.program,
               weight: question.weight,

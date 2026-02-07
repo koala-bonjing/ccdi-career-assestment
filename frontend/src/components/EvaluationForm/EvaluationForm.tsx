@@ -40,7 +40,6 @@ const EvaluationForm = () => {
     setAnswers: setStoreAnswer,
     clearAllAnswers,
   } = useEvaluationStore();
-
   const { isAuthenticated, user: authUser } = useAuth();
 
   const [restoredFormData, setRestoredFormData] = useState<
@@ -88,10 +87,11 @@ const EvaluationForm = () => {
   ): Record<string, string | number | boolean> => {
     const flat: Record<string, string | number | boolean> = {};
 
+    // Foundational Assessment (string answers)
     if (nested.foundationalAssessment) {
       Object.entries(nested.foundationalAssessment).forEach(
         ([questionId, value]) => {
-          flat[`prerequisites.${questionId}`] = value;
+          flat[questionId] = value; // ✅ NO PREFIX!
         },
       );
     }
@@ -140,8 +140,6 @@ const EvaluationForm = () => {
     console.log("🚀 Submitting assessment...");
     console.log("👤 Current authUser:", authUser);
 
-    const { answers, programScores } = submissionData;
-
     // CRITICAL: Validate user authentication FIRST
     if (!authUser) {
       console.error("❌ No authenticated user found");
@@ -161,6 +159,8 @@ const EvaluationForm = () => {
 
     setLoading(true);
     setError(null);
+
+    const { answers, programScores } = submissionData;
 
     try {
       // Save to localStorage (optional, for recovery)
@@ -209,6 +209,9 @@ const EvaluationForm = () => {
         examAnalysis: backendResult.examAnalysis,
         prereqAnalysis: backendResult.prereqAnalysis,
         successRoadmap: backendResult.successRoadmap,
+        foundationalScore: backendResult.foundationalScore,
+        foundationalDetails: backendResult.foundationalDetails,
+        weaknesses: backendResult.weaknesses,
       };
 
       // Store result in Zustand
@@ -284,7 +287,7 @@ const EvaluationForm = () => {
   };
 
   return (
-    <div className="evaluation-form">
+    <div className="evaluation-form ">
       <AssessmentForm
         currentUser={currentUser}
         onSubmit={handleSubmitAnswers}

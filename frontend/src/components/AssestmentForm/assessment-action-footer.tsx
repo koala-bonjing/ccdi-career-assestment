@@ -24,7 +24,7 @@ const AssessmentActionFooter: React.FC<AssessmentActionFooterProps> = ({
 
   return (
     <>
-      <Card.Footer className="bg-transparent border-0 py-4">
+      <Card.Footer className="bg-transparent border-0 py-4 gap-1">
         <Row className="align-items-center">
           <Col md={4}>
             {currentSection > 0 && (
@@ -39,7 +39,7 @@ const AssessmentActionFooter: React.FC<AssessmentActionFooterProps> = ({
             )}
           </Col>
           <Col md={4} className="text-center">
-            <Badge bg="light" text="dark" className="fs-6 p-3">
+            <Badge bg="light" text="dark" className="fs-6 p-3 border">
               Section {currentSection + 1} of {totalSections}
             </Badge>
           </Col>

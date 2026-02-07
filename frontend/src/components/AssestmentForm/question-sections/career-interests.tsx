@@ -122,11 +122,12 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
         </div>
 
         <div className="row justify-content-center">
-          <div className="col-lg-8">
-            <div className="d-grid gap-3">
+          <div className="col-lg-10">
+            <div className="d-grid gap-2 gap-md-3">
               {[1, 2, 3, 4, 5].map((val) => {
                 const isSelected =
-                  formData.careerInterest[currentQuestion.questionText] === val;
+                  formData.careerInterest[currentQuestion.questionText] ===
+                  val;
                 return (
                   <label
                     key={val}

@@ -115,7 +115,7 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
         />
 
         <div className="text-center mb-4 mb-md-5">
-          <Form.Label className="h4 h3-md mb-3 text-dark d-block fw-bold">
+          <Form.Label className="h3 mb-4 text-dark d-block fw-bold">
             {currentQuestion.questionText}
           </Form.Label>
         </div>

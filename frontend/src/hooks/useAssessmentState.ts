@@ -159,13 +159,7 @@ export const useAssessmentState = () => {
           { timeout: 5000 },
         );
 
-        console.log("📡 API Response:", {
-          success: response.data.success,
-          dataCount: response.data.data?.length || 0,
-        });
-
         if (response.data.success && response.data.data.length > 0) {
-          console.log("🌐 Using data from API");
           const latest = response.data.data[0];
 
           const result: AssessmentResult = {
@@ -200,6 +194,9 @@ export const useAssessmentState = () => {
             examAnalysis: latest.examAnalysis || "",
             prereqAnalysis: latest.prereqAnalysis as PrereqAnalysis,
             successRoadmap: latest.successRoadmap || "",
+            foundationalScore: latest.foundationalScore || 0,
+            foundationalDetails: latest.foundationalDetails,
+            weaknesses: latest.weaknesses,
           };
 
           setRawResult(result);
@@ -229,15 +226,6 @@ export const useAssessmentState = () => {
   }, [user?._id]);
 
   const assessmentResult = deriveDisplayData(rawResult);
-
-  console.log("🎯 useAssessmentState final state:", {
-    dataSource,
-    hasCompleted,
-    hasProgress,
-    loading,
-    rawResult: rawResult?.recommendedProgram,
-    displayResult: assessmentResult?.recommendedProgram,
-  });
 
   return {
     assessmentResult,

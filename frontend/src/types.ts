@@ -151,10 +151,56 @@ export interface AssessmentResult {
   categoryScores: CategoryScores;
   preparationNeeded?: string[];
   examAnalysis: string;
-  prereqAnalysis: PrereqAnalysis;
+
   successRoadmap?: string;
+
+  foundationalScore?: number;
+  prereqAnalysis?: PrereqAnalysis;
+  foundationalDetails?: FoundationalDetails;
+  weaknesses?: WrongAnswer[];
 }
 
+export interface FoundationalResult {
+  questionId: string;
+  questionText: string;
+  studentAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  weight: number;
+  earnedPoints: number;
+  maxPoints: number;
+  gradingReasoning: string;
+  percentageAwarded?: number; // For subjective questions
+  isSubjective: boolean;
+  subCategory: string;
+}
+export interface WrongAnswer {
+  question: string;
+  studentAnswer: string;
+  correctAnswer: string;
+  subCategory: string;
+  aiReasoning?: string; // For subjective questions
+}
+
+export interface SubjectiveGrading {
+  question: string;
+  studentAnswer: string;
+  pointsAwarded: number;
+  maxPoints: number;
+  percentage: number;
+  reasoning: string;
+}
+
+export interface FoundationalDetails {
+  score: number; // Percentage 0-100
+  earnedPoints: number; // Total points earned
+  totalPossible: number; // Total possible points
+  correctCount: number; // Number of correct answers
+  totalQuestions: number; // Total number of questions
+  results: FoundationalResult[]; // Detailed results per question
+  wrongAnswers: WrongAnswer[]; // Array of wrong answers
+  subjectiveGradingDetails: SubjectiveGrading[];
+}
 // 🔹 Props for AssessmentForm
 export interface AssessmentFormProps {
   currentUser: User | null;

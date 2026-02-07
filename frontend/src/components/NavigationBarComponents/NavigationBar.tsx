@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // 1. Added OverlayTrigger and Tooltip to imports
 import {
   Navbar,
@@ -12,7 +12,8 @@ import {
 import { LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import LOGO from "../../assets/logoCCDI.png";
+import LOGO from "../../assets/ccdi_banner1.png";
+import LOGO_Alt from "../../assets/logoCCDI.png"
 import "./NavigationBar.css";
 import { LogoutModal } from "../ui/modals/logout-modal";
 import { StorageEncryptor } from "../ResultPage/utils/encryption";
@@ -21,6 +22,14 @@ function NavigationBar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleLogoutClick = (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -33,6 +42,7 @@ function NavigationBar() {
     StorageEncryptor.removeItem("user");
     StorageEncryptor.removeItem("assessmentResults");
     StorageEncryptor.removeItem("assessment-result");
+    StorageEncryptor.removeItem("evaluation-storage");
     navigate("/signup");
   };
 
@@ -49,7 +59,7 @@ function NavigationBar() {
 
   return (
     <>
-      <Navbar variant="dark" expand="lg" fixed="top" className="custom-navbar">
+      <Navbar variant="dark" expand="sm" fixed="top" className="custom-navbar">
         <Container fluid>
           {/* 3. Wrap Navbar.Brand with OverlayTrigger */}
           <OverlayTrigger
@@ -64,29 +74,19 @@ function NavigationBar() {
               style={{ cursor: "pointer" }}
             >
               <img
-                src={LOGO}
+                src={isMobile ? LOGO_Alt : LOGO}
                 alt="CCDI Logo"
-                width="70"
-                height="70"
-                className="me-2"
-                style={{ objectFit: "contain" }}
-              />
+                width={isMobile ? 50 : 500}
+                height={isMobile ? 50 : 80}
+                className="d-inline-block align-top"
+                style={{
+                  objectFit: "contain",
+                  margin: "0",
+                }}
 
-              <div className="d-flex flex-column">
-                <span className="fw-bold fs-5 fs-md-4 fs-lg-3 text-nowrap">
-                  CCDI
-                </span>
-                <span
-                  className="fw-light text-nowrap "
-                  style={{
-                    fontSize: "clamp(0.7rem, 2.5vw, 1rem)",
-                    lineHeight: 1.2,
-                    fontWeight: 400,
-                  }}
-                >
-                  Career Assessment Test
-                </span>
-              </div>
+
+  
+              />
             </Navbar.Brand>
           </OverlayTrigger>
 
@@ -96,7 +96,7 @@ function NavigationBar() {
             <Nav className="ms-auto d-flex align-items-center">
               <Nav.Link
                 href="#home"
-                className="fw-semibold fs-5 mx-2 mx-md-3 nav-link-custom"
+                className="fw-semibold fs-6 mx-2 mx-md-3 nav-link-custom"
               >
                 Courses
               </Nav.Link>
@@ -134,7 +134,7 @@ function NavigationBar() {
         onConfirm={handleConfirmLogout}
       />
 
-      <div style={{ height: "76px" }}></div>
+      <div style={{ height: "40px" }}></div>
     </>
   );
 }

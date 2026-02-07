@@ -24,7 +24,13 @@ interface QuestionGroup {
   questions: Question[];
 }
 
-// Fisher-Yates shuffle algorithm for randomizing arrays
+interface chartConfig {
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+  description: string;
+}
+
 const shuffleArray = <T,>(array: T[]): T[] => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -50,27 +56,30 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
     Record<string, string[]>
   >({});
 
+  // 1. Initialize Shuffled Options - use the same ID logic as below
   useEffect(() => {
     const newShuffledOptionsMap: Record<string, string[]> = {};
     questions.forEach((q) => {
+      // ✅ Crucial: Use fallback if _id is missing
+      const qKey = q._id || q.questionText;
       if (q.options && q.options.length > 0) {
-        const questionKey = `${q.questionText}-${q.subCategory || "default"}`;
-        newShuffledOptionsMap[questionKey] = shuffleArray(q.options);
+        newShuffledOptionsMap[qKey] = shuffleArray(q.options);
       }
     });
     setShuffledOptionsMap(newShuffledOptionsMap);
   }, [questions]);
 
+  // 2. Progress Calculation - use fallback ID
   const calculateProgress = () => {
     if (!questions || questions.length === 0) return 0;
-    const answeredCount = questions.filter(
-      (q) => !!formData.foundationalAssessment[q.questionText],
-    ).length;
+    const answeredCount = questions.filter((q) => {
+      const qId = q._id || q.questionText;
+      return !!formData.foundationalAssessment[qId];
+    }).length;
     return Math.round((answeredCount / questions.length) * 100);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const categoryConfig: Record<string, any> = {
+  const categoryConfig: Record<string, chartConfig> = {
     prerequisites: {
       label: "Basic Skills",
       icon: <GraduationCap size={24} />,
@@ -119,13 +128,15 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
     },
   });
 
+  // 3. Group completion - use fallback ID
   const isGroupComplete = (groupIndex: number) => {
     const group = questionGroups[groupIndex];
     return (
       group.questions.length > 0 &&
-      group.questions.every(
-        (q) => !!formData.foundationalAssessment[q.questionText],
-      )
+      group.questions.every((q) => {
+        const qId = q._id || q.id || q.questionText;
+        return !!formData.foundationalAssessment[qId];
+      })
     );
   };
 
@@ -133,26 +144,27 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   const progressPercent = calculateProgress();
   const isSectionComplete = progressPercent === 100;
 
-    
+  useEffect(() => {
+    console.log(
+      "Current foundational answers:",
+      formData.foundationalAssessment,
+    );
+  }, [formData]);
 
   return (
     <Card className="assessment-card shadow-lg mx-auto">
       <SectionHeader
-        icon={<BrainCircuit size={40}/>}
+        icon={<BrainCircuit size={40} />}
         sectionType="foundationalAssessment"
         title="Foundational Assessment"
         variant="primary"
       />
 
       <Card.Body className="p-3 p-md-5">
-        {/* Progress Bar */}
         <div className="progress-container">
           <div className="d-flex justify-content-between align-items-end mb-2">
             <div className="progress-header">
               <h5 className="fw-bold mb-0">Foundational Readiness</h5>
-              <small className="text-muted d-none d-sm-block">
-                Answer all questions to proceed
-              </small>
             </div>
             <div className="text-end">
               <span className="fw-bold" style={{ color: "#2B3176" }}>
@@ -164,11 +176,9 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
             now={progressPercent}
             variant={isSectionComplete ? "success" : "primary"}
             style={{ height: "8px", borderRadius: "4px" }}
-            animated={!isSectionComplete}
           />
         </div>
 
-        {/* Tab Navigation */}
         <Row className="mb-4 g-2">
           {questionGroups.map((group, idx) => (
             <Col key={group.id} xs={4}>
@@ -176,24 +186,11 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                 onClick={() => setActiveGroup(idx)}
                 className={`tab-button ${activeGroup === idx ? "active" : ""}`}
                 style={
-                  {
-                    "--category-color": group.color,
-                    "--bg-active": `${group.color}15`,
-                  } as React.CSSProperties
+                  { "--category-color": group.color } as React.CSSProperties
                 }
               >
-                <div
-                  className="tab-icon"
-                  style={{ color: activeGroup === idx ? group.color : "#999" }}
-                >
-                  {group.icon}
-                </div>
-                <div
-                  className="tab-label d-none d-md-block"
-                  style={{ color: activeGroup === idx ? group.color : "#666" }}
-                >
-                  {group.label}
-                </div>
+                <div className="tab-icon">{group.icon}</div>
+                <div className="tab-label d-none d-md-block">{group.label}</div>
                 {isGroupComplete(idx) && (
                   <CheckCircle2
                     size={16}
@@ -206,15 +203,10 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
           ))}
         </Row>
 
-        {/* Content Area */}
         <div
           className="content-area"
           style={
-            {
-              "--category-color": currentGroup.color,
-              "--border-color": `${currentGroup.color}20`,
-              "--bg-gradient": `${currentGroup.color}05`,
-            } as React.CSSProperties
+            { "--category-color": currentGroup.color } as React.CSSProperties
           }
         >
           <div className="mb-4 text-center">
@@ -226,71 +218,49 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
 
           <Row className="g-4">
             {currentGroup.questions.map((q, qIdx) => {
-              const selectedValue =
-                formData.foundationalAssessment[q.questionText];
-              const questionKey = `${q.questionText}-${q.subCategory || "default"}`;
+              // ✅ FIX: NEVER use just q._id here if it might be undefined.
+              // Fallback to questionText ensures unique keys for every question.
+              const qId = q._id;
+
+              const selectedValue = formData.foundationalAssessment[qId];
               const randomizedOptions =
-                shuffledOptionsMap[questionKey] || q.options || [];
+                shuffledOptionsMap[qId] || q.options || [];
 
               return (
-                <Col key={qIdx} xs={12}>
+                <Col key={qId} xs={12}>
                   <div className="question-text mb-2">
-                    <span className="question-number badge rounded-circle bg-light text-dark border-2">
+                    <span className="question-number badge rounded-circle bg-light text-dark border-2 me-2">
                       {qIdx + 1}
                     </span>
                     {q.questionText}
                   </div>
 
                   {q.helperText && (
-                    <div className="small text-muted mb-3 d-flex align-items-start gap-1 ps-4">
-                      <Info size={14} className="mt-1 flex-shrink-0" />
+                    <div className="small text-muted mb-3 ps-4">
+                      <Info size={14} className="me-1" />
                       <i>{q.helperText}</i>
                     </div>
                   )}
 
                   <Row className="g-2 g-md-3">
                     {randomizedOptions.map((option, optIdx) => (
-                      <Col key={optIdx} xs={12} md={6}>
+                      <Col key={`${qId}-${optIdx}`} xs={12} md={6}>
                         <div
+                          // ✅ Send the reliable qId to the backend
                           onClick={() =>
-                            onChange(
-                              "foundationalAssessment",
-                              q.questionText,
-                              option,
-                            )
+                            onChange("foundationalAssessment", qId, option)
                           }
                           className={`option-card ${selectedValue === option ? "selected" : ""}`}
-                          style={
-                            {
-                              "--category-color": currentGroup.color,
-                              "--bg-selected": `${currentGroup.color}08`,
-                              "--shadow-color": `${currentGroup.color}15`,
-                            } as React.CSSProperties
-                          }
                         >
                           <div className="option-content">
                             <div className="status-icon">
                               {selectedValue === option ? (
-                                <CheckCircle2
-                                  size={20}
-                                  style={{ color: currentGroup.color }}
-                                />
+                                <CheckCircle2 size={20} />
                               ) : (
-                                <Circle
-                                  size={20}
-                                  className="text-light-emphasis"
-                                />
+                                <Circle size={20} />
                               )}
                             </div>
-                            <span
-                              className="option-text"
-                              style={{
-                                fontWeight:
-                                  selectedValue === option ? "600" : "400",
-                              }}
-                            >
-                              {option}
-                            </span>
+                            <span className="option-text">{option}</span>
                           </div>
                         </div>
                       </Col>

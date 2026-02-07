@@ -29,6 +29,7 @@ import RadarChart from "./chart/radar-chart";
 import ProgramBreakdownChart from "./chart/program-breakdown-chart";
 import FoundationalExamCard from "./cards/foundational-exam-card";
 import PreparationAndRoadmapCard from "./cards/preparation-needed-card";
+import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
 
 interface ResultsPageProps {
   result?: AssessmentResult; // Make it optional
@@ -42,6 +43,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   // ✅ Get result from multiple sources
   const { assessmentResult } = useAssessmentState();
   const { result: storeResult } = useEvaluationStore();
+  const { questions: dbQuestion } = useAssessmentQuestions();
 
   // Hydrate Data on Mount
 
@@ -50,7 +52,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
 
   console.log(
     "Answer received:",
-    Object.keys(result?.answers.foundationalAssessment || {}),
+    Object.values(result?.answers.foundationalAssessment || {}),
   );
 
   // ✅ Call all hooks BEFORE any conditional returns
@@ -81,10 +83,6 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
     window.print();
   };
 
-  console.log("Roadmap Data Check:", {
-    prep: result.preparationNeeded,
-    roadmap: result.successRoadmap,
-  });
   return (
     <div
       className="min-vh-100 d-flex flex-column"
@@ -172,8 +170,9 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                 )}
                 {result.answers?.foundationalAssessment && (
                   <FoundationalExamCard
-                    userAnswers={result.answers.foundationalAssessment}
+                    userAnswers={result?.answers.foundationalAssessment || {}}
                     result={result}
+                    questions={dbQuestion?.foundationalAssessment}
                   />
                 )}
               </div>

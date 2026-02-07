@@ -1,19 +1,32 @@
 /* NavigationBar.css */
 
-/* Custom Navbar Styles */
+/* Main Navbar Container */
 .custom-navbar {
   background-color: #a41d31 !important;
-  box-shadow: 0 2px 10px rgba(164, 29, 49, 0.3);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 6px rgba(164, 29, 49, 0.2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 1.5rem 1.5rem !important;
+  min-height: 80px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-/* Navbar Brand */
+/* Override Bootstrap's default navbar */
+.navbar {
+  min-height: 65px !important;
+  padding: 0 !important;
+}
+
+/* Brand */
 .navbar-brand {
-  font-size: 1.25rem;
+  font-size: 0.37rem !important;
   color: #fff !important;
-  font-weight: 600 !important; /* was 600 — keep it */
-  font-family: "Inter", "Poppins", sans-serif !important;
+  font-weight: 600 !important;
+  font-family: "Poppins", "Geist", "Inter", sans-serif !important;
+  line-height: 1;
+  margin-right: 1rem;
+  padding: 0 !important;
 }
 
 .navbar-brand:hover {
@@ -21,207 +34,107 @@
   opacity: 0.9;
 }
 
-/* Navigation Links */
-.navbar-nav .nav-link {
-  color: rgba(255, 255, 255, 0.9) !important;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
+/* Nav Links */
+.navbar-nav .nav-link,
 .nav-link-custom {
-  border-radius: 5px;
-  padding: 8px 16px;
   color: rgba(255, 255, 255, 0.9) !important;
-  white-space: nowrap;
+  font-size: 0.8rem !important;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem !important; /* Minimal padding */
+  margin: 0 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1.3;
+  min-height: auto;
+  display: flex;
+  align-items: center;
 }
 
 .nav-link-custom:hover,
 .nav-link-custom:focus {
   background-color: rgba(255, 255, 255, 0.15) !important;
-  transform: translateY(-2px);
   color: #fff !important;
+  transform: none; /* Remove lift for ultra-flat look */
 }
 
-/* Logout Link Styling */
+/* Logout Button */
 .logout-link {
-  color: rgba(255, 255, 255, 0.75) !important;
-  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.9rem !important;
+  padding: 0.25rem 0.25rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 4px;
+  background: none;
   display: flex !important;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  transition: all 0.3s ease;
-  border-radius: 5px;
-  padding: 8px 16px;
-  font-weight: 500;
-  white-space: nowrap;
+  gap: 5px;
+  transition: all 0.2s ease;
+  min-height: auto;
+  line-height: 1.3;
 }
 
-.logout-link:hover,
-.logout-link:focus {
+.logout-link:hover {
   background-color: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.6) !important;
-  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.5) !important;
   color: #fff !important;
+  transform: none;
 }
 
-/* Remove default button styles for logout */
-.logout-link.btn {
-  --bs-btn-active-bg: rgba(255, 255, 255, 0.2);
-  --bs-btn-active-border-color: rgba(255, 255, 255, 0.6);
-  --bs-btn-active-color: #fff;
-  --bs-btn-focus-box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-  text-decoration: none;
-}
-
-/* Focus outline for accessibility */
-.logout-link:focus-visible,
-.nav-link-custom:focus-visible {
+/* Focus states for accessibility */
+.nav-link-custom:focus-visible,
+.logout-link:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
-/* === Responsive Behavior === */
+/* === Mobile & Tablet === */
 
-/* Tablet & Mobile (≤991px) — Collapsed Navbar */
 @media (max-width: 991.98px) {
-  .navbar-nav {
-    padding: 12px 0;
+  img {
+    width: 550 !important;
+    height: 550 !important;
+    margin: 0 !important;
+  }
+  .custom-navbar {
+    padding: 0.35rem 1rem !important;
+    min-height: 52px !important;
+  }
+
+  .navbar-brand {
+    font-size: 1.1rem !important;
+  }
+
+  /* Offcanvas items */
+  .offcanvas .navbar-nav {
+    padding: 0.75rem 0;
   }
 
   .nav-link-custom,
   .logout-link {
-    margin: 6px 0;
-    padding: 10px 18px;
-    font-size: 1rem;
-    text-align: center;
-    width: 100%;
-    max-width: 280px;
+    padding: 0.5rem 1rem !important;
+    margin: 0.25rem 0 !important;
+    font-size: 0.95rem !important;
+    min-height: 44px; /* Keep touch-friendly */
     justify-content: center;
   }
 
-  /* Stack nav items vertically in offcanvas */
-  .navbar-nav .nav-item {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  /* Improve offcanvas backdrop & scroll */
-  .offcanvas {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-
-  .offcanvas-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .offcanvas-title {
-    color: #fff;
-    font-weight: 600;
-  }
-
-  /* Reduce spacing between items */
-  .nav-item + .nav-item {
-    margin-top: 4px;
-  }
-
-  /* Ensure logout stands out */
   .logout-link {
-    margin-top: 12px !important;
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-
-  .logout-link:hover {
-    background-color: rgba(255, 255, 255, 0.25) !important;
+    margin-top: 0.75rem !important;
   }
 }
 
-/* Small Mobile (≤576px) — Ultra-Compact */
 @media (max-width: 576px) {
-  .nav-link-custom,
-  .logout-link {
-    padding: 9px 16px;
-    font-size: 0.95rem;
-    min-height: 44px; /* Touch target compliance */
+  .custom-navbar {
+    padding: 0.3rem 0.8rem !important;
   }
 
   .navbar-brand {
-    font-size: 1.15rem;
+    font-size: 1.05rem !important;
   }
 
-  /* Reduce navbar padding */
-  .navbar {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-  }
-
-  .navbar-toggler {
-    padding: 0.4rem 0.5rem;
-    border-color: rgba(255, 255, 255, 0.5);
-  }
-
-  .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-  }
-
-  /* Optional: hide text labels, keep icons only (if using icons) */
-  /* .nav-link-custom span.text { display: none; } */
-}
-
-/* Extra Small (≤375px) — iPhone SE, etc. */
-@media (max-width: 375px) {
   .nav-link-custom,
   .logout-link {
-    padding: 8px 14px;
-    font-size: 0.9rem;
-  }
-
-  .navbar-brand {
-    font-size: 1.1rem;
-  }
-
-  .offcanvas {
-    width: 92vw !important;
-    max-width: 300px;
-  }
-}
-
-/* Prevent horizontal overflow in offcanvas */
-.offcanvas .navbar-nav {
-  flex-direction: column;
-  align-items: stretch;
-}
-
-/* Optional: add subtle fade-in to offcanvas items */
-.offcanvas .nav-item {
-  opacity: 0;
-  transform: translateX(-10px);
-  animation: navItemFadeIn 0.4s forwards;
-}
-
-.offcanvas .nav-item:nth-child(1) {
-  animation-delay: 0.05s;
-}
-.offcanvas .nav-item:nth-child(2) {
-  animation-delay: 0.1s;
-}
-.offcanvas .nav-item:nth-child(3) {
-  animation-delay: 0.15s;
-}
-.offcanvas .nav-item:nth-child(4) {
-  animation-delay: 0.2s;
-}
-.offcanvas .nav-item:nth-child(5) {
-  animation-delay: 0.25s;
-}
-
-@keyframes navItemFadeIn {
-  to {
-    opacity: 1;
-    transform: translateX(0);
+    padding: 0.45rem 0.9rem !important;
+    font-size: 0.9rem !important;
   }
 }

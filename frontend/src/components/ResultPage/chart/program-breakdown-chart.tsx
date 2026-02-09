@@ -6,19 +6,13 @@ import {
   LinearScale,
   BarElement,
   Title,
-  Tooltip,
   Legend,
   type ChartOptions,
 } from "chart.js";
+import { BookOpen, Cpu, Target, CheckCircle, ChevronRight, Info } from "lucide-react";
+import { OverlayTrigger, Tooltip as ReactTooltip } from "react-bootstrap";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Legend);
 
 interface CategoryExplanations {
   academicReason?: string;
@@ -71,7 +65,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         label: "Academic Fitness",
         value: academic,
         color: "#2B3176",
-        icon: "📚",
+        icon: BookOpen,
         reason:
           categoryExplanations?.academicReason ||
           defaultExplanations.academicReason,
@@ -80,7 +74,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         label: "Technical Match",
         value: technical,
         color: "#EC2326",
-        icon: "⚙️",
+        icon: Cpu,
         reason:
           categoryExplanations?.technicalReason ||
           defaultExplanations.technicalReason,
@@ -89,7 +83,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         label: "Career Alignment",
         value: career,
         color: "#1C6CB3",
-        icon: "🎯",
+        icon: Target,
         reason:
           categoryExplanations?.careerReason ||
           defaultExplanations.careerReason,
@@ -98,7 +92,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         label: "Logistics Feasibility",
         value: logistics,
         color: "#28a745",
-        icon: "✓",
+        icon: CheckCircle,
         reason:
           categoryExplanations?.logisticsReason ||
           defaultExplanations.logisticsReason,
@@ -198,7 +192,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           ticks: {
             color: "#333",
             font: {
-              size: isMobile ? 6 : 10,
+              size: isMobile ? 6 : 8,
               weight: "bold",
             },
             maxRotation: isMobile ? 0 : 0,
@@ -223,7 +217,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           cornerRadius: 8,
           displayColors: false,
           callbacks: {
-            label: (context) => `${context.parsed.y}% fit score`,
+            label: (context) => `${context.parsed.y}% Fit score`,
           },
         },
       },
@@ -246,15 +240,35 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
     <div className={`p-3 p-lg-4 ${isMobile ? "mx-1" : "mx-lg-4"}`}>
       {/* Title Section */}
       <div className="text-center mb-4 mb-lg-5">
-        <h3
-          className={`fw-bold ${isMobile ? "h5 mb-2" : "h3 mb-3"}`}
-          style={{
-            color: "#2B3176",
-            letterSpacing: isMobile ? "0.3px" : "1px",
-          }}
-        >
-          Why {fullProgramName} Fits You
-        </h3>
+        <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
+          <h3
+            className={`fw-bold mb-0 ${isMobile ? "h5" : "h3"}`}
+            style={{
+              color: "#2B3176",
+              letterSpacing: isMobile ? "0.3px" : "1px",
+            }}
+          >
+            Why {fullProgramName} Fits You
+          </h3>
+          <OverlayTrigger
+            placement="auto"
+            overlay={
+              <ReactTooltip>
+                This chart breaks down how well the recommended program matches
+                your profile across key categories. Each bar represents a
+                different aspect of fit, with higher scores indicating a
+                stronger match. Hover over each bar for detailed explanations of
+                your strengths and areas for growth in relation to the program.
+              </ReactTooltip>
+            }
+          >
+            <Info
+              size={isMobile ? 18 : 24}
+              className="text-muted"
+              style={{ cursor: "pointer" }}
+            />
+          </OverlayTrigger>
+        </div>
         <div
           style={{
             height: isMobile ? "3px" : "4px",
@@ -284,6 +298,8 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           <div className="d-flex flex-column gap-3">
             {categories.map((cat, i) => {
               const isActive = activeCategory === i;
+              const IconComponent = cat.icon;
+
               return (
                 <div
                   key={i}
@@ -315,13 +331,20 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
                 >
                   <div className="d-flex align-items-start gap-3">
                     <div
+                      className="d-flex align-items-center justify-content-center rounded-circle p-2"
                       style={{
-                        fontSize: isMobile ? "1.3rem" : "1.75rem",
-                        lineHeight: "1",
-                        marginTop: "2px",
+                        width: isMobile ? "36px" : "48px",
+                        height: isMobile ? "36px" : "48px",
+                        backgroundColor: `${cat.color}15`,
+                        border: `1px solid ${cat.color}30`,
+                        flexShrink: 0,
                       }}
                     >
-                      {cat.icon}
+                      <IconComponent
+                        size={isMobile ? 18 : 24}
+                        color={cat.color}
+                        strokeWidth={2.5}
+                      />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="d-flex justify-content-between align-items-center mb-2">
@@ -336,16 +359,21 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
                         >
                           {cat.label}
                         </span>
-                        <span
-                          style={{
-                            fontWeight: "900",
-                            color: cat.color,
-                            fontSize: isMobile ? "1.3rem" : "1.5rem",
-                            fontFamily: "monospace",
-                          }}
-                        >
-                          {cat.value}
-                        </span>
+                        <div className="d-flex align-items-center gap-2">
+                          <span
+                            style={{
+                              fontWeight: "900",
+                              color: cat.color,
+                              fontSize: isMobile ? "1.3rem" : "1.5rem",
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            {cat.value}
+                          </span>
+                          {isMobile && !isActive && (
+                            <ChevronRight size={16} className="text-muted" />
+                          )}
+                        </div>
                       </div>
 
                       {/* Reason text - hidden on mobile unless active */}
@@ -456,31 +484,41 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         }}
       >
         <div className="row g-2">
-          {categories.map((cat, i) => (
-            <div key={i} className="col-6 col-md-3">
-              <div className="d-flex align-items-center gap-2">
-                <div
-                  style={{
-                    width: isMobile ? "12px" : "16px",
-                    height: isMobile ? "12px" : "16px",
-                    borderRadius: "3px",
-                    background: cat.color,
-                    flexShrink: 0,
-                  }}
-                ></div>
-                <small
-                  style={{
-                    fontSize: isMobile ? "0.7rem" : "0.75rem",
-                    color: "#666",
-                    fontWeight: "600",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  {cat.label}
-                </small>
+          {categories.map((cat, i) => {
+            const IconComponent = cat.icon;
+            return (
+              <div key={i} className="col-6 col-md-3">
+                <div className="d-flex align-items-center gap-2">
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded-circle p-1"
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      backgroundColor: `${cat.color}15`,
+                      border: `1px solid ${cat.color}30`,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <IconComponent
+                      size={12}
+                      color={cat.color}
+                      strokeWidth={2.5}
+                    />
+                  </div>
+                  <small
+                    style={{
+                      fontSize: isMobile ? "0.7rem" : "0.75rem",
+                      color: "#666",
+                      fontWeight: "600",
+                      lineHeight: "1.2",
+                    }}
+                  >
+                    {cat.label}
+                  </small>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="text-center mt-3">
           <small

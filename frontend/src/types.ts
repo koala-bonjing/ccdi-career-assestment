@@ -119,9 +119,9 @@ export interface PreparationNeeded {
 
 export interface PrereqAnalysis {
   summary: string;
-  mathScore: number;
-  technicalScore: number;
-  communicationScore: number;
+  prerequisites: number;      // ✅ Changed from mathScore
+  studyHabits: number;        // ✅ Changed from timeScore
+  problemSolving: number;     // ✅ Changed from technicalScore
   timeScore: number;
   overallScore: number;
   warnings: string[];

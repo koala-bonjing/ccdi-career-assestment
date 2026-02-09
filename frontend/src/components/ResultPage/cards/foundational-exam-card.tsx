@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import type { AssessmentResult } from "../../../types";
 import type { Question } from "../../../hooks/useAssessmentQuestions";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Info } from "lucide-react";
 
 interface Props {
   userAnswers: Record<string, string>;
@@ -16,6 +18,7 @@ interface GroupSection {
   userAnswer: string;
   isCorrect: boolean;
   isSubjective: boolean;
+  subCategory?: string;
 }
 
 const FoundationalExamCard: React.FC<Props> = ({
@@ -79,6 +82,7 @@ const FoundationalExamCard: React.FC<Props> = ({
         userAnswer: userAnswerValue || "Not Answered",
         isCorrect: isCorrect,
         isSubjective: false,
+        subCategory: q.subCategory,
       });
     });
   }
@@ -86,11 +90,19 @@ const FoundationalExamCard: React.FC<Props> = ({
   const categories = Object.keys(groupedQuestions);
   const totalQuestions = questions?.length || 0;
 
-  // ✅ HELPER FUNCTION: Get score badge color
+  // ✅ HELPER FUNCTIONS
   const getScoreBadgeClass = (score: number) => {
     if (score >= 4) return "bg-success";
     if (score >= 3) return "bg-warning";
     return "bg-danger";
+  };
+
+  const isStudyHabitsQuestion = (subCategory: string) => {
+    return (
+      subCategory.toLowerCase().includes("studyhabits") ||
+      subCategory.toLowerCase().includes("study habits") ||
+      subCategory.toLowerCase().includes("study_habits")
+    );
   };
 
   // Common Tooltip Content
@@ -103,40 +115,51 @@ const FoundationalExamCard: React.FC<Props> = ({
         How is this scored?
       </div>
       <div>
-        This score aggregates both your <strong>objective knowledge</strong> and
-        your <strong>subjective habits</strong>.
+        Your foundational score is calculated based on:
+        <br />
+        <br />• <strong>Multiple Choice</strong>: Exact match with correct
+        answer
+        <br />• <strong>Self-Assessment</strong>: Based on proficiency level you
+        selected
+        <br />• <strong>Open-Ended</strong>: AI evaluates understanding (0-100%)
         <br />
         <br />
-        Subjective answers (like study habits) are scored based on alignment
-        with recommended success strategies.
+        Final score = (Points Earned / Total Possible Points) × 100%
       </div>
     </>
   );
 
+  const CategoryTooltips = {
+    prerequisites:
+      "Evaluates your foundational knowledge in Math, English, and Computer Literacy - essential building blocks for technical programs",
+    studyHabits:
+      "Assesses your time management and study organization skills based on your self-reported practices",
+    problemSolving:
+      "Measures your logical thinking and analytical reasoning abilities through problem-solving questions",
+    overall:
+      "Combined average of Prerequisites, Study Habits, and Problem Solving scores",
+  };
+
   // --- MOBILE VIEW ---
   if (isMobile) {
     return (
-      <div className="card border-0 shadow-lg mt-5 rounded-4 overflow-hidden">
-        <div className="card-header bg-white py-3 px-3 border-0">
-          <h4
-            className="fw-bold mb-1"
-            style={{ color: "#2B3176", fontSize: "1.1rem" }}
-          >
-            Foundational Readiness
-          </h4>
-          <div className="d-flex justify-content-between align-items-center">
-            <p className="text-muted mb-0 small">
-              Tap categories to view details
-            </p>
+      <div className="card border-0 shadow-lg mt-4 rounded-4 overflow-hidden">
+        <div className="card-header bg-white py-3 px-3 border-bottom">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <h4
+              className="fw-bold mb-0"
+              style={{ color: "#2B3176", fontSize: "1.1rem" }}
+            >
+              Foundational Readiness
+            </h4>
 
-            {/* Mobile Score & Tooltip Wrapper */}
+            {/* Mobile Score & Tooltip */}
             <div className="d-flex align-items-center gap-1 position-relative">
               <span
-                className={`badge ${accuracy >= 80 ? "bg-success" : accuracy >= 60 ? "bg-warning" : "bg-danger"}`}
+                className={`badge ${accuracy >= 80 ? "bg-success" : accuracy >= 60 ? "bg-warning" : "bg-danger"} fs-6`}
               >
                 {accuracy}%
               </span>
-              {/* Tooltip Icon */}
               <div
                 onClick={() => setShowTooltip(!showTooltip)}
                 style={{ cursor: "pointer" }}
@@ -144,8 +167,8 @@ const FoundationalExamCard: React.FC<Props> = ({
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   fill="currentColor"
                   className="bi bi-question-circle-fill"
                   viewBox="0 0 16 16"
@@ -184,6 +207,9 @@ const FoundationalExamCard: React.FC<Props> = ({
               )}
             </div>
           </div>
+          <p className="text-muted mb-0 small">
+            Tap categories to view details
+          </p>
         </div>
 
         <div className="card-body p-3">
@@ -201,65 +227,121 @@ const FoundationalExamCard: React.FC<Props> = ({
               </h6>
 
               <div className="row g-2 mb-3">
-                <div className="col-6">
-                  <div className="p-2 bg-white rounded-2 border text-center">
-                    <div className="small text-muted mb-1">Math</div>
-                    <span
-                      className={`badge ${getScoreBadgeClass(prereqAnalysis.mathScore)}`}
+                <div className="col-4">
+                  <div className="p-2 bg-white rounded-3 border text-center h-100 d-flex flex-column justify-content-center">
+                    <div
+                      className="text-muted mb-2 d-flex align-items-center justify-content-center gap-1"
+                      style={{ fontSize: "0.7rem" }}
                     >
-                      {prereqAnalysis.mathScore}/5
+                      <span>Prerequisites</span>
+                      <span
+                        className="badge bg-secondary flex-shrink-0"
+                        style={{
+                          cursor: "help",
+                          fontSize: "0.6rem",
+                          width: "14px",
+                          height: "14px",
+                          padding: "0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        title={CategoryTooltips.prerequisites}
+                      >
+                        ?
+                      </span>
+                    </div>
+                    <span
+                      className={`badge ${getScoreBadgeClass(prereqAnalysis.prerequisites)}`}
+                      style={{ fontSize: "0.85rem" }}
+                    >
+                      {prereqAnalysis.prerequisites}/5
                     </span>
                   </div>
                 </div>
-                <div className="col-6">
-                  <div className="p-2 bg-white rounded-2 border text-center">
-                    <div className="small text-muted mb-1">Technical</div>
-                    <span
-                      className={`badge ${getScoreBadgeClass(prereqAnalysis.technicalScore)}`}
+
+                <div className="col-4">
+                  <div className="p-2 bg-white rounded-3 border text-center h-100 d-flex flex-column justify-content-center">
+                    <div
+                      className="text-muted mb-2 d-flex align-items-center justify-content-center gap-1"
+                      style={{ fontSize: "0.7rem" }}
                     >
-                      {prereqAnalysis.technicalScore}/5
+                      <span>Study Habits</span>
+                      <span
+                        className="badge bg-secondary flex-shrink-0"
+                        style={{
+                          cursor: "help",
+                          fontSize: "0.6rem",
+                          width: "14px",
+                          height: "14px",
+                          padding: "0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        title={CategoryTooltips.studyHabits}
+                      >
+                        ?
+                      </span>
+                    </div>
+                    <span
+                      className={`badge ${getScoreBadgeClass(prereqAnalysis.studyHabits)}`}
+                      style={{ fontSize: "0.85rem" }}
+                    >
+                      {prereqAnalysis.studyHabits}/5
                     </span>
                   </div>
                 </div>
-                <div className="col-6">
-                  <div className="p-2 bg-white rounded-2 border text-center">
-                    <div className="small text-muted mb-1">Communication</div>
-                    <span
-                      className={`badge ${getScoreBadgeClass(prereqAnalysis.communicationScore)}`}
+
+                <div className="col-4">
+                  <div className="p-2 bg-white rounded-3 border text-center h-100 d-flex flex-column justify-content-center">
+                    <div
+                      className="text-muted mb-2 d-flex align-items-center justify-content-center gap-1"
+                      style={{ fontSize: "0.7rem" }}
                     >
-                      {prereqAnalysis.communicationScore}/5
-                    </span>
-                  </div>
-                </div>
-                <div className="col-6">
-                  <div className="p-2 bg-white rounded-2 border text-center">
-                    <div className="small text-muted mb-1">Time Mgmt</div>
+                      <span>Problem Solving</span>
+                      <span
+                        className="badge bg-secondary flex-shrink-0"
+                        style={{
+                          cursor: "help",
+                          fontSize: "0.6rem",
+                          width: "14px",
+                          height: "14px",
+                          padding: "0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        title={CategoryTooltips.problemSolving}
+                      >
+                        ?
+                      </span>
+                    </div>
                     <span
-                      className={`badge ${getScoreBadgeClass(prereqAnalysis.timeScore)}`}
+                      className={`badge ${getScoreBadgeClass(prereqAnalysis.problemSolving)}`}
+                      style={{ fontSize: "0.85rem" }}
                     >
-                      {prereqAnalysis.timeScore}/5
+                      {prereqAnalysis.problemSolving}/5
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Overall Readiness */}
-              <div className="p-3 bg-white rounded-3 border text-center">
+              <div className="p-3 bg-white rounded-3 border text-center mt-2">
                 <div className="small text-muted mb-2">Overall Readiness</div>
                 <div className="d-flex align-items-center justify-content-center gap-2">
                   <span
-                    className={`badge ${getScoreBadgeClass(prereqAnalysis.overallScore)} fs-5`}
+                    className={`badge ${getScoreBadgeClass(prereqAnalysis.overallScore)} fs-4 px-3 py-2`}
                   >
                     {prereqAnalysis.overallScore}/5
                   </span>
                   <span className="small text-muted">
-                    (
                     {prereqAnalysis.overallScore >= 4
-                      ? "Excellent"
+                      ? "(Excellent)"
                       : prereqAnalysis.overallScore >= 3
-                        ? "Good"
-                        : "Needs Work"}
-                    )
+                        ? "(Good)"
+                        : "(Needs Work)"}
                   </span>
                 </div>
               </div>
@@ -267,13 +349,15 @@ const FoundationalExamCard: React.FC<Props> = ({
               {/* Warnings if any */}
               {prereqAnalysis.warnings &&
                 prereqAnalysis.warnings.length > 0 && (
-                  <div className="mt-3 p-2 bg-warning-subtle rounded-3 border border-warning">
-                    <div className="small fw-bold mb-1">
+                  <div className="mt-3 p-3 bg-warning-subtle rounded-3 border border-warning">
+                    <div className="small fw-bold mb-2">
                       ⚠️ Areas to Improve:
                     </div>
                     <ul className="small mb-0 ps-3">
                       {prereqAnalysis.warnings.map((warning, idx) => (
-                        <li key={idx}>{warning}</li>
+                        <li key={idx} className="mb-1">
+                          {warning}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -283,22 +367,26 @@ const FoundationalExamCard: React.FC<Props> = ({
 
           {/* Mobile Accordion */}
           {categories.map((category) => {
-            const questions = groupedQuestions[category];
-            const correctInCat = questions.filter((q) => q.isCorrect).length;
+            const questionsInCategory = groupedQuestions[category];
+            const correctInCat = questionsInCategory.filter(
+              (q) => q.isCorrect,
+            ).length;
             const catScore = Math.round(
-              (correctInCat / questions.length) * 100,
+              (correctInCat / questionsInCategory.length) * 100,
             );
 
             return (
               <div key={category} className="mb-3">
                 <button
-                  className="w-100 text-start p-3 border-0 rounded-3 d-flex justify-content-between align-items-center"
+                  className="w-100 text-start p-3 border rounded-3 d-flex justify-content-between align-items-center"
                   style={{
                     background:
                       expandedSection === category
                         ? "rgba(43, 49, 118, 0.05)"
                         : "#f8f9fa",
                     transition: "all 0.2s ease",
+                    borderColor:
+                      expandedSection === category ? "#2B3176" : "#dee2e6",
                   }}
                   onClick={() =>
                     setExpandedSection(
@@ -311,66 +399,79 @@ const FoundationalExamCard: React.FC<Props> = ({
                       {category}
                     </h6>
                     <small className="text-muted">
-                      {correctInCat}/{questions.length} correct • {catScore}%
+                      {correctInCat}/{questionsInCategory.length} correct •{" "}
+                      {catScore}%
                     </small>
                   </div>
-                  <span className="text-muted">
+                  <span className="text-muted fs-5">
                     {expandedSection === category ? "−" : "+"}
                   </span>
                 </button>
 
                 {expandedSection === category && (
-                  <div className="mt-2">
-                    {questions.map((item) => (
-                      <div
-                        key={item.id}
-                        className="mb-2 p-2 rounded-3 border-start border-3"
-                        style={{
-                          borderLeftColor: !item.userAnswer
-                            ? "#6c757d"
-                            : item.isCorrect
-                              ? "#198754"
-                              : "#dc3545",
-                          background: !item.userAnswer
-                            ? "#f8f9fa"
-                            : item.isCorrect
-                              ? "rgba(25, 135, 84, 0.05)"
-                              : "rgba(220, 53, 69, 0.05)",
-                        }}
-                      >
-                        <p
-                          className="small fw-bold mb-2"
-                          style={{ color: "#2B3176" }}
+                  <div className="mt-3">
+                    {questionsInCategory.map((item) => {
+                      const isStudyHabit = isStudyHabitsQuestion(
+                        item.subCategory || "",
+                      );
+
+                      return (
+                        <div
+                          key={item.id}
+                          className="mb-3 p-3 rounded-3 border-start border-3"
+                          style={{
+                            borderLeftColor: !item.userAnswer
+                              ? "#6c757d"
+                              : isStudyHabit || item.isCorrect
+                                ? "#198754"
+                                : "#dc3545",
+                            background: !item.userAnswer
+                              ? "#f8f9fa"
+                              : isStudyHabit || item.isCorrect
+                                ? "rgba(25, 135, 84, 0.05)"
+                                : "rgba(220, 53, 69, 0.05)",
+                          }}
                         >
-                          {item.questionText}
-                        </p>
+                          <p
+                            className="small fw-bold mb-2"
+                            style={{ color: "#2B3176" }}
+                          >
+                            {item.questionText}
+                          </p>
 
-                        <div className="small">
-                          <div className="mb-1">
-                            <span className="text-muted">Your answer: </span>
-                            <span
-                              className={`fw-bold ${item.isCorrect ? "text-success" : "text-danger"}`}
-                            >
-                              {item.userAnswer || "Skipped"}
+                          {isStudyHabit && (
+                            <span className="badge bg-success-subtle text-success border border-success small mb-2">
+                              Self-Assessment
                             </span>
-                          </div>
+                          )}
 
-                          {!item.isCorrect && item.userAnswer && (
-                            <div className="mb-1 ">
-                              <span className="text-muted">
-                                {item.isSubjective ? "💡 " : "✅ "}
-                                {item.isSubjective
-                                  ? "Recommended: "
-                                  : "Correct: "}
-                              </span>
-                              <span className="text-success fw-bold">
-                                {item.correctAnswer}
+                          <div className="small">
+                            <div className="mb-2">
+                              <span className="text-muted">Your answer: </span>
+                              <span
+                                className={`fw-bold ${isStudyHabit || item.isCorrect ? "text-success" : "text-danger"}`}
+                              >
+                                {item.userAnswer || "Skipped"}
                               </span>
                             </div>
-                          )}
+
+                            {/* Only show correct answer for non-study-habit questions */}
+                            {!isStudyHabit &&
+                              !item.isCorrect &&
+                              item.userAnswer && (
+                                <div className="mb-1">
+                                  <span className="text-muted">
+                                    ✅ Correct:{" "}
+                                  </span>
+                                  <span className="text-success fw-bold">
+                                    {item.correctAnswer}
+                                  </span>
+                                </div>
+                              )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -379,34 +480,36 @@ const FoundationalExamCard: React.FC<Props> = ({
 
           {/* Summary for mobile */}
           <div className="mt-4 p-3 rounded-3 border bg-light">
-            <h6 className="fw-bold mb-2" style={{ color: "#2B3176" }}>
+            <h6 className="fw-bold mb-3" style={{ color: "#2B3176" }}>
               Summary
             </h6>
-            <div className="row g-2">
+            <div className="row g-3 mb-3">
               <div className="col-6">
-                <div className="text-center p-2 bg-white rounded-2 border">
-                  <div className="h4 fw-bold text-success mb-0">{accuracy}</div>
-                  <small className="text-muted">Correct</small>
+                <div className="text-center p-2 bg-white rounded-3 border h-100">
+                  <div className="h3 fw-bold text-success mb-1">
+                    {accuracy}%
+                  </div>
+                  <small className="text-muted">Accuracy</small>
                 </div>
               </div>
               <div className="col-6">
-                <div className="text-center p-2 bg-white rounded-2 border">
-                  <div className="h4 fw-bold text-danger mb-0">
-                    {totalQuestions - accuracy}
+                <div className="text-center p-2 bg-white rounded-3 border h-100">
+                  <div className="h3 fw-bold text-primary mb-1">
+                    {totalQuestions}
                   </div>
-                  <small className="text-muted">To Improve</small>
+                  <small className="text-muted">Total Questions</small>
                 </div>
               </div>
             </div>
 
             <div className="mt-3">
-              <div className="progress" style={{ height: "8px" }}>
+              <div className="progress" style={{ height: "10px" }}>
                 <div
                   className={`progress-bar ${accuracy >= 80 ? "bg-success" : accuracy >= 60 ? "bg-warning" : "bg-danger"}`}
                   style={{ width: `${accuracy}%` }}
                 />
               </div>
-              <div className="d-flex justify-content-between mt-1 small">
+              <div className="d-flex justify-content-between mt-2 small">
                 <span className="text-muted">Overall Score</span>
                 <span className="fw-bold">{accuracy}%</span>
               </div>
@@ -416,11 +519,11 @@ const FoundationalExamCard: React.FC<Props> = ({
           {/* AI Analysis for mobile */}
           {(result?.examAnalysis || result?.successRoadmap) && (
             <div className="mt-4">
-              <h6 className="fw-bold mb-2" style={{ color: "#2B3176" }}>
+              <h6 className="fw-bold mb-3" style={{ color: "#2B3176" }}>
                 AI Insights
               </h6>
               {result?.examAnalysis && (
-                <div className="p-3 bg-info-subtle rounded-3 border border-info mb-2">
+                <div className="p-3 bg-info-subtle rounded-3 border border-info mb-3">
                   <p className="small mb-0">{result.examAnalysis}</p>
                 </div>
               )}
@@ -439,7 +542,6 @@ const FoundationalExamCard: React.FC<Props> = ({
   // --- DESKTOP VIEW ---
   const activeCategory = categories[activeSlideIndex];
   const activeQuestions = groupedQuestions[activeCategory] || [];
-  const activeCorrect = activeQuestions.filter((q) => q.isCorrect).length;
 
   const handleNext = () => {
     if (activeSlideIndex < categories.length - 1) {
@@ -529,49 +631,75 @@ const FoundationalExamCard: React.FC<Props> = ({
                   📊 Readiness Breakdown
                 </h6>
                 <div className="row g-3">
-                  <div className="col-md-3 col-6">
-                    <div className="text-center">
-                      <div className="small text-muted mb-2">
-                        Math Foundation
+                  <div className="col-md-4 col-6">
+                    <div className="text-center p-3 bg-white rounded-3 border h-100 d-flex flex-column justify-content-center">
+                      <div className="small text-muted mb-2 d-flex align-items-center justify-content-center gap-1">
+                        Prerequisites
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip>{CategoryTooltips.prerequisites}</Tooltip>
+                          }
+                        >
+                          <Info
+                            size={isMobile ? 14 : 18}
+                            className="text-muted"
+                            style={{ cursor: "pointer" }}
+                          />
+                        </OverlayTrigger>
                       </div>
                       <span
-                        className={`badge ${getScoreBadgeClass(prereqAnalysis.mathScore)} fs-6 px-3 py-2`}
+                        className={`badge ${getScoreBadgeClass(prereqAnalysis.prerequisites)} fs-6 px-3 py-2 d-inline-block border-0`}
                       >
-                        {prereqAnalysis.mathScore}/5
+                        {prereqAnalysis.prerequisites}/5
                       </span>
                     </div>
                   </div>
-                  <div className="col-md-3 col-6">
-                    <div className="text-center">
-                      <div className="small text-muted mb-2">
-                        Technical Skills
+                  <div className="col-md-4 col-6">
+                    <div className="text-center p-3 bg-white rounded-3 border h-100 d-flex flex-column justify-content-center">
+                      <div className="small text-muted mb-2 d-flex align-items-center justify-content-center gap-1">
+                        Study Habits
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip>{CategoryTooltips.studyHabits}</Tooltip>
+                          }
+                        >
+                          <Info
+                            size={isMobile ? 14 : 18}
+                            className="text-muted"
+                            style={{ cursor: "pointer" }}
+                          />
+                        </OverlayTrigger>
                       </div>
                       <span
-                        className={`badge ${getScoreBadgeClass(prereqAnalysis.technicalScore)} fs-6 px-3 py-2`}
+                        className={`badge ${getScoreBadgeClass(prereqAnalysis.studyHabits)} fs-6 px-3 py-2 d-inline-block border-0`}
                       >
-                        {prereqAnalysis.technicalScore}/5
+                        {prereqAnalysis.studyHabits}/5
                       </span>
                     </div>
                   </div>
-                  <div className="col-md-3 col-6">
-                    <div className="text-center">
-                      <div className="small text-muted mb-2">Communication</div>
-                      <span
-                        className={`badge ${getScoreBadgeClass(prereqAnalysis.communicationScore)} fs-6 px-3 py-2`}
-                      >
-                        {prereqAnalysis.communicationScore}/5
-                      </span>
-                    </div>
-                  </div>
-                  <div className="col-md-3 col-6">
-                    <div className="text-center">
-                      <div className="small text-muted mb-2">
-                        Time Management
+                  <div className="col-md-4 col-6">
+                    <div className="text-center p-3 bg-white rounded-3 border h-100 d-flex flex-column justify-content-center">
+                      <div className="small text-muted mb-2 d-flex align-items-center justify-content-center gap-1">
+                        Problem Solving
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip>{CategoryTooltips.problemSolving}</Tooltip>
+                          }
+                        >
+                          <Info
+                            size={isMobile ? 14 : 18}
+                            className="text-muted"
+                            style={{ cursor: "pointer" }}
+                          />
+                        </OverlayTrigger>
                       </div>
                       <span
-                        className={`badge ${getScoreBadgeClass(prereqAnalysis.timeScore)} fs-6 px-3 py-2`}
+                        className={`badge ${getScoreBadgeClass(prereqAnalysis.problemSolving)} fs-6 px-3 py-2 d-inline-block border-0`}
                       >
-                        {prereqAnalysis.timeScore}/5
+                        {prereqAnalysis.problemSolving}/5
                       </span>
                     </div>
                   </div>
@@ -579,15 +707,24 @@ const FoundationalExamCard: React.FC<Props> = ({
               </div>
 
               <div className="col-md-4">
-                <div className="p-4 bg-white rounded-3 border text-center">
-                  <div className="small text-muted mb-2">
-                    Overall Readiness Score
+                <div className="p-3 bg-white rounded-3 border text-center h-100 d-flex flex-column justify-content-center">
+                  <div className="small text-muted mb-2 d-flex align-items-center justify-content-center gap-1">
+                    Overall Readiness
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>{CategoryTooltips.overall}</Tooltip>}
+                    >
+                      <i
+                        className="bi bi-info-circle"
+                        style={{ cursor: "help", fontSize: "0.75rem" }}
+                      ></i>
+                    </OverlayTrigger>
                   </div>
                   <div className="h2 fw-bold mb-2" style={{ color: "#2B3176" }}>
                     {prereqAnalysis.overallScore}/5
                   </div>
                   <span
-                    className={`badge ${getScoreBadgeClass(prereqAnalysis.overallScore)}`}
+                    className={`badge ${getScoreBadgeClass(prereqAnalysis.overallScore)} border-0`}
                   >
                     {prereqAnalysis.overallScore >= 4
                       ? "Excellent"
@@ -601,11 +738,13 @@ const FoundationalExamCard: React.FC<Props> = ({
 
             {/* Show warnings if any */}
             {prereqAnalysis.warnings && prereqAnalysis.warnings.length > 0 && (
-              <div className="mt-3 p-3 bg-warning-subtle rounded-3 border border-warning">
+              <div className="mt-4 p-3 bg-warning-subtle rounded-3 border border-warning">
                 <div className="fw-bold mb-2">⚠️ Areas for Improvement:</div>
-                <ul className="mb-0 small">
+                <ul className="mb-0 small ms-3">
                   {prereqAnalysis.warnings.map((warning, idx) => (
-                    <li key={idx}>{warning}</li>
+                    <li key={idx} className="mb-1">
+                      {warning}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -616,9 +755,11 @@ const FoundationalExamCard: React.FC<Props> = ({
               prereqAnalysis.recommendations.length > 0 && (
                 <div className="mt-3 p-3 bg-info-subtle rounded-3 border border-info">
                   <div className="fw-bold mb-2">💡 Recommended Actions:</div>
-                  <ul className="mb-0 small">
+                  <ul className="mb-0 small ms-3">
                     {prereqAnalysis.recommendations.map((rec, idx) => (
-                      <li key={idx}>{rec}</li>
+                      <li key={idx} className="mb-1">
+                        {rec}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -658,65 +799,74 @@ const FoundationalExamCard: React.FC<Props> = ({
             <h5 className="fw-bold mb-0" style={{ color: "#2B3176" }}>
               {activeCategory}
             </h5>
-            <div className="badge bg-light text-dark border px-3 py-2">
-              Scored: {activeCorrect} / {activeQuestions.length}
-            </div>
           </div>
 
           {/* Slide Body (Questions List) */}
           <div className="row">
-            {activeQuestions.map((item) => (
-              <div key={item.id} className="col-12 mb-3">
-                <div
-                  className="p-3 rounded-3 border-start border-3 h-100"
-                  style={{
-                    borderLeftColor: !item.userAnswer
-                      ? "#6c757d"
-                      : item.isCorrect
-                        ? "#198754"
-                        : "#dc3545",
-                    background: !item.userAnswer
-                      ? "#f8f9fa"
-                      : item.isCorrect
-                        ? "rgba(25, 135, 84, 0.05)"
-                        : "rgba(220, 53, 69, 0.05)",
-                  }}
-                >
-                  <div className="row align-items-center">
-                    <div className="col-md-7">
-                      <p
-                        className="small fw-bold mb-1"
-                        style={{ color: "#2B3176" }}
-                      >
-                        {item.questionText}
-                      </p>
-                    </div>
-                    <div className="col-md-5 border-start">
-                      <div className="small ps-md-3">
-                        <div className="d-flex justify-content-between mb-1 mr-2">
-                          <span className="text-muted">Your Answer:</span>
-                          <span
-                            className={`fw-bold ${item.isCorrect ? "text-success" : "text-danger"}`}
-                          >
-                            {item.userAnswer || "Skipped"}
+            {activeQuestions.map((item) => {
+              const isStudyHabit = isStudyHabitsQuestion(
+                item.subCategory || "",
+              );
+
+              return (
+                <div key={item.id} className="col-12 mb-3">
+                  <div
+                    className="p-3 rounded-3 border-start border-3 h-100"
+                    style={{
+                      borderLeftColor: !item.userAnswer
+                        ? "#6c757d"
+                        : isStudyHabit || item.isCorrect
+                          ? "#198754"
+                          : "#dc3545",
+                      background: !item.userAnswer
+                        ? "#f8f9fa"
+                        : isStudyHabit || item.isCorrect
+                          ? "rgba(25, 135, 84, 0.05)"
+                          : "rgba(220, 53, 69, 0.05)",
+                    }}
+                  >
+                    <div className="row align-items-center">
+                      <div className="col-md-7">
+                        <p
+                          className="small fw-bold mb-1"
+                          style={{ color: "#2B3176" }}
+                        >
+                          {item.questionText}
+                        </p>
+                        {isStudyHabit && (
+                          <span className="badge bg-success-subtle text-success border border-success small">
+                            Self-Assessment
                           </span>
-                        </div>
-                        {!item.isCorrect && item.userAnswer && (
-                          <div className="d-flex justify-content-between">
-                            <span className="text-muted mr-2">
-                              {item.isSubjective ? "Recommended:" : "Correct:"}
-                            </span>
-                            <span className="text-success fw-bold">
-                              {item.correctAnswer}
+                        )}
+                      </div>
+                      <div className="col-md-5 border-start">
+                        <div className="small ps-md-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span className="text-muted">Your Answer:</span>
+                            <span
+                              className={`fw-bold ${isStudyHabit || item.isCorrect ? "text-success" : "text-danger"}`}
+                            >
+                              {item.userAnswer || "Skipped"}
                             </span>
                           </div>
-                        )}
+                          {/* Only show correct answer for non-study-habit questions */}
+                          {!isStudyHabit &&
+                            !item.isCorrect &&
+                            item.userAnswer && (
+                              <div className="d-flex justify-content-between">
+                                <span className="text-muted">Correct:</span>
+                                <span className="text-success fw-bold">
+                                  {item.correctAnswer}
+                                </span>
+                              </div>
+                            )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

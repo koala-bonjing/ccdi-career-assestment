@@ -1,4 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { 
+  BookOpen, 
+  Cpu, 
+  Zap, 
+  Home,
+  ChevronRight,
+  Target,
+  BarChart3,
+  TrendingUp
+} from "lucide-react";
 
 interface RadarChartProps {
   academic: number;
@@ -25,35 +35,35 @@ const RadarChart: React.FC<RadarChartProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Data updated to reflect "Profiling Stats" while keeping your structure
+  // Data updated with Lucide icons
   const data = [
     {
       label: "Academic Readiness",
       value: academic,
       description:
         "Math foundations, English comprehension, and science background.",
-      icon: "📚",
+      icon: BookOpen,
     },
     {
       label: "Technical Intuition",
       value: technical,
       description:
         "Logic puzzles, troubleshooting skills, and computer literacy.",
-      icon: "💻",
+      icon: Cpu,
     },
     {
       label: "Effort & Synergy",
       value: career,
       description:
         "Study habits, motivation levels, and alignment with program goals.",
-      icon: "⚡",
+      icon: Zap,
     },
     {
       label: "Practical Feasibility",
       value: logistics,
       description:
         "Viability based on your time, internet access, and environment.",
-      icon: "🏠",
+      icon: Home,
     },
   ];
 
@@ -99,54 +109,73 @@ const RadarChart: React.FC<RadarChartProps> = ({
 
     // Better positioning for mobile
     let textAnchor: "start" | "middle" | "end" = "middle";
-    let dy = 0;
 
     if (isMobile) {
       if (Math.abs(Math.cos(angle)) > 0.7) textAnchor = "middle";
       else if (Math.cos(angle) > 0) textAnchor = "start";
       else textAnchor = "end";
-      dy = Math.sin(angle) > 0 ? 12 : -5;
     } else {
       if (Math.cos(angle) > 0.1) textAnchor = "start";
       if (Math.cos(angle) < -0.1) textAnchor = "end";
     }
 
     return (
-      <text
-        key={i}
-        x={x}
-        y={y}
-        textAnchor={textAnchor}
-        dominantBaseline="middle"
-        style={{
-          fontSize: isMobile ? "11px" : "13px",
-          fill: activeIndex === i ? "#2B3176" : "#555",
-          fontWeight: activeIndex === i ? "700" : "600",
-          letterSpacing: "0.3px",
-          transition: "all 0.3s ease",
-        }}
-        onMouseEnter={() => !isMobile && setActiveIndex(i)}
-        onMouseLeave={() => !isMobile && setActiveIndex(null)}
-      >
-        {isMobile ? (
-          // Mobile: Show icon and first word
-          <>
-            <tspan x={x} dy={dy}>
-              {item.icon}
-            </tspan>
-            <tspan x={x} dy={16}>
+      <g key={i}>
+        {isMobile && (
+          <g transform={`translate(${x}, ${y})`}>
+            <circle
+              cx="0"
+              cy="0"
+              r="20"
+              fill="rgba(43, 49, 118, 0.08)"
+              stroke="rgba(43, 49, 118, 0.15)"
+              strokeWidth="1"
+            />
+            <text
+              x="0"
+              y="5"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              style={{
+                fontSize: "10px",
+                fill: activeIndex === i ? "#2B3176" : "#555",
+                fontWeight: "700",
+              }}
+            >
+              {item.value}%
+            </text>
+          </g>
+        )}
+        <text
+          x={isMobile ? x : x}
+          y={isMobile ? y + 35 : y}
+          textAnchor={textAnchor}
+          dominantBaseline="middle"
+          style={{
+            fontSize: isMobile ? "11px" : "13px",
+            fill: activeIndex === i ? "#2B3176" : "#555",
+            fontWeight: activeIndex === i ? "700" : "600",
+            letterSpacing: "0.3px",
+            transition: "all 0.3s ease",
+          }}
+          onMouseEnter={() => !isMobile && setActiveIndex(i)}
+          onMouseLeave={() => !isMobile && setActiveIndex(null)}
+        >
+          {isMobile ? (
+            // Mobile: Show just the first word
+            <tspan x={isMobile ? x : x} dy={0}>
               {item.label.split(" ")[0]}
             </tspan>
-          </>
-        ) : (
-          // Desktop: Show full label
-          item.label.split(" ").map((word, idx) => (
-            <tspan key={idx} x={x} dy={idx === 0 ? 0 : 14}>
-              {word}
-            </tspan>
-          ))
-        )}
-      </text>
+          ) : (
+            // Desktop: Show full label
+            item.label.split(" ").map((word, idx) => (
+              <tspan key={idx} x={x} dy={idx === 0 ? 0 : 14}>
+                {word}
+              </tspan>
+            ))
+          )}
+        </text>
+      </g>
     );
   });
 
@@ -170,15 +199,22 @@ const RadarChart: React.FC<RadarChartProps> = ({
     >
       {/* Chart Header */}
       <div className="text-center mb-4">
-        <h4
-          className="fw-bold mb-2"
-          style={{
-            color: "#2B3176",
-            fontSize: isMobile ? "1.3rem" : "1.75rem",
-          }}
-        >
-          STUDENT PROFILING STATS
-        </h4>
+        <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
+          <BarChart3 
+            size={isMobile ? 24 : 32}
+            className="text-primary"
+            style={{ color: "#2B3176" }}
+          />
+          <h4
+            className="fw-bold mb-0"
+            style={{
+              color: "#2B3176",
+              fontSize: isMobile ? "1.3rem" : "1.75rem",
+            }}
+          >
+            STUDENT PROFILING STATS
+          </h4>
+        </div>
         <p
           className="text-muted mb-0 px-2"
           style={{
@@ -303,14 +339,10 @@ const RadarChart: React.FC<RadarChartProps> = ({
             }}
           >
             <div className="d-flex align-items-center gap-2 mb-2">
-              <svg
-                width={isMobile ? "18" : "20"}
-                height={isMobile ? "18" : "20"}
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-              </svg>
+              <Target 
+                size={isMobile ? 18 : 20}
+                className="text-white"
+              />
               <small
                 className="fw-bold"
                 style={{ fontSize: isMobile ? "0.75rem" : "1.25rem" }}
@@ -332,135 +364,158 @@ const RadarChart: React.FC<RadarChartProps> = ({
 
           {/* Stats Cards */}
           <div className="d-flex flex-column gap-3">
-            {data.map((item, i) => (
-              <div
-                key={i}
-                className={`
-                  ${activeIndex === i ? "active-stat" : ""}
-                  p-${isMobile ? "3" : "4"} 
-                  rounded-${isMobile ? "3" : "4"}
-                  border-2
-                `}
-                style={{
-                  background:
-                    activeIndex === i
-                      ? "linear-gradient(135deg, rgba(43, 49, 118, 0.1) 0%, rgba(236, 35, 38, 0.05) 100%)"
-                      : "linear-gradient(135deg, rgba(43, 49, 118, 0.05) 0%, rgba(236, 35, 38, 0.03) 100%)",
-                  border:
-                    activeIndex === i
-                      ? "2px solid #2B3176"
-                      : "2px solid rgba(43, 49, 118, 0.1)",
-                  transition: "all 0.3s ease",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={() => !isMobile && setActiveIndex(i)}
-                onMouseLeave={() => !isMobile && setActiveIndex(null)}
-                onClick={() =>
-                  isMobile && setActiveIndex(activeIndex === i ? null : i)
-                }
-              >
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <div className="d-flex align-items-center gap-2">
-                    <span style={{ fontSize: isMobile ? "1rem" : "1.2rem" }}>
-                      {item.icon}
-                    </span>
-                    <span
-                      style={{
-                        color: "#2B3176",
-                        fontWeight: "700",
-                        fontSize: isMobile ? "0.75rem" : "1.2rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      {isMobile ? item.label.split(" ")[0] : item.label}
-                    </span>
+            {data.map((item, i) => {
+              const IconComponent = item.icon;
+              const isActive = activeIndex === i;
+              
+              return (
+                <div
+                  key={i}
+                  className={`
+                    ${isActive ? "active-stat" : ""}
+                    p-${isMobile ? "3" : "4"} 
+                    rounded-${isMobile ? "3" : "4"}
+                    border-2
+                  `}
+                  style={{
+                    background:
+                      isActive
+                        ? "linear-gradient(135deg, rgba(43, 49, 118, 0.1) 0%, rgba(236, 35, 38, 0.05) 100%)"
+                        : "linear-gradient(135deg, rgba(43, 49, 118, 0.05) 0%, rgba(236, 35, 38, 0.03) 100%)",
+                    border:
+                      isActive
+                        ? "2px solid #2B3176"
+                        : "2px solid rgba(43, 49, 118, 0.1)",
+                    transition: "all 0.3s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={() => !isMobile && setActiveIndex(i)}
+                  onMouseLeave={() => !isMobile && setActiveIndex(null)}
+                  onClick={() =>
+                    isMobile && setActiveIndex(activeIndex === i ? null : i)
+                  }
+                >
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <div className="d-flex align-items-center gap-3">
+                      <div className="d-flex align-items-center justify-content-center rounded-circle p-2"
+                        style={{
+                          width: isMobile ? "36px" : "48px",
+                          height: isMobile ? "36px" : "48px",
+                          backgroundColor: isActive ? `${isActive ? "#2B3176" : "#EC2326"}15` : "rgba(43, 49, 118, 0.08)",
+                          border: `1px solid ${isActive ? "#2B3176" : "rgba(43, 49, 118, 0.15)"}`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <IconComponent 
+                          size={isMobile ? 18 : 22}
+                          color={isActive ? "#2B3176" : "#EC2326"}
+                          strokeWidth={2}
+                        />
+                      </div>
+                      <span
+                        style={{
+                          color: isActive ? "#2B3176" : "#2B3176",
+                          fontWeight: "700",
+                          fontSize: isMobile ? "0.75rem" : "1rem",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        {isMobile ? item.label.split(" ")[0] : item.label}
+                      </span>
+                    </div>
+                    <div className="d-flex align-items-center gap-1">
+                      <span
+                        style={{
+                          fontWeight: "900",
+                          color: "#EC2326",
+                          fontSize: isMobile ? "1.5rem" : "1.75rem",
+                          fontFamily: "monospace",
+                          textShadow: "0 2px 4px rgba(236, 35, 38, 0.2)",
+                        }}
+                      >
+                        {item.value}
+                      </span>
+                      <small className="text-muted">/100</small>
+                      {isMobile && !isActive && (
+                        <ChevronRight 
+                          size={16}
+                          className="text-muted ms-1"
+                        />
+                      )}
+                    </div>
                   </div>
-                  <div className="d-flex align-items-center gap-1">
-                    <span
-                      style={{
-                        fontWeight: "900",
-                        color: "#EC2326",
-                        fontSize: isMobile ? "1.5rem" : "1.75rem",
-                        fontFamily: "monospace",
-                        textShadow: "0 2px 4px rgba(236, 35, 38, 0.2)",
-                      }}
-                    >
-                      {item.value}
-                    </span>
-                    <small className="text-muted">/100</small>
-                  </div>
+
+                  {/* Description - Hidden on mobile unless active */}
+                  {(!isMobile || isActive) && (
+                    <>
+                      <p
+                        className="small text-muted mb-3"
+                        style={{ fontSize: isMobile ? "0.8rem" : "0.85rem" }}
+                      >
+                        {item.description}
+                      </p>
+                      <div
+                        style={{
+                          width: "100%",
+                          height: isMobile ? "6px" : "8px",
+                          background: "rgba(43, 49, 118, 0.1)",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                          position: "relative",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${item.value}%`,
+                            height: "100%",
+                            background:
+                              isActive
+                                ? "linear-gradient(90deg, #2B3176 0%, #EC2326 100%)"
+                                : "linear-gradient(90deg, #2B3176 0%, #EC2326 80%)",
+                            borderRadius: "8px",
+                            transition: "width 0.8s ease, background 0.3s ease",
+                            boxShadow:
+                              isActive
+                                ? "0 0 10px rgba(236, 35, 38, 0.5)"
+                                : "none",
+                          }}
+                        ></div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Mobile only: Show simplified view when not active */}
+                  {isMobile && !isActive && (
+                    <div className="mt-2">
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "6px",
+                          background: "rgba(43, 49, 118, 0.1)",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${item.value}%`,
+                            height: "100%",
+                            background:
+                              "linear-gradient(90deg, #2B3176 0%, #EC2326 80%)",
+                            borderRadius: "8px",
+                          }}
+                        ></div>
+                      </div>
+                      <div className="d-flex justify-content-between mt-1 small text-muted">
+                        <span>Tap for details</span>
+                        <span>{item.value}%</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {/* Description - Hidden on mobile unless active */}
-                {(!isMobile || activeIndex === i) && (
-                  <>
-                    <p
-                      className="small text-muted mb-3"
-                      style={{ fontSize: isMobile ? "0.8rem" : "0.85rem" }}
-                    >
-                      {item.description}
-                    </p>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: isMobile ? "6px" : "8px",
-                        background: "rgba(43, 49, 118, 0.1)",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        position: "relative",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${item.value}%`,
-                          height: "100%",
-                          background:
-                            activeIndex === i
-                              ? "linear-gradient(90deg, #2B3176 0%, #EC2326 100%)"
-                              : "linear-gradient(90deg, #2B3176 0%, #EC2326 80%)",
-                          borderRadius: "8px",
-                          transition: "width 0.8s ease, background 0.3s ease",
-                          boxShadow:
-                            activeIndex === i
-                              ? "0 0 10px rgba(236, 35, 38, 0.5)"
-                              : "none",
-                        }}
-                      ></div>
-                    </div>
-                  </>
-                )}
-
-                {/* Mobile only: Show simplified view when not active */}
-                {isMobile && activeIndex !== i && (
-                  <div className="mt-2">
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "6px",
-                        background: "rgba(43, 49, 118, 0.1)",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${item.value}%`,
-                          height: "100%",
-                          background:
-                            "linear-gradient(90deg, #2B3176 0%, #EC2326 80%)",
-                          borderRadius: "8px",
-                        }}
-                      ></div>
-                    </div>
-                    <div className="d-flex justify-content-between mt-1 small text-muted">
-                      <span>Tap for details</span>
-                      <span>{item.value}%</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {/* Legend */}
             <div
@@ -473,10 +528,19 @@ const RadarChart: React.FC<RadarChartProps> = ({
                 border: "1px dashed rgba(43, 49, 118, 0.2)",
               }}
             >
+              <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
+                <TrendingUp 
+                  size={isMobile ? 16 : 20}
+                  className="text-muted"
+                />
+                <small className="text-muted fw-bold">
+                  LEGEND
+                </small>
+              </div>
               <div
                 className={`d-flex ${isMobile ? "flex-column gap-2" : "justify-content-center gap-4"} mb-2`}
               >
-                <div className="d-flex align-items-center justify-content-center gap-1">
+                <div className="d-flex align-items-center justify-content-center gap-2">
                   <div
                     style={{
                       width: isMobile ? "10px" : "12px",
@@ -487,7 +551,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
                   ></div>
                   <small className="text-muted">High Fit</small>
                 </div>
-                <div className="d-flex align-items-center justify-content-center gap-1">
+                <div className="d-flex align-items-center justify-content-center gap-2">
                   <div
                     style={{
                       width: isMobile ? "10px" : "12px",

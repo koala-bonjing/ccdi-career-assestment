@@ -9,6 +9,7 @@ import {
   CheckCircle,
   AlertCircle,
   Cpu,
+  Link,
 } from "lucide-react";
 
 import type {
@@ -35,6 +36,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const [message, setMessage] = useState<Message>({ type: "", text: "" });
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [emailError, setEmailError] = useState<string>("");
+  const [nameError, setNameError] = useState<string>("");
 
   // Updated course list matching CCDI programs
   const courses: Course[] = [
@@ -52,10 +55,79 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     },
   ];
 
+  // Check if email is already registered
+  const checkEmailAvailability = async (email: string): Promise<void> => {
+    if (!email || !email.includes("@")) {
+      setEmailError("");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${BASE_URL}/api/auth/check-email`, {
+        email,
+      });
+
+      if (response.data.exists) {
+        setEmailError(
+          "This email is already registered. Please use a different email or sign in.",
+        );
+      } else {
+        setEmailError("");
+      }
+    } catch (error: unknown) {
+      // If the endpoint doesn't exist yet, silently fail
+      console.error("Email check failed:", error);
+    }
+  };
+
+  // Check if username (full name) is already registered
+  const checkNameAvailability = async (fullName: string): Promise<void> => {
+    if (!fullName || fullName.trim().length < 2) {
+      setNameError("");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${BASE_URL}/api/auth/check-name`, {
+        fullName: fullName.trim(),
+      });
+
+      if (response.data.exists) {
+        setNameError(
+          "This name is already registered. Please use your full legal name or a variation.",
+        );
+      } else {
+        setNameError("");
+      }
+    } catch (error: unknown) {
+      // If the endpoint doesn't exist yet, silently fail
+      console.error("Name check failed:", error);
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setMessage({ type: "", text: "" });
+
+    // Check for validation errors before submitting
+    if (emailError) {
+      setMessage({
+        type: "error",
+        text: "Please fix the email error before proceeding.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (nameError) {
+      setMessage({
+        type: "error",
+        text: "Please fix the name error before proceeding.",
+      });
+      setLoading(false);
+      return;
+    }
 
     if (!formData.agreeToTerms) {
       setMessage({
@@ -75,9 +147,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       setStep("verify");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || "Signup failed";
+
+        // Handle specific duplicate errors from backend
+        if (
+          errorMessage.toLowerCase().includes("email") &&
+          errorMessage.toLowerCase().includes("already")
+        ) {
+          setEmailError(errorMessage);
+        } else if (
+          errorMessage.toLowerCase().includes("name") &&
+          errorMessage.toLowerCase().includes("already")
+        ) {
+          setNameError(errorMessage);
+        }
+
         setMessage({
           type: "error",
-          text: error.response?.data?.message || "Signup failed",
+          text: errorMessage,
         });
       } else {
         setMessage({
@@ -261,13 +348,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               type="text"
               placeholder="Full Name"
               value={formData.fullName}
-              onChange={(e) =>
-                setFormData({ ...formData, fullName: e.target.value })
-              }
+              onChange={(e) => {
+                setFormData({ ...formData, fullName: e.target.value });
+                setNameError("");
+              }}
+              onBlur={(e) => checkNameAvailability(e.target.value)}
               required
-              className="input-field"
+              className={`input-field ${nameError ? "is-invalid" : ""}`}
             />
           </div>
+          {nameError && (
+            <div
+              className="text-danger small mb-2"
+              style={{ marginTop: "-0.5rem" }}
+            >
+              <AlertCircle size={14} className="me-1" />
+              {nameError}
+            </div>
+          )}
 
           {/* Email */}
           <div className="input-group">
@@ -276,13 +374,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               type="email"
               placeholder="Email Address"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value });
+                setEmailError("");
+              }}
+              onBlur={(e) => checkEmailAvailability(e.target.value)}
               required
-              className="input-field"
+              className={`input-field ${emailError ? "is-invalid" : ""}`}
             />
           </div>
+          {emailError && (
+            <div
+              className="text-danger small mb-2"
+              style={{ marginTop: "-0.5rem" }}
+            >
+              <AlertCircle size={14} className="me-1" />
+              {emailError}
+            </div>
+          )}
 
           {/* Password */}
           <div className="input-group">
@@ -359,7 +468,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!emailError || !!nameError}
             className="auth-button primary"
           >
             {loading ? (
@@ -432,7 +541,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
                 <h6>3. Account Responsibility</h6>
                 <p>
-                  You’re responsible for your account security. Notify us
+                  You're responsible for your account security. Notify us
                   immediately of unauthorized access.
                 </p>
 
@@ -520,14 +629,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                 <p>
                   You may access, correct, or delete your data. Contact us via
                   our Facebook Account{" "}
-                  <a
-                    href="https://www.facebook.com/ccdisorsogoncity"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    CCDI Sorsogon
-                  </a>
-                  .
+                  <div className="flex flex-row">
+                    <a
+                      href="https://www.facebook.com/ccdisorsogoncity"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center hover:underline"
+                    >
+                      CCDI Sorsogon
+                      <Link size={14} className="ml-1" />
+                    </a>
+                    .
+                  </div>
+                  
                 </p>
 
                 <h6>5. Security</h6>

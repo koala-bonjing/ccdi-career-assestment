@@ -9,7 +9,14 @@ import {
   Legend,
   type ChartOptions,
 } from "chart.js";
-import { BookOpen, Cpu, Target, CheckCircle, ChevronRight, Info } from "lucide-react";
+import {
+  BookOpen,
+  Cpu,
+  Target,
+  CheckCircle,
+  ChevronRight,
+  Info,
+} from "lucide-react";
 import { OverlayTrigger, Tooltip as ReactTooltip } from "react-bootstrap";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Legend);
@@ -341,7 +348,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
                       }}
                     >
                       <IconComponent
-                        size={isMobile ? 18 : 24}
+                        size={isMobile ? 20 : 24}
                         color={cat.color}
                         strokeWidth={2.5}
                       />

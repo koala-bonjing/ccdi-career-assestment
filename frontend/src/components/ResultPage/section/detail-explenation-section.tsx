@@ -54,7 +54,7 @@ const DetailedExplanationSection: React.FC<DetailedExplanationSectionProps> = ({
             }}
           >
             <Target size={20} className="me-2" />
-            Skills to Learn
+            Recomendation
           </div>
           <div className={`card-body ${isMobile ? "p-3" : "p-4"}`}>
             <p className="text-dark mb-0" style={{ lineHeight: "1.6" }}>

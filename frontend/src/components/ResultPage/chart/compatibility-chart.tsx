@@ -2,50 +2,53 @@
 import React, { useEffect, useState } from "react";
 import {
   BarChart3,
-  Cpu, // 🔹 BSCS
-  Zap, // 🔹 BSIT
-  Users, // 🔹 BSIS
-  Wifi, // 🔹 BSET Electronics
-  Battery, // 🔹 BSET Electrical
+  Cpu, Zap, Users, Wifi, Battery, Star,
+  CheckCircle2, ShieldCheck, AlertCircle, XCircle
 } from "lucide-react";
 import {
   ProgramLabels,
   type ProgramType,
   type ProgramPercentages,
 } from "../types";
-import { getCompatibilityDescription } from "../utils/compatibilityUtils";
 
-const getProgramIcon = (programType: string): React.ReactNode => {
-  switch (programType) {
-    case "BSCS":
-      return <Cpu size={20} />;
-    case "BSIT":
-      return <Zap size={20} />;
-    case "BSIS":
-      return <Users size={20} />;
-    case "BSET Electronics Technology":
-      return <Wifi size={20} />;
-    case "BSET Electrical Technology":
-      return <Battery size={20} />;
-    default:
-      return <BarChart3 size={20} />;
-  }
+const RECOMMENDED_GREEN = "#08CB00";
+
+const getStatusDetails = (percentage: number) => {
+  if (percentage >= 80) return { 
+    label: "Excellent Match", 
+    color: "#08CB00", 
+    icon: <CheckCircle2 size={20} />,
+    desc: "Excellent match with your profile and career goals." 
+  };
+  if (percentage >= 60) return { 
+    label: "Strong Fit", 
+    color: "#1E90FF", 
+    icon: <ShieldCheck size={20} />,
+    desc: "Strong fit for your skills and interests." 
+  };
+  if (percentage >= 40) return { 
+    label: "Moderate Fit", 
+    color: "#FFB100", 
+    icon: <AlertCircle size={20} />,
+    desc: "Moderate alignment with your current assessment." 
+  };
+  return { 
+    label: "Limited Fit", 
+    color: "#dc3545", 
+    icon: <XCircle size={20} />,
+    desc: "Limited compatibility based on current results." 
+  };
 };
 
-const getBorderColor = (programType: string): string => {
+const getProgramIcon = (programType: string, color: string): React.ReactNode => {
+  const iconProps = { size: 22, color: color, strokeWidth: 2.5 };
   switch (programType) {
-    case "BSCS":
-      return "#2B3176";
-    case "BSIT":
-      return "#EC2326";
-    case "BSIS":
-      return "#1C6CB3";
-    case "BSET Electronics Technology":
-      return "#28a745";
-    case "BSET Electrical Technology":
-      return "#dc3545";
-    default:
-      return "#6c757d";
+    case "BSCS": return <Cpu {...iconProps} />;
+    case "BSIT": return <Zap {...iconProps} />;
+    case "BSIS": return <Users {...iconProps} />;
+    case "BSET Electronics Technology": return <Wifi {...iconProps} />;
+    case "BSET Electrical Technology": return <Battery {...iconProps} />;
+    default: return <BarChart3 {...iconProps} />;
   }
 };
 
@@ -54,27 +57,6 @@ interface CompatibilityChartProps {
   recommendedProgram: ProgramType;
 }
 
-const getPercentage = (
-  normalizedPercent: ProgramPercentages,
-  programType: string
-): number => {
-  const key = programType as keyof ProgramPercentages;
-  const value = normalizedPercent[key];
-  return typeof value === "number" ? Math.max(0, Math.min(100, value)) : 0;
-};
-
-const getProgressBarColor = (percentage: number): string => {
-  if (percentage >= 80) {
-    return "#08CB00"; // Vibrant green — matches "Excellent Match"
-  } else if (percentage >= 60) {
-    return "#1E90FF"; // Dodger blue or Bootstrap primary — for "Strong Fit"
-  } else if (percentage >= 40) {
-    return "#dc3545"; // Orange/amber — for "Moderate Fit"
-  } else {
-    return "#dc3545"; // Red — for "Limited Fit"
-  }
-};
-
 const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
   percentages,
   recommendedProgram,
@@ -82,132 +64,128 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 992);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const checkMobile = () => window.innerWidth < 992;
+    const handleResize = () => setIsMobile(checkMobile());
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const maxPercentage = Math.max(...Object.values(percentages));
-
   return (
-    <div
-      className="card border-0 shadow-lg"
-      style={{
-        background: "rgba(255, 255, 255, 0.95)",
-        backdropFilter: "blur(10px)",
-        borderRadius: "20px",
-      }}
-    >
+    <div className="card border-0 shadow-lg" style={{ borderRadius: "20px" }}>
       <div className={`card-body ${isMobile ? "p-3" : "p-5"}`}>
-        <h3
-          className="text-center mb-1 fw-bold"
-          style={{ 
-            color: "#2B3176", 
-            fontSize: isMobile ? "1.5rem" : "2rem" 
-          }}
-        >
-          <BarChart3 size={isMobile ? 24 : 32} className="me-3" />
-          Program Compatibility
-        </h3>
-        <p className={`text-center text-muted mb-4 ${isMobile ? "fs-6" : "fs-5"}`}>
-          This chart shows how well your profile aligns with each CCDI program
-        </p>
+        <div className="text-center mb-4">
+          <h3 className="fw-bold" style={{ color: "#2B3176", fontSize: isMobile ? "1.4rem" : "2rem" }}>
+            <BarChart3 size={isMobile ? 24 : 32} className="me-2" />
+            Program Compatibility
+          </h3>
+        </div>
 
-        {/* 🔹 Responsive grid: col-lg-6 ensures stacking happens exactly at 992px */}
-        <div className="row g-4">
+        <div className="row g-3">
           {Object.entries(ProgramLabels).map(([programType, programLabel]) => {
-            const percentage = getPercentage(percentages, programType);
+            const percentage = percentages[programType as keyof ProgramPercentages] || 0;
             const isRecommended = programType === recommendedProgram;
+            const status = getStatusDetails(percentage);
 
             return (
-              <div
-                key={programType}
-                className="col-12 col-lg-6" 
-              >
-                <div
-                  className="card border-0 h-100 shadow-sm"
-                  style={{
-                    borderLeft: `4px solid ${getBorderColor(programType)}`,
+              <div key={programType} className="col-12 col-lg-6">
+                <div 
+                  className="card h-100 border-0 transition-all" 
+                  style={{ 
+                    borderRadius: "15px", 
+                    // 🔹 Make Recommended Card have a Green shadow and border
+                    boxShadow: isRecommended 
+                      ? `0 0 15px ${RECOMMENDED_GREEN}40` 
+                      : "0 4px 6px rgba(0,0,0,0.05)",
+                    border: isRecommended 
+                      ? `2px solid ${RECOMMENDED_GREEN}` 
+                      : "1px solid #eee",
+                    transform: isRecommended && !isMobile ? "scale(1.02)" : "none",
+                    zIndex: isRecommended ? 1 : 0
                   }}
                 >
-                  <div
-                    className={`card-body ${isMobile ? "p-3" : "p-4"}`}
-                    style={{
-                      border: "3px solid #2B3176",
-                      borderRadius: "15px",
-                    }}
-                  >
-                    <div className="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-                      <div className="d-flex align-items-center flex-shrink-1">
-                        <span className="me-2">
-                          {getProgramIcon(programType)}
-                        </span>
-                        <h5
-                          className={`mb-0 fw-bold ${
-                            isRecommended ? "text-primary" : "text-dark"
-                          }`}
-                          style={{ 
-                            fontSize: isMobile ? "1rem" : "1.1rem" 
-                          }} 
+                  {/* Top Accent Bar */}
+                  <div style={{ 
+                    height: "6px", 
+                    backgroundColor: isRecommended ? RECOMMENDED_GREEN : status.color, 
+                    width: "100%", 
+                    borderRadius: "15px 15px 0 0" 
+                  }} />
+                  
+                  <div className="card-body p-3 p-md-4">
+                    <div className="d-flex justify-content-between align-items-start mb-2 gap-2">
+                      <div className="d-flex align-items-center min-w-0">
+                        <div 
+                          className="p-2 rounded-3 me-2 flex-shrink-0" 
+                          style={{ backgroundColor: isRecommended ? `${RECOMMENDED_GREEN}15` : `${status.color}15` }}
                         >
-                          {programLabel}
-                        </h5>
-                      </div>
-                      <div className="text-end ms-auto">
-                        <span
-                          className={`fw-bold ${
-                            isRecommended ? "text-success" : "text-dark"
-                          }`}
-                          style={{ 
-                            fontSize: isMobile ? "1.1rem" : "1.25rem" 
-                          }}
-                        >
-                          {percentage}%
-                        </span>
-                        {isRecommended && (
-                          <div
-                            className="badge mt-1 m-2"
-                            style={{
-                              background:
-                                "linear-gradient(135deg, #08CB00 0%, #08CB00 100%)",
-                              color: "white",
-                              fontSize: "0.75rem",
-                              padding: "0.25em 0.5em",
+                          {getProgramIcon(programType, isRecommended ? RECOMMENDED_GREEN : status.color)}
+                        </div>
+                        
+                        <div className="min-w-0">
+                          <h5
+                            className="mb-0 fw-bold"
+                            style={{ 
+                              fontSize: isMobile ? "0.95rem" : "1.1rem",
+                              color: isRecommended ? RECOMMENDED_GREEN : "#2B3176",
+                              lineHeight: "1.2"
                             }}
                           >
-                            RECOMMENDED
-                          </div>
-                        )}
+                            {programLabel}
+                          </h5>
+                          {isRecommended && (
+                            <div 
+                              className="badge d-inline-flex align-items-center mt-1" 
+                              style={{ 
+                                backgroundColor: RECOMMENDED_GREEN, 
+                                fontSize: "0.65rem", 
+                                padding: "5px 10px",
+                                borderRadius: "20px"
+                              }}
+                            >
+                              <Star size={10} fill="white" className="me-1" /> RECOMMENDED
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex-shrink-0 text-end">
+                        <span className="fw-bold" style={{ 
+                          fontSize: isMobile ? "0.9rem" : "1.5rem", 
+                          color: isRecommended ? RECOMMENDED_GREEN : status.color 
+                        }}>
+                          {percentage}%
+                        </span>
                       </div>
                     </div>
+
                     {/* Progress Bar */}
-                    <div
-                      className="progress mb-2 "
-                      style={{ height: "10px", borderRadius: "8px" }}
-                    >
-                      <div
-                        className="progress-bar"
-                        role="progressbar"
-                        style={{
-                          width: `${percentage}%`,
-                          backgroundColor:
-                            percentage === maxPercentage
-                              ? "#08CB00"
-                              : getProgressBarColor(percentage),
-                          borderRadius: "8px",
-                          transition:
-                            "width 1s ease-in-out, background-color 0.3s ease",
-                        }}
-                      ></div>
+                    <div className="progress mb-3" style={{ height: "10px", borderRadius: "10px", backgroundColor: "#f0f0f0" }}>
+                      <div 
+                        className="progress-bar" 
+                        style={{ 
+                          width: `${percentage}%`, 
+                          backgroundColor: isRecommended ? RECOMMENDED_GREEN : status.color,
+                          borderRadius: "10px"
+                        }} 
+                      />
                     </div>
-                    {/* Compatibility Description */}
-                    <p
-                      className="text-muted mb-0 small"
-                      style={{ fontSize: "0.875rem" }}
+
+                    {/* Description Footer */}
+                    <div 
+                      className="d-flex align-items-center p-2 rounded-3" 
+                      style={{ 
+                        backgroundColor: isRecommended ? `${RECOMMENDED_GREEN}08` : `${status.color}08`, 
+                        border: `1px solid ${isRecommended ? RECOMMENDED_GREEN : status.color}20` 
+                      }}
                     >
-                      {getCompatibilityDescription(percentage)}
-                    </p>
+                      <span className="me-2 mt-1" style={{ color: isRecommended ? RECOMMENDED_GREEN : status.color }}>
+                        {isRecommended ? <CheckCircle2 size={25} /> : status.icon}
+                      </span>
+                      <p className="mb-0 text-muted" style={{ fontSize: "0.8rem", lineHeight: "1.4" }}>
+                        {status.desc}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

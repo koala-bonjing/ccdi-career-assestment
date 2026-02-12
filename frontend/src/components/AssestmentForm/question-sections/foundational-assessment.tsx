@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Card, Row, Col, ProgressBar } from "react-bootstrap";
 import {
   CheckCircle2,
@@ -55,6 +55,22 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   const [shuffledOptionsMap, setShuffledOptionsMap] = useState<
     Record<string, string[]>
   >({});
+
+  const topRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // We use a small timeout to ensure the DOM has updated if the content height changed
+    const timer = setTimeout(() => {
+      if (topRef.current) {
+        topRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [activeGroup, currentSection]);
 
   // 1. Initialize Shuffled Options - use the same ID logic as below
   useEffect(() => {
@@ -144,15 +160,8 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   const progressPercent = calculateProgress();
   const isSectionComplete = progressPercent === 100;
 
-  useEffect(() => {
-    console.log(
-      "Current foundational answers:",
-      formData.foundationalAssessment,
-    );
-  }, [formData]);
-
   return (
-    <Card className="assessment-card shadow-lg mx-auto">
+    <Card ref={topRef} className="assessment-card shadow-lg mx-auto">
       <SectionHeader
         icon={<BrainCircuit size={40} />}
         sectionType="foundationalAssessment"

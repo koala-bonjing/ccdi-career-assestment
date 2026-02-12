@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { BASE_URL } from "../config/constants";
-import { useEvaluationStore } from "../../store/useEvaluationStore"; // ADD THIS
+import { useEvaluationStore } from "../../store/useEvaluationStore";
 import type {
   AssessmentResult,
   AssessmentDisplayResult,
@@ -18,7 +18,6 @@ export const deriveDisplayData = (
 ): AssessmentDisplayResult | null => {
   if (!result) return null;
 
-  // Your existing deriveDisplayData logic...
   return {
     ...result,
     completed: result.success,
@@ -52,10 +51,9 @@ const hasExistingProgress = (): boolean => {
   }
 };
 
-// NEW: Helper to check Zustand store
+// Helper to check Zustand store
 const checkEvaluationStore = (): AssessmentResult | null => {
   try {
-    // Get the current state from Zustand store
     const storeState = useEvaluationStore.getState();
 
     if (
@@ -71,10 +69,9 @@ const checkEvaluationStore = (): AssessmentResult | null => {
   return null;
 };
 
-// NEW: Helper to check localStorage for completed results
+// Helper to check localStorage for completed results
 const checkLocalStorageForResult = (): AssessmentResult | null => {
   try {
-    // Check multiple possible keys
     const storageKeys = [
       "assessment-result",
       "evaluation-storage",
@@ -120,6 +117,11 @@ export const useAssessmentState = () => {
 
     console.log("🔍 Starting assessment status check...");
 
+    // ✅ FIX: ALWAYS check for progress first, regardless of completed status
+    const progress = hasExistingProgress();
+    setHasProgress(progress);
+    console.log("📝 Progress check:", progress);
+
     // 1. FIRST: Check Zustand evaluation store (fastest)
     const storeResult = checkEvaluationStore();
     if (storeResult) {
@@ -142,12 +144,7 @@ export const useAssessmentState = () => {
       return;
     }
 
-    // 3. THIRD: Check for progress (incomplete assessment)
-    const progress = hasExistingProgress();
-    setHasProgress(progress);
-    console.log("📝 Progress check:", progress);
-
-    // 4. FOURTH: Check API for user's assessments (only if we have user ID)
+    // 3. THIRD: Check API for user's assessments (only if we have user ID)
     if (user?._id) {
       try {
         console.log(

@@ -1,6 +1,7 @@
 // src/components/Auth/SignupForm/SignupForm.tsx
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -19,9 +20,14 @@ import type {
   Course,
 } from "./types/sign-up";
 import "./SignUpForm.css";
+import { useAuth } from "../../../context/AuthContext";
+import { useUserStore } from "../../../../store/useUserStore";
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const { setCurrentUser } = useUserStore();
 
   const [step, setStep] = useState<"signup" | "verify">("signup");
   const [loading, setLoading] = useState<boolean>(false);
@@ -187,7 +193,45 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         code: verificationCode,
       });
       setMessage({ type: "success", text: response.data.message });
-      setTimeout(() => onSwitchToLogin(), 2000);
+      
+      // Auto-login after successful verification
+      try {
+        const loginResponse = await axios.post(`${BASE_URL}/api/auth/login`, {
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+        });
+
+        const userData = loginResponse.data.user;
+        const token = loginResponse.data.token;
+        
+        // Store token if provided
+        if (token) {
+          localStorage.setItem("token", token);
+        }
+        
+        // Update auth context and user store
+        login(userData);
+        setCurrentUser({
+          _id: userData._id || userData.id,
+          name: userData.fullName || userData.name,
+          email: userData.email,
+          preferredCourse: userData.preferredCourse,
+        });
+
+        console.log("✅ Auto-login successful, redirecting to /welcome");
+        
+        // Redirect to welcome page after auto-login
+        setTimeout(() => {
+          navigate("/welcome");
+        }, 1500);
+      } catch (loginError) {
+        console.error("❌ Auto-login failed:", loginError);
+        // If auto-login fails, just redirect to login
+        setTimeout(() => {
+          onSwitchToLogin();
+        }, 2000);
+      }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         setMessage({

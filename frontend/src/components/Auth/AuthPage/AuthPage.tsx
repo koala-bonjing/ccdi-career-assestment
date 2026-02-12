@@ -33,7 +33,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ initialMode = "login" }) => {
       {mode === "login" ? (
         <LoginForm
           onSwitchToSignup={handleSwitchToSignup}
-          onLoginSuccess={() => handleLoginSuccess}
+          onLoginSuccess={handleLoginSuccess}
         />
       ) : (
         <SignupForm onSwitchToLogin={handleSwitchToLogin} />

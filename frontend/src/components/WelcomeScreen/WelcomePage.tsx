@@ -53,6 +53,7 @@ export default function WelcomeScreenComponent({
     assessmentResult,
     hasProgress,
     hasCompleted,
+    loading,
     clearAssessmentStorage,
   } = useAssessmentState();
 
@@ -61,61 +62,35 @@ export default function WelcomeScreenComponent({
       assessmentResult: assessmentResult?.recommendedProgram,
       hasCompleted,
       hasProgress,
+      loading,
     },
     fromStore: useEvaluationStore.getState().result?.recommendedProgram,
     areTheyEqual: assessmentResult === useEvaluationStore.getState().result,
   });
 
-  // Side effects on auth change
+  // ✅ FIX: Show progress toast when there's progress but no completed assessment
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !loading) {
       if (hasProgress && !hasCompleted) {
         setShowProgressToast(true);
       }
     }
-  }, [isAuthenticated, hasCompleted, hasProgress]);
+  }, [isAuthenticated, hasCompleted, hasProgress, loading]);
 
-  // Check for saved progress
+  // ✅ FIX: Show continue modal based on hasProgress from the hook
   useEffect(() => {
-    const savedProgress = () => {
-      try {
-        // Check BOTH possible storage locations
-        const savedAnswers = localStorage.getItem("evaluation-answers");
-        const savedStorage = localStorage.getItem("evaluation-storage");
-
-        // Check if there are actual answers saved
-        if (savedAnswers) {
-          const parsedAnswers = JSON.parse(savedAnswers);
-          const hasAnswers = Object.values(parsedAnswers).some(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (section: any) => section && Object.keys(section).length > 0,
-          );
-          return hasAnswers;
-        }
-
-        // Or check Zustand storage
-        if (savedStorage) {
-          const parsed = JSON.parse(savedStorage);
-          // Zustand stores everything under state property
-          const hasAnswers =
-            parsed?.state?.answers &&
-            Object.keys(parsed.state.answers).length > 0;
-          return hasAnswers;
-        }
-      } catch (error) {
-        console.error("Error checking saved progress", error);
-      }
-      return false;
-    };
-
-    if (!restoredFormData && savedProgress()) {
+    // Only show if:
+    // 1. Not loading anymore
+    // 2. No restoredFormData (not coming from a forced restore)
+    // 3. Has progress but hasn't completed
+    if (!loading && !restoredFormData && hasProgress && !hasCompleted) {
       const timer = setTimeout(() => {
         setShowContinueModal(true);
       }, 500);
 
       return () => clearTimeout(timer);
     }
-  }, [restoredFormData]);
+  }, [loading, restoredFormData, hasProgress, hasCompleted]);
 
   if (!isAuthenticated) {
     return (
@@ -150,14 +125,14 @@ export default function WelcomeScreenComponent({
     setShowContinueModal(false);
   };
 
-  // ✅ FIX: Load result into store BEFORE navigating
+  // ✅ Load result into store BEFORE navigating
   const viewResults = () => {
     console.log("📊 viewResults called");
     console.log("📊 assessmentResult:", assessmentResult);
 
     if (assessmentResult) {
       console.log("✅ Loading result into evaluation store");
-      setResult(assessmentResult); // ✅ Load into store
+      setResult(assessmentResult);
     } else {
       console.log("❌ No assessmentResult found!");
     }

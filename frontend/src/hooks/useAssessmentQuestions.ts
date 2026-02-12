@@ -13,6 +13,7 @@ export interface Question {
   category?: string; // Add this
   subCategory?: string; // ADD THIS LINE - This is what's missing!
   order?: number;
+  questionType?: string; // e.g., "multiple-choice", "true-false"
   isActive?: boolean;
   helperText?: string;
 }

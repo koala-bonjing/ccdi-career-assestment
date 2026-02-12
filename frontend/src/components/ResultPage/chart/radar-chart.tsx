@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { 
-  BookOpen, 
-  Cpu, 
-  Zap, 
+import {
+  BookOpen,
+  Cpu,
+  Zap,
   Home,
   ChevronRight,
   Target,
   BarChart3,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
 
 interface RadarChartProps {
@@ -200,7 +200,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
       {/* Chart Header */}
       <div className="text-center mb-4">
         <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
-          <BarChart3 
+          <BarChart3
             size={isMobile ? 24 : 32}
             className="text-primary"
             style={{ color: "#2B3176" }}
@@ -339,10 +339,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
             }}
           >
             <div className="d-flex align-items-center gap-2 mb-2">
-              <Target 
-                size={isMobile ? 18 : 20}
-                className="text-white"
-              />
+              <Target size={isMobile ? 18 : 20} className="text-white" />
               <small
                 className="fw-bold"
                 style={{ fontSize: isMobile ? "0.75rem" : "1.25rem" }}
@@ -367,7 +364,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
             {data.map((item, i) => {
               const IconComponent = item.icon;
               const isActive = activeIndex === i;
-              
+
               return (
                 <div
                   key={i}
@@ -378,14 +375,12 @@ const RadarChart: React.FC<RadarChartProps> = ({
                     border-2
                   `}
                   style={{
-                    background:
-                      isActive
-                        ? "linear-gradient(135deg, rgba(43, 49, 118, 0.1) 0%, rgba(236, 35, 38, 0.05) 100%)"
-                        : "linear-gradient(135deg, rgba(43, 49, 118, 0.05) 0%, rgba(236, 35, 38, 0.03) 100%)",
-                    border:
-                      isActive
-                        ? "2px solid #2B3176"
-                        : "2px solid rgba(43, 49, 118, 0.1)",
+                    background: isActive
+                      ? "linear-gradient(135deg, rgba(43, 49, 118, 0.1) 0%, rgba(236, 35, 38, 0.05) 100%)"
+                      : "linear-gradient(135deg, rgba(43, 49, 118, 0.05) 0%, rgba(236, 35, 38, 0.03) 100%)",
+                    border: isActive
+                      ? "2px solid #2B3176"
+                      : "2px solid rgba(43, 49, 118, 0.1)",
                     transition: "all 0.3s ease",
                     cursor: "pointer",
                   }}
@@ -397,16 +392,19 @@ const RadarChart: React.FC<RadarChartProps> = ({
                 >
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <div className="d-flex align-items-center gap-3">
-                      <div className="d-flex align-items-center justify-content-center rounded-circle p-2"
+                      <div
+                        className="d-flex align-items-center justify-content-center rounded-circle p-2"
                         style={{
                           width: isMobile ? "36px" : "48px",
                           height: isMobile ? "36px" : "48px",
-                          backgroundColor: isActive ? `${isActive ? "#2B3176" : "#EC2326"}15` : "rgba(43, 49, 118, 0.08)",
+                          backgroundColor: isActive
+                            ? `${isActive ? "#2B3176" : "#EC2326"}15`
+                            : "rgba(43, 49, 118, 0.08)",
                           border: `1px solid ${isActive ? "#2B3176" : "rgba(43, 49, 118, 0.15)"}`,
                           flexShrink: 0,
                         }}
                       >
-                        <IconComponent 
+                        <IconComponent
                           size={isMobile ? 18 : 22}
                           color={isActive ? "#2B3176" : "#EC2326"}
                           strokeWidth={2}
@@ -438,10 +436,7 @@ const RadarChart: React.FC<RadarChartProps> = ({
                       </span>
                       <small className="text-muted">/100</small>
                       {isMobile && !isActive && (
-                        <ChevronRight 
-                          size={16}
-                          className="text-muted ms-1"
-                        />
+                        <ChevronRight size={16} className="text-muted ms-1" />
                       )}
                     </div>
                   </div>
@@ -469,16 +464,14 @@ const RadarChart: React.FC<RadarChartProps> = ({
                           style={{
                             width: `${item.value}%`,
                             height: "100%",
-                            background:
-                              isActive
-                                ? "linear-gradient(90deg, #2B3176 0%, #EC2326 100%)"
-                                : "linear-gradient(90deg, #2B3176 0%, #EC2326 80%)",
+                            background: isActive
+                              ? "linear-gradient(90deg, #2B3176 0%, #EC2326 100%)"
+                              : "linear-gradient(90deg, #2B3176 0%, #EC2326 80%)",
                             borderRadius: "8px",
                             transition: "width 0.8s ease, background 0.3s ease",
-                            boxShadow:
-                              isActive
-                                ? "0 0 10px rgba(236, 35, 38, 0.5)"
-                                : "none",
+                            boxShadow: isActive
+                              ? "0 0 10px rgba(236, 35, 38, 0.5)"
+                              : "none",
                           }}
                         ></div>
                       </div>
@@ -529,13 +522,8 @@ const RadarChart: React.FC<RadarChartProps> = ({
               }}
             >
               <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
-                <TrendingUp 
-                  size={isMobile ? 16 : 20}
-                  className="text-muted"
-                />
-                <small className="text-muted fw-bold">
-                  LEGEND
-                </small>
+                <TrendingUp size={isMobile ? 16 : 20} className="text-muted" />
+                <small className="text-muted fw-bold">LEGEND</small>
               </div>
               <div
                 className={`d-flex ${isMobile ? "flex-column gap-2" : "justify-content-center gap-4"} mb-2`}
@@ -563,9 +551,6 @@ const RadarChart: React.FC<RadarChartProps> = ({
                   <small className="text-muted">Potential Fit</small>
                 </div>
               </div>
-              <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                Tap/Mouse over for details
-              </small>
             </div>
           </div>
         </div>

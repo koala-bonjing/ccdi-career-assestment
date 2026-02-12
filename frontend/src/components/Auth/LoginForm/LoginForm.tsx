@@ -277,7 +277,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                         name="email"
                         type="email"
                         className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:bg-white text-gray-900 transition-all duration-200"
-                        placeholder="student@ccdi.edu.ph"
+                        placeholder="Enter your email address"
                         value={formData.email}
                         onChange={handleInputChange}
                         onFocus={() => handleFocus("email")}

@@ -97,6 +97,7 @@
     useEffect(() => {
       localStorage.setItem("evaluation-answers", JSON.stringify(formData));
       localStorage.setItem("currentAssessmentSection", currentSection.toString());
+
     }, [formData, currentSection]);
 
     // Show instructions on first load

@@ -1,8 +1,17 @@
-// Updated LearningStyleSection.tsx with Responsive UX Fixes
+// Updated LearningStyleSection.tsx with Lucide React Icons
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, Row, Col, Form, Alert, Badge } from "react-bootstrap";
-import { CheckCircle2, Circle, BrainCircuit } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  BrainCircuit,
+  BookOpen,
+  Briefcase,
+  Wallet,
+  Target,
+  type LucideIcon,
+} from "lucide-react";
 import SectionHeader from "../section-header";
 import AssessmentActionFooter from "../assessment-action-footer";
 import { useAssessmentValidation } from "../../../hooks/useAssessmentValidation";
@@ -11,7 +20,7 @@ import type { Question } from "../../../types";
 
 interface QuestionGroup {
   category: string;
-  icon: string;
+  icon: LucideIcon;
   color: string;
   description: string;
   questions: Question[];
@@ -29,9 +38,16 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
 }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  
+  // Responsive state to avoid hydration mismatches
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Responsiveness Helper (Simplified for inline usage)
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { validateSection } = useAssessmentValidation({
     formData,
@@ -64,24 +80,24 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       groups[subCategory].push(question as Question);
     });
 
-    const categoryConfig = {
+    const categoryConfig: Record<string, { icon: LucideIcon; color: string; description: string }> = {
       "Learning Preferences": {
-        icon: "📚",
+        icon: BookOpen,
         color: "#2B3176",
         description: "How do you prefer to learn and study?",
       },
       "Work Style Preferences": {
-        icon: "💼",
+        icon: Briefcase,
         color: "#EC2326",
         description: "What type of work environment suits you?",
       },
       "Financial & Time Resources": {
-        icon: "💰",
+        icon: Wallet,
         color: "#1C6CB3",
         description: "What resources do you have available?",
       },
       "Career Goals & Logistics": {
-        icon: "🎯",
+        icon: Target,
         color: "#28a745",
         description: "What are your career priorities?",
       },
@@ -127,6 +143,11 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   const currentGroup = questionGroups[activeGroup];
   const isSectionComplete = completedGroups === totalGroups;
 
+  // Icon sizing helpers
+  const tabIconSize = isMobile ? 24 : 32;
+  const headerIconSize = isMobile ? 32 : 48;
+  const checkboxIconSize = 22;
+
   return (
     <Card
       className="border-0 shadow-lg w-100"
@@ -139,7 +160,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       }}
     >
       <SectionHeader
-        icon={<BrainCircuit size={40}/>}
+        icon={<BrainCircuit size={40} aria-hidden="true" />}
         sectionType="learningWorkStyle"
         title="Learning Style & Work Interest"
         variant="warning"
@@ -171,7 +192,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           {validationErrors.length > 0 && (
             <Alert variant="warning" className="mt-3 p-2">
               <div className="d-flex align-items-start">
-                <Circle size={18} className="me-2 mt-1 flex-shrink-0" />
+                <Circle size={18} className="me-2 mt-1 flex-shrink-0" aria-hidden="true" />
                 <div style={{ fontSize: "0.9rem" }}>
                   <strong>Required Categories:</strong>{" "}
                   {validationErrors.join(", ")}
@@ -181,9 +202,10 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           )}
         </div>
 
-        {/* Category Navigation Tabs - Smaller padding/font on mobile */}
+        {/* Category Navigation Tabs */}
         <Row className="mb-4 g-2">
           {questionGroups.map((group, idx) => {
+            const IconComponent = group.icon;
             const isComplete = isGroupComplete(idx);
             const isActive = activeGroup === idx;
             const isIncomplete = validationErrors.includes(group.category);
@@ -206,14 +228,21 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                     position: "relative",
                     minHeight: isMobile ? "90px" : "auto",
                   }}
+                  aria-pressed={isActive}
                 >
                   <div
                     style={{
-                      fontSize: isMobile ? "1.5rem" : "2rem",
                       marginBottom: "4px",
+                      color: isActive ? group.color : "#666",
+                      display: "flex",
+                      justifyContent: "center",
                     }}
                   >
-                    {group.icon}
+                    <IconComponent 
+                      size={tabIconSize} 
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
                   </div>
                   <div
                     style={{
@@ -238,6 +267,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                         right: "5px",
                         color: group.color,
                       }}
+                      aria-hidden="true"
                     />
                   )}
                 </button>
@@ -246,7 +276,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           })}
         </Row>
 
-        {/* Current Category Card - Adjusted padding for mobile */}
+        {/* Current Category Card */}
         <div
           style={{
             background: `linear-gradient(135deg, ${currentGroup.color}08 0%, #ffffff 100%)`,
@@ -258,11 +288,17 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           <div className="text-center mb-4">
             <div
               style={{
-                fontSize: isMobile ? "2rem" : "3rem",
                 marginBottom: "8px",
+                color: currentGroup.color,
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              {currentGroup.icon}
+              <currentGroup.icon 
+                size={headerIconSize} 
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </div>
             <h4
               style={{
@@ -309,15 +345,14 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                       style={{ display: "none" }}
                     />
 
-                    {/* FIXED: Checkbox doesn't shrink on mobile */}
-                    <div style={{ flexShrink: 0, marginTop: "2px" }}>
+                    <div style={{ flexShrink: 0, marginTop: "2px", color: isChecked ? currentGroup.color : "#ccc" }}>
                       {isChecked ? (
                         <CheckCircle2
-                          size={22}
-                          style={{ color: currentGroup.color }}
+                          size={checkboxIconSize}
+                          aria-hidden="true"
                         />
                       ) : (
-                        <Circle size={22} style={{ color: "#ccc" }} />
+                        <Circle size={checkboxIconSize} aria-hidden="true" />
                       )}
                     </div>
 

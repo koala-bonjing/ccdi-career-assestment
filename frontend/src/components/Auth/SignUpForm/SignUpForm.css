@@ -5,9 +5,8 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #2b3176 0%, #1c6cb3 100%);
-  padding: 20px;
+  padding: 30px;
   font-family: "Poppins", sans-serif;
-  margin-top: 20px;
 }
 
 .auth-card {
@@ -47,20 +46,25 @@
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .input-icon {
   position: absolute;
   left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #6c757d;
   width: 18px;
   height: 18px;
   z-index: 10;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .input-field {
   width: 100%;
-  padding: 16px 16px 16px 48px;
+  padding: 16px 48px;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 14px;
@@ -70,21 +74,46 @@
   font-family: "Poppins", sans-serif;
 }
 
-.input-field:focus {
-  outline: none;
-  border-color: #2b3176;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(43, 49, 118, 0.1);
-  transform: translateY(-1px);
-}
-
-.input-field:hover {
-  border-color: #1c6cb3;
-  background: white;
-}
-
-.input-field::placeholder {
+/* Password toggle button styling */
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #6c757d;
+  transition: color 0.2s ease;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.password-toggle-btn:hover {
+  color: #2b3176;
+  background: rgba(43, 49, 118, 0.05);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid #2b3176;
+  outline-offset: 2px;
+}
+
+/* Remove any default button styles that might affect positioning */
+.password-toggle-btn:focus {
+  outline: none;
+}
+
+.password-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 /* Select dropdown styling */
@@ -92,9 +121,9 @@
   appearance: none;
   background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 12px center;
+  background-position: right 16px center;
   background-size: 12px;
-  padding-right: 40px;
+  padding-right: 48px;
 }
 
 .checkbox-group {
@@ -115,6 +144,7 @@
   appearance: none;
   background: white;
   position: relative;
+  flex-shrink: 0;
 }
 
 .checkbox:checked {
@@ -291,7 +321,7 @@
   }
 
   .input-field {
-    padding: 14px 14px 14px 44px;
+    padding: 14px 44px;
   }
 
   .auth-button {

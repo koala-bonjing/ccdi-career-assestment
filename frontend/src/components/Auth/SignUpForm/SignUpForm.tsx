@@ -11,6 +11,8 @@ import {
   AlertCircle,
   Cpu,
   Link,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 import type {
@@ -22,6 +24,7 @@ import type {
 import "./SignUpForm.css";
 import { useAuth } from "../../../context/AuthContext";
 import { useUserStore } from "../../../../store/useUserStore";
+
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -38,12 +41,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     preferredCourse: "Undecided",
     agreeToTerms: false,
   });
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [message, setMessage] = useState<Message>({ type: "", text: "" });
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [emailError, setEmailError] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
+  
+  // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Updated course list matching CCDI programs
   const courses: Course[] = [
@@ -111,10 +120,29 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     }
   };
 
+  // Validate password match
+  const validatePasswordMatch = (password: string, confirm: string) => {
+    if (password && confirm && password !== confirm) {
+      setPasswordError("Passwords do not match");
+    } else {
+      setPasswordError("");
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setMessage({ type: "", text: "" });
+
+    // Check if passwords match
+    if (formData.password !== confirmPassword) {
+      setMessage({
+        type: "error",
+        text: "Passwords do not match.",
+      });
+      setLoading(false);
+      return;
+    }
 
     // Check for validation errors before submitting
     if (emailError) {
@@ -437,21 +465,87 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
             </div>
           )}
 
-          {/* Password */}
+          {/* Password with show/hide */}
           <div className="input-group">
             <Lock className="input-icon" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password (min. 6 characters)"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
+              onChange={(e) => {
+                setFormData({ ...formData, password: e.target.value });
+                validatePasswordMatch(e.target.value, confirmPassword);
+              }}
               minLength={6}
               required
               className="input-field"
             />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+              }}
+            >
+              {showPassword ? (
+                <EyeOff size={18} color="#6c757d" />
+              ) : (
+                <Eye size={18} color="#6c757d" />
+              )}
+            </button>
           </div>
+
+          {/* Confirm Password with show/hide */}
+          <div className="input-group">
+            <Lock className="input-icon" />
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                validatePasswordMatch(formData.password, e.target.value);
+              }}
+              required
+              className={`input-field ${passwordError ? "is-invalid" : ""}`}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+              }}
+            >
+              {showConfirmPassword ? (
+                <EyeOff size={18} color="#6c757d" />
+              ) : (
+                <Eye size={18} color="#6c757d" />
+              )}
+            </button>
+          </div>
+          
+          {/* Password match error */}
+          {passwordError && (
+            <div
+              className="text-danger small mb-2"
+              style={{ marginTop: "-0.5rem" }}
+            >
+              <AlertCircle size={14} className="me-1" />
+              {passwordError}
+            </div>
+          )}
 
           {/* Preferred Course */}
           <div className="input-group">
@@ -512,7 +606,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
           <button
             type="submit"
-            disabled={loading || !!emailError || !!nameError}
+            disabled={loading || !!emailError || !!nameError || !!passwordError}
             className="auth-button primary"
           >
             {loading ? (

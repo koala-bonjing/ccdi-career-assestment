@@ -39,6 +39,7 @@ export default function WelcomeScreenComponent({
   const [showProgressToast, setShowProgressToast] = useState(false);
   const [showCompletedModal, setShowCompletedModal] = useState(true);
   const [showContinueModal, setShowContinueModal] = useState(false);
+  const [hasShownContinueModal, setHasShownContinueModal] = useState(false);
 
   // Responsive state logic
   const [isMobile, setIsMobile] = useState(false);
@@ -57,7 +58,7 @@ export default function WelcomeScreenComponent({
     clearAssessmentStorage,
   } = useAssessmentState();
 
-  console.log("📋 Assessment Data Check:", {
+  console.log("📋 Welcome Screen Assessment Data:", {
     fromHook: {
       assessmentResult: assessmentResult?.recommendedProgram,
       hasCompleted,
@@ -65,32 +66,48 @@ export default function WelcomeScreenComponent({
       loading,
     },
     fromStore: useEvaluationStore.getState().result?.recommendedProgram,
-    areTheyEqual: assessmentResult === useEvaluationStore.getState().result,
+    restoredFormData: !!restoredFormData,
   });
 
   // ✅ FIX: Show progress toast when there's progress but no completed assessment
   useEffect(() => {
     if (isAuthenticated && !loading) {
       if (hasProgress && !hasCompleted) {
+        console.log("📢 Showing progress toast");
         setShowProgressToast(true);
       }
     }
   }, [isAuthenticated, hasCompleted, hasProgress, loading]);
 
-  // ✅ FIX: Show continue modal based on hasProgress from the hook
+  // ✅ FIX: Show continue modal based on hasProgress - REMOVE restoredFormData check
   useEffect(() => {
+    // Prevent showing modal multiple times
+    if (hasShownContinueModal) {
+      console.log("⏭️ Already shown continue modal, skipping");
+      return;
+    }
+
     // Only show if:
     // 1. Not loading anymore
-    // 2. No restoredFormData (not coming from a forced restore)
-    // 3. Has progress but hasn't completed
-    if (!loading && !restoredFormData && hasProgress && !hasCompleted) {
+    // 2. Has progress but hasn't completed
+    // 3. User is authenticated
+    if (!loading && isAuthenticated && hasProgress && !hasCompleted) {
+      console.log("✅ Conditions met, showing continue modal");
       const timer = setTimeout(() => {
         setShowContinueModal(true);
+        setHasShownContinueModal(true);
       }, 500);
 
       return () => clearTimeout(timer);
+    } else {
+      console.log("ℹ️ Continue modal conditions not met:", {
+        loading,
+        isAuthenticated,
+        hasProgress,
+        hasCompleted,
+      });
     }
-  }, [loading, restoredFormData, hasProgress, hasCompleted]);
+  }, [loading, isAuthenticated, hasProgress, hasCompleted, hasShownContinueModal]);
 
   if (!isAuthenticated) {
     return (
@@ -111,15 +128,18 @@ export default function WelcomeScreenComponent({
     );
   }
 
-  // 🚀 Action Handlers (lean)
+  // 🚀 Action Handlers
   const startNewAssessment = () => {
+    console.log("🆕 Starting new assessment");
     clearAssessmentStorage();
+    setHasShownContinueModal(false); // Reset so modal can show again if needed
     if (onStartNew) onStartNew();
     else navigate("/assessment");
     hideWelcome();
   };
 
   const handleContinueAssessment = () => {
+    console.log("▶️ Continuing assessment");
     hideWelcome();
     navigate("/assessment");
     setShowContinueModal(false);
@@ -127,14 +147,14 @@ export default function WelcomeScreenComponent({
 
   // ✅ Load result into store BEFORE navigating
   const viewResults = () => {
-    console.log("📊 viewResults called");
+    console.log("📊 Viewing results");
     console.log("📊 assessmentResult:", assessmentResult);
 
     if (assessmentResult) {
       console.log("✅ Loading result into evaluation store");
       setResult(assessmentResult);
     } else {
-      console.log("❌ No assessmentResult found!");
+      console.warn("⚠️ No assessmentResult found!");
     }
 
     hideWelcome();
@@ -142,13 +162,18 @@ export default function WelcomeScreenComponent({
   };
 
   const handleStartAssessment = () => {
-    startNewAssessment();
+    // If there's progress, show the modal to confirm
+    if (hasProgress && !hasCompleted) {
+      console.log("⚠️ Has progress, showing continue modal");
+      setShowContinueModal(true);
+    } else {
+      console.log("🆕 No progress, starting fresh");
+      startNewAssessment();
+    }
   };
 
   return (
     <div className="welcome-assessment-container">
-   
-
       <ToastContainer 
         position="top-center" 
         className={isMobile ? "p-2 w-100" : "p-3"} 

@@ -1,5 +1,5 @@
 // src/components/AssessmentForm/ReviewSection.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Row,
@@ -52,12 +52,46 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
 }) => {
   // State to track which sections are expanded/collapsed
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    foundationalAssessment: true,
-    academicAptitude: true,
-    technicalSkills: true,
-    careerInterest: true,
-    learningWorkStyle: true,
+    foundationalAssessment: false,
+    academicAptitude: false,
+    technicalSkills: false,
+    careerInterest: false,
+    learningWorkStyle: false,
   });
+
+  // Auto-expand sections that have answers on initial load
+  useEffect(() => {
+    const newOpenSections: Record<string, boolean> = {};
+    sections.forEach((sectionKey) => {
+      const sectionQuestions = getQuestionsBySection(sectionKey);
+      const hasAnswers = sectionQuestions.some((q) => {
+        let answer;
+        if (sectionKey === "foundationalAssessment") {
+          answer = formData.foundationalAssessment?.[q._id] || formData.foundationalAssessment?.[q.questionText];
+          return typeof answer === "string" && answer.trim() !== "";
+        }
+        if (sectionKey === "academicAptitude") {
+          answer = formData.academicAptitude?.[q._id] || formData.academicAptitude?.[q.questionText];
+          return typeof answer === "number" && answer >= 1 && answer <= 5;
+        }
+        if (sectionKey === "careerInterest") {
+          answer = formData.careerInterest?.[q._id] || formData.careerInterest?.[q.questionText];
+          return typeof answer === "number" && answer >= 1 && answer <= 5;
+        }
+        if (sectionKey === "technicalSkills") {
+          answer = formData.technicalSkills?.[q._id] || formData.technicalSkills?.[q.questionText];
+          return answer === true;
+        }
+        if (sectionKey === "learningWorkStyle") {
+          answer = formData.learningWorkStyle?.[q._id] || formData.learningWorkStyle?.[q.questionText];
+          return answer === true;
+        }
+        return false;
+      });
+      newOpenSections[sectionKey] = hasAnswers;
+    });
+    setOpenSections(newOpenSections);
+  }, []); // Empty dependency array - only run once on mount
 
   const toggleSection = (sectionKey: string) => {
     setOpenSections((prev) => ({
@@ -101,11 +135,11 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     // Handle academicAptitude and careerInterest (numeric 1-5)
     if (sectionKey === "academicAptitude" || sectionKey === "careerInterest") {
       const labels = [
-        "Strongly Disagree",
-        "Disagree",
-        "Neutral",
-        "Agree",
         "Strongly Agree",
+        "Agree",
+        "Neutral",
+        "Disagree",
+        "Strongly Disagree",
       ];
       if (typeof value === "number" && value >= 1 && value <= 5) {
         return labels[value - 1];
@@ -147,11 +181,11 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     // Handle numeric Likert scale
     if (typeof value === "number") {
       const colors = [
-        "#dc3545", // Strongly Disagree (1) - Red
-        "#fd7e14", // Disagree (2) - Orange
+        "#28a745", // Strongly Agree (1) - Green
+        "#20c997", // Agree (2) - Teal
         "#6c757d", // Neutral (3) - Gray
-        "#20c997", // Agree (4) - Teal
-        "#28a745", // Strongly Agree (5) - Green
+        "#fd7e14", // Disagree (4) - Orange
+        "#dc3545", // Strongly Disagree (5) - Red
       ];
       return colors[value - 1] || "#6c757d";
     }
@@ -177,26 +211,44 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   const getSectionCompletion = (sectionKey: string) => {
     const sectionQuestions = getQuestionsBySection(sectionKey);
     const answeredCount = sectionQuestions.filter((q) => {
-      const answer =
-        formData[sectionKey as keyof AssessmentAnswers]?.[q._id] ||
-        formData[sectionKey as keyof AssessmentAnswers]?.[q.questionText];
+      let answer;
 
-      // Different validation for each section type
+      // ✅ FIXED: Check BOTH _id and questionText for all sections
       if (sectionKey === "foundationalAssessment") {
+        answer =
+          formData.foundationalAssessment?.[q._id] ||
+          formData.foundationalAssessment?.[q.questionText];
         return typeof answer === "string" && answer.trim() !== "";
       }
-      if (
-        sectionKey === "academicAptitude" ||
-        sectionKey === "careerInterest"
-      ) {
+
+      if (sectionKey === "academicAptitude") {
+        answer = 
+          formData.academicAptitude?.[q._id] ||
+          formData.academicAptitude?.[q.questionText];
         return typeof answer === "number" && answer >= 1 && answer <= 5;
       }
-      if (
-        sectionKey === "technicalSkills" ||
-        sectionKey === "learningWorkStyle"
-      ) {
-        return answer === true; // Checkbox selected
+
+      if (sectionKey === "careerInterest") {
+        answer = 
+          formData.careerInterest?.[q._id] ||
+          formData.careerInterest?.[q.questionText];
+        return typeof answer === "number" && answer >= 1 && answer <= 5;
       }
+
+      if (sectionKey === "technicalSkills") {
+        answer = 
+          formData.technicalSkills?.[q._id] ||
+          formData.technicalSkills?.[q.questionText];
+        return answer === true;
+      }
+
+      if (sectionKey === "learningWorkStyle") {
+        answer = 
+          formData.learningWorkStyle?.[q._id] ||
+          formData.learningWorkStyle?.[q.questionText];
+        return answer === true;
+      }
+
       return false;
     }).length;
 
@@ -242,28 +294,52 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     return groups;
   };
 
-  // Helper to get answered questions for a section
+  // ✅ FIXED: Helper to get answered questions for a section
   const getAnsweredQuestions = (sectionKey: string) => {
     const sectionQuestions = getQuestionsBySection(sectionKey);
     return sectionQuestions.filter((q) => {
-      const answer =
-        formData[sectionKey as keyof AssessmentAnswers]?.[q._id] ||
-        formData[sectionKey as keyof AssessmentAnswers]?.[q.questionText];
+      let answer;
+
+      // For foundationalAssessment, check both _id and questionText
       if (sectionKey === "foundationalAssessment") {
+        answer =
+          formData.foundationalAssessment?.[q._id] ||
+          formData.foundationalAssessment?.[q.questionText];
         return typeof answer === "string" && answer.trim() !== "";
       }
-      if (
-        sectionKey === "academicAptitude" ||
-        sectionKey === "careerInterest"
-      ) {
+
+      // For academicAptitude, check BOTH _id and questionText
+      if (sectionKey === "academicAptitude") {
+        answer = 
+          formData.academicAptitude?.[q._id] ||
+          formData.academicAptitude?.[q.questionText];
         return typeof answer === "number" && answer >= 1 && answer <= 5;
       }
-      if (
-        sectionKey === "technicalSkills" ||
-        sectionKey === "learningWorkStyle"
-      ) {
+
+      // For careerInterest, check BOTH _id and questionText
+      if (sectionKey === "careerInterest") {
+        answer = 
+          formData.careerInterest?.[q._id] ||
+          formData.careerInterest?.[q.questionText];
+        return typeof answer === "number" && answer >= 1 && answer <= 5;
+      }
+
+      // For technicalSkills, check BOTH _id and questionText
+      if (sectionKey === "technicalSkills") {
+        answer = 
+          formData.technicalSkills?.[q._id] ||
+          formData.technicalSkills?.[q.questionText];
         return answer === true;
       }
+
+      // For learningWorkStyle, check BOTH _id and questionText
+      if (sectionKey === "learningWorkStyle") {
+        answer = 
+          formData.learningWorkStyle?.[q._id] ||
+          formData.learningWorkStyle?.[q.questionText];
+        return answer === true;
+      }
+
       return false;
     });
   };
@@ -392,7 +468,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                       <h5 className="mb-0 fw-bold ">
                         {categoryTitles[sectionKey]}
                       </h5>
-                      <Badge className="ml-1 mr-1" bg="light" text="dark">
+                      <Badge className="ms-1 me-1" bg="light" text="dark">
                         {answeredQuestions.length}
                       </Badge>
                     </div>
@@ -415,9 +491,9 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                     </Button>
                   </Card.Header>
 
-                  <Collapse in={isExpanded}>
+                  <Collapse in={isExpanded} timeout={300}>
                     <div>
-                      <Card.Body className="p-3 p-md-4 review-section-body h-100">
+                      <Card.Body className="p-3 p-md-4 review-section-body">
                         {sectionKey === "technicalSkills" ? (
                           <div className="technical-skills-review h-100">
                             <h6
@@ -839,12 +915,16 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                             {answeredQuestions.length > 0 ? (
                               <div>
                                 {answeredQuestions.map((question, qIndex) => {
-                                  const answer = formData[
-                                    sectionKey as keyof AssessmentAnswers
-                                  ][question.questionText] as
-                                    | number
-                                    | boolean
-                                    | undefined;
+                                  // ✅ FIXED: Check BOTH _id and questionText for the answer
+                                  const answer =
+                                    sectionKey === "academicAptitude"
+                                      ? (formData.academicAptitude[question._id] ||
+                                         formData.academicAptitude[question.questionText])
+                                      : sectionKey === "careerInterest"
+                                        ? (formData.careerInterest[question._id] ||
+                                           formData.careerInterest[question.questionText])
+                                        : undefined;
+
                                   const answerColor = getAnswerColor(
                                     sectionKey as keyof AssessmentAnswers,
                                     answer,
@@ -1011,6 +1091,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                   currentSection: sections.length - 1,
                   sections,
                   currentUser: currentUser as User,
+                  questions, // ✅ Pass questions so we can map IDs to text
                 });
               }}
               className="px-4 py-2 action-btn"

@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { BASE_URL } from "../config/constants";
 import { useEvaluationStore } from "../../store/useEvaluationStore";
+import { StorageEncryptor } from "../components/ResultPage/utils/encryption";
 import type {
   AssessmentResult,
   AssessmentDisplayResult,
@@ -31,22 +32,34 @@ export const deriveDisplayData = (
   };
 };
 
+// ✅ FIX: Use StorageEncryptor consistently
 const hasExistingProgress = (): boolean => {
   try {
-    const answers = localStorage.getItem("evaluation-answers");
-    if (!answers) return false;
-    const parsed = JSON.parse(answers);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+    const answers = StorageEncryptor.getItem("evaluation-answers");
+    if (!answers) {
+      console.log("ℹ️ No evaluation-answers found in storage");
       return false;
+    }
+    
+    const parsed = JSON.parse(answers);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      console.log("ℹ️ Invalid evaluation-answers format");
+      return false;
+    }
 
-    return Object.values(parsed).some((section) => {
+    // Check if any section has answers
+    const hasAnswers = Object.values(parsed).some((section) => {
       return (
         section &&
         typeof section === "object" &&
         Object.keys(section).length > 0
       );
     });
-  } catch {
+    
+    console.log("📝 Has existing progress:", hasAnswers);
+    return hasAnswers;
+  } catch (error) {
+    console.error("❌ Error checking progress:", error);
     return false;
   }
 };
@@ -64,13 +77,13 @@ const checkEvaluationStore = (): AssessmentResult | null => {
       return storeState.result;
     }
   } catch (error) {
-    console.error("Error accessing evaluation store:", error);
+    console.error("❌ Error accessing evaluation store:", error);
   }
   return null;
 };
 
-// Helper to check localStorage for completed results
-const checkLocalStorageForResult = (): AssessmentResult | null => {
+// ✅ FIX: Use StorageEncryptor consistently for completed results
+const checkStorageForResult = (): AssessmentResult | null => {
   try {
     const storageKeys = [
       "assessment-result",
@@ -79,25 +92,27 @@ const checkLocalStorageForResult = (): AssessmentResult | null => {
     ];
 
     for (const key of storageKeys) {
-      const data = localStorage.getItem(key);
+      const data = StorageEncryptor.getItem(key);
       if (data) {
         const parsed = JSON.parse(data);
 
-        // Check if it's the result object
+        // Check if it's the result object (Zustand persist format)
         if (parsed?.state?.result) {
-          console.log(`✅ Found in ${key} (Zustand format)`);
+          console.log(`✅ Found completed result in ${key} (Zustand format)`);
           return parsed.state.result;
         }
 
         // Check if it's the direct result
         if (parsed?.recommendedProgram || parsed?.success) {
-          console.log(`✅ Found in ${key} (direct result)`);
+          console.log(`✅ Found completed result in ${key} (direct format)`);
           return parsed;
         }
       }
     }
+    
+    console.log("ℹ️ No completed result found in storage");
   } catch (error) {
-    console.error("Error reading localStorage:", error);
+    console.error("❌ Error reading storage:", error);
   }
   return null;
 };
@@ -117,15 +132,14 @@ export const useAssessmentState = () => {
 
     console.log("🔍 Starting assessment status check...");
 
-    // ✅ FIX: ALWAYS check for progress first, regardless of completed status
+    // ✅ Step 1: Check for in-progress assessment (ALWAYS)
     const progress = hasExistingProgress();
     setHasProgress(progress);
-    console.log("📝 Progress check:", progress);
 
-    // 1. FIRST: Check Zustand evaluation store (fastest)
+    // ✅ Step 2: Check for completed results (Zustand store - fastest)
     const storeResult = checkEvaluationStore();
     if (storeResult) {
-      console.log("📦 Using data from evaluation store");
+      console.log("📦 Using completed result from evaluation store");
       setRawResult(storeResult);
       setHasCompleted(true);
       setDataSource("store");
@@ -133,22 +147,22 @@ export const useAssessmentState = () => {
       return;
     }
 
-    // 2. SECOND: Check localStorage for saved results
-    const localResult = checkLocalStorageForResult();
-    if (localResult) {
-      console.log("💾 Using data from localStorage");
-      setRawResult(localResult);
+    // ✅ Step 3: Check storage for saved completed results
+    const storageResult = checkStorageForResult();
+    if (storageResult) {
+      console.log("💾 Using completed result from storage");
+      setRawResult(storageResult);
       setHasCompleted(true);
       setDataSource("local");
       setLoading(false);
       return;
     }
 
-    // 3. THIRD: Check API for user's assessments (only if we have user ID)
+    // ✅ Step 4: Check API for user's assessments (only if we have user ID)
     if (user?._id) {
       try {
         console.log(
-          `📡 Calling API: ${BASE_URL}/api/get-evaluations/${user._id}`,
+          `📡 Fetching from API: ${BASE_URL}/api/get-evaluations/${user._id}`,
         );
 
         const response = await axios.get(
@@ -196,14 +210,15 @@ export const useAssessmentState = () => {
             weaknesses: latest.weaknesses,
           };
 
+          console.log("✅ Loaded completed result from API");
           setRawResult(result);
           setHasCompleted(true);
           setDataSource("api");
 
-          // Save to localStorage for future use
-          localStorage.setItem("assessment-result", JSON.stringify(result));
+          // Save to storage for future use
+          StorageEncryptor.setItem("assessment-result", JSON.stringify(result));
         } else {
-          console.log("ℹ️ No assessment data found in API");
+          console.log("ℹ️ No completed assessment found in API");
           setDataSource("none");
         }
       } catch (error) {
@@ -230,15 +245,21 @@ export const useAssessmentState = () => {
     hasCompleted,
     loading,
     clearAssessmentStorage: () => {
-      localStorage.removeItem("evaluation-answers");
-      localStorage.removeItem("assessment-result");
-      localStorage.removeItem("evaluation-storage");
+      console.log("🗑️ Clearing assessment storage...");
+      
+      // ✅ ONLY clear progress, NOT completed results
+      StorageEncryptor.removeItem("evaluation-answers");
+      StorageEncryptor.removeItem("currentAssessmentSection");
+      
       setHasProgress(false);
-      setHasCompleted(false);
-      setRawResult(null);
-
-      // Also clear from evaluation store
+      
+      // ❌ DON'T clear completed results or set hasCompleted to false
+      // Users should be able to view their completed results even after starting new
+      
+      // Also clear from evaluation store (in-progress answers only)
       useEvaluationStore.getState().clearAllAnswers?.();
+      
+      console.log("✅ Cleared in-progress assessment data");
     },
     refetch: checkAssessmentStatus,
     dataSource,

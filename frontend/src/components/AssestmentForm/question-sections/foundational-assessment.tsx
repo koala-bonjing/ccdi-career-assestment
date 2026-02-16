@@ -7,6 +7,7 @@ import {
   ClipboardList,
   BrainCircuit,
   Info,
+  type LucideIcon,
 } from "lucide-react";
 import SectionHeader from "../section-header";
 import AssessmentActionFooter from "../assessment-action-footer";
@@ -18,18 +19,31 @@ import "./FoundationalAssessment.css";
 interface QuestionGroup {
   id: string;
   label: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   color: string;
   description: string;
   questions: Question[];
 }
 
-interface chartConfig {
+interface CategoryConfig {
   label: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   color: string;
   description: string;
 }
+
+// Reusable icon props for consistency
+const ICON_PROPS = {
+  size: 24,
+  strokeWidth: 2,
+  "aria-hidden": true, // Decorative icons
+} as const;
+
+const SMALL_ICON_PROPS = {
+  size: 16,
+  strokeWidth: 2,
+  "aria-hidden": true,
+} as const;
 
 const shuffleArray = <T,>(array: T[]): T[] => {
   const shuffled = [...array];
@@ -59,7 +73,6 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // We use a small timeout to ensure the DOM has updated if the content height changed
     const timer = setTimeout(() => {
       if (topRef.current) {
         topRef.current.scrollIntoView({
@@ -72,11 +85,9 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
     return () => clearTimeout(timer);
   }, [activeGroup, currentSection]);
 
-  // 1. Initialize Shuffled Options - use the same ID logic as below
   useEffect(() => {
     const newShuffledOptionsMap: Record<string, string[]> = {};
     questions.forEach((q) => {
-      // ✅ Crucial: Use fallback if _id is missing
       const qKey = q._id || q.questionText;
       if (q.options && q.options.length > 0) {
         newShuffledOptionsMap[qKey] = shuffleArray(q.options);
@@ -85,7 +96,6 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
     setShuffledOptionsMap(newShuffledOptionsMap);
   }, [questions]);
 
-  // 2. Progress Calculation - use fallback ID
   const calculateProgress = () => {
     if (!questions || questions.length === 0) return 0;
     const answeredCount = questions.filter((q) => {
@@ -95,22 +105,22 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
     return Math.round((answeredCount / questions.length) * 100);
   };
 
-  const categoryConfig: Record<string, chartConfig> = {
+  const categoryConfig: Record<string, CategoryConfig> = {
     prerequisites: {
       label: "Basic Skills",
-      icon: <GraduationCap size={24} />,
+      icon: GraduationCap,
       color: "#2B3176",
       description: "Math, English, and Computer Literacy.",
     },
     studyHabits: {
-      label: "Habits",
-      icon: <ClipboardList size={24} />,
+      label: "Study Habits",
+      icon: ClipboardList,
       color: "#EC2326",
       description: "Your approach to learning.",
     },
     problemSolving: {
-      label: "Logic",
-      icon: <BrainCircuit size={24} />,
+      label: "Problem Solving",
+      icon: BrainCircuit,
       color: "#28a745",
       description: "Logical thinking challenges.",
     },
@@ -144,13 +154,12 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
     },
   });
 
-  // 3. Group completion - use fallback ID
   const isGroupComplete = (groupIndex: number) => {
     const group = questionGroups[groupIndex];
     return (
       group.questions.length > 0 &&
       group.questions.every((q) => {
-        const qId = q._id || q.id || q.questionText;
+        const qId = q._id || q.questionText;
         return !!formData.foundationalAssessment[qId];
       })
     );
@@ -163,7 +172,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   return (
     <Card ref={topRef} className="assessment-card shadow-lg mx-auto">
       <SectionHeader
-        icon={<BrainCircuit size={40} />}
+        icon={<BrainCircuit {...ICON_PROPS} />}
         sectionType="foundationalAssessment"
         title="Foundational Assessment"
         variant="primary"
@@ -189,27 +198,35 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
         </div>
 
         <Row className="mb-4 g-2">
-          {questionGroups.map((group, idx) => (
-            <Col key={group.id} xs={4}>
-              <button
-                onClick={() => setActiveGroup(idx)}
-                className={`tab-button ${activeGroup === idx ? "active" : ""}`}
-                style={
-                  { "--category-color": group.color } as React.CSSProperties
-                }
-              >
-                <div className="tab-icon">{group.icon}</div>
-                <div className="tab-label d-none d-md-block">{group.label}</div>
-                {isGroupComplete(idx) && (
-                  <CheckCircle2
-                    size={16}
-                    className="text-success position-absolute"
-                    style={{ top: "5px", right: "5px" }}
-                  />
-                )}
-              </button>
-            </Col>
-          ))}
+          {questionGroups.map((group, idx) => {
+            const IconComponent = group.icon;
+            return (
+              <Col key={group.id} xs={4}>
+                <button
+                  onClick={() => setActiveGroup(idx)}
+                  className={`tab-button ${activeGroup === idx ? "active" : ""}`}
+                  style={
+                    { "--category-color": group.color } as React.CSSProperties
+                  }
+                  aria-pressed={activeGroup === idx}
+                >
+                  <div className="tab-icon">
+                    <IconComponent {...ICON_PROPS} />
+                  </div>
+                  <div className="tab-label d-none d-md-block">
+                    {group.label} 
+                  </div>
+                  {isGroupComplete(idx) && (
+                    <CheckCircle2
+                      {...SMALL_ICON_PROPS}
+                      className="text-success position-absolute"
+                      style={{ top: "5px", right: "5px" }}
+                    />
+                  )}
+                </button>
+              </Col>
+            );
+          })}
         </Row>
 
         <div
@@ -227,10 +244,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
 
           <Row className="g-4">
             {currentGroup.questions.map((q, qIdx) => {
-              // ✅ FIX: NEVER use just q._id here if it might be undefined.
-              // Fallback to questionText ensures unique keys for every question.
-              const qId = q._id;
-
+              const qId = q._id || q.questionText;
               const selectedValue = formData.foundationalAssessment[qId];
               const randomizedOptions =
                 shuffledOptionsMap[qId] || q.options || [];
@@ -238,7 +252,10 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
               return (
                 <Col key={qId} xs={12}>
                   <div className="question-text mb-2">
-                    <span className="question-number badge rounded-circle bg-light text-dark border-2 me-2">
+                    <span
+                      className="question-number badge rounded-circle bg-light text-dark border-2 me-2"
+                      aria-hidden="true"
+                    >
                       {qIdx + 1}
                     </span>
                     {q.questionText}
@@ -246,34 +263,48 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
 
                   {q.helperText && (
                     <div className="small text-muted mb-3 ps-4">
-                      <Info size={14} className="me-1" />
+                      <Info size={14} className="me-1" aria-hidden="true" />
                       <i>{q.helperText}</i>
                     </div>
                   )}
 
                   <Row className="g-2 g-md-3">
-                    {randomizedOptions.map((option, optIdx) => (
-                      <Col key={`${qId}-${optIdx}`} xs={12} md={6}>
-                        <div
-                          // ✅ Send the reliable qId to the backend
-                          onClick={() =>
-                            onChange("foundationalAssessment", qId, option)
-                          }
-                          className={`option-card ${selectedValue === option ? "selected" : ""}`}
-                        >
-                          <div className="option-content">
-                            <div className="status-icon">
-                              {selectedValue === option ? (
-                                <CheckCircle2 size={20} />
-                              ) : (
-                                <Circle size={20} />
-                              )}
+                    {randomizedOptions.map((option, optIdx) => {
+                      const isSelected = selectedValue === option;
+                      return (
+                        <Col key={`${qId}-${optIdx}`} xs={12} md={6}>
+                          <div
+                            onClick={() =>
+                              onChange("foundationalAssessment", qId, option)
+                            }
+                            className={`option-card ${isSelected ? "selected" : ""}`}
+                            role="radio"
+                            aria-checked={isSelected}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                onChange("foundationalAssessment", qId, option);
+                              }
+                            }}
+                          >
+                            <div className="option-content">
+                              <div className="status-icon">
+                                {isSelected ? (
+                                  <CheckCircle2
+                                    {...ICON_PROPS}
+                                    className="text-success"
+                                  />
+                                ) : (
+                                  <Circle {...ICON_PROPS} />
+                                )}
+                              </div>
+                              <span className="option-text">{option}</span>
                             </div>
-                            <span className="option-text">{option}</span>
                           </div>
-                        </div>
-                      </Col>
-                    ))}
+                        </Col>
+                      );
+                    })}
                   </Row>
                 </Col>
               );

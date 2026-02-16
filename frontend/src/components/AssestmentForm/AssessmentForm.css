@@ -1156,3 +1156,40 @@
     height: 4px !important;
   }
 }
+
+/* Add this to your ReviewSection.css or main CSS file */
+
+/* Fix collapse animation issues */
+.review-section-card .collapse {
+  transition: height 0.3s ease;
+}
+
+.review-section-card .collapsing {
+  transition: height 0.3s ease;
+}
+
+/* Ensure content is visible when expanded */
+.review-section-card .collapse.show {
+  display: block;
+  height: auto !important;
+}
+
+/* Remove any conflicting height constraints */
+.review-section-body {
+  height: auto !important;
+  min-height: 200px;
+}
+
+.technical-skills-review,
+.learning-style-review,
+.foundational-assessment-review,
+.review-questions-container {
+  height: auto !important;
+  min-height: 150px;
+}
+
+/* Ensure proper visibility */
+.review-section-card .card-body {
+  opacity: 1;
+  visibility: visible;
+}

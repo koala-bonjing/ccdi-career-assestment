@@ -56,12 +56,15 @@ const EvaluationForm = () => {
 
   const loadSavedData = (): void => {
     try {
+      // ✅ FIX: Use consistent storage method (StorageEncryptor)
       const savedAnswers = StorageEncryptor.getItem("evaluation-answers");
-      console.log(savedAnswers);
+      console.log("📥 Raw saved answers:", savedAnswers);
+      
       if (savedAnswers) {
         const parsed: AssessmentAnswers = JSON.parse(savedAnswers);
-        console.log("📥 Loaded saved answers:", parsed);
+        console.log("📥 Parsed saved answers:", parsed);
 
+        // ✅ Ensure all sections exist
         const formData: AssessmentAnswers = {
           foundationalAssessment: parsed.foundationalAssessment || {},
           academicAptitude: parsed.academicAptitude || {},
@@ -74,10 +77,14 @@ const EvaluationForm = () => {
 
         const flatData = flattenAnswers(formData);
         setStoreAnswer(flatData);
+        
+        console.log("✅ Successfully loaded saved progress");
+      } else {
+        console.log("ℹ️ No saved progress found");
       }
       setHasLoaded(true);
     } catch (error) {
-      console.error("Error loading saved data:", error);
+      console.error("❌ Error loading saved data:", error);
       setHasLoaded(true);
     }
   };
@@ -120,9 +127,16 @@ const EvaluationForm = () => {
   };
 
   const handleStartNew = (): void => {
+    console.log("🆕 Starting new assessment - clearing all progress");
+    
+    // ✅ Clear only progress, NOT completed results
     StorageEncryptor.removeItem("evaluation-answers");
     StorageEncryptor.removeItem("currentAssessmentSection");
+    
+    // Clear Zustand store
     clearAllAnswers();
+    
+    // Reset restored form data
     setRestoredFormData({
       foundationalAssessment: {},
       academicAptitude: {},
@@ -131,7 +145,7 @@ const EvaluationForm = () => {
       learningWorkStyle: {},
     });
 
-    console.log("🆕 Started new assessment");
+    console.log("✅ Assessment progress cleared, ready for new assessment");
   };
 
   const handleSubmitAnswers = async (
@@ -163,11 +177,11 @@ const EvaluationForm = () => {
     const { answers, programScores } = submissionData;
 
     try {
-      // Save to localStorage (optional, for recovery)
-      localStorage.setItem("evaluation-answers", JSON.stringify(answers));
-      localStorage.setItem("currentAssessmentSection", "summary");
+      // ✅ Save progress temporarily (in case of error)
+      StorageEncryptor.setItem("evaluation-answers", JSON.stringify(answers));
+      StorageEncryptor.setItem("currentAssessmentSection", "summary");
 
-      // ✅ SEND TO YOUR EXPRESS BACKEND INSTEAD OF CALLING AI HERE
+      // ✅ SEND TO YOUR EXPRESS BACKEND
       console.log(
         "📡 Sending request to:",
         `${API_BASE_URL}/api/evaluate-assessment`,
@@ -218,9 +232,12 @@ const EvaluationForm = () => {
       // Store result in Zustand
       setResult(transformed);
 
-      // Clear localStorage
+      // ✅ IMPORTANT: Only clear progress after successful submission
       StorageEncryptor.removeItem("evaluation-answers");
       StorageEncryptor.removeItem("currentAssessmentSection");
+      
+      // ✅ Save completed result (so it persists on refresh)
+      StorageEncryptor.setItem("assessment-result", JSON.stringify(transformed));
 
       console.log("✅ Evaluation complete and stored");
     } catch (err: unknown) {

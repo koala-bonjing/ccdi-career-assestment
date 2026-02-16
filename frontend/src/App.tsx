@@ -8,6 +8,7 @@ import EvaluationForm from "./components/EvaluationForm/EvaluationForm";
 import { Container } from "react-bootstrap"; // Fixed import - use react-bootstrap instead of lucide-react
 import { Spinner } from "react-bootstrap";
 import ResultsPage from "./components/ResultPage/result-page";
+import ResetPassword from "./components/Auth/LoginForm/ReserPassword";
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -116,6 +117,7 @@ const AppRoutes = () => {
 
       {/* Catch-all for unmatched routes */}
       <Route path="*" element={<Navigate to="/welcome" replace />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
     </Routes>
   );
 };

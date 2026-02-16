@@ -165,6 +165,7 @@ const EvaluationForm = () => {
     try {
       // Save to localStorage (optional, for recovery)
       localStorage.setItem("evaluation-answers", JSON.stringify(answers));
+      localStorage.setItem("currentAssessmentSection", "summary");
 
       // ✅ SEND TO YOUR EXPRESS BACKEND INSTEAD OF CALLING AI HERE
       console.log(
@@ -287,7 +288,7 @@ const EvaluationForm = () => {
   };
 
   return (
-    <div className="evaluation-form ">
+    <div className="evaluation-form">
       <AssessmentForm
         currentUser={currentUser}
         onSubmit={handleSubmitAnswers}

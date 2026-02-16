@@ -147,7 +147,7 @@ export default function WelcomeScreenComponent({
 
   return (
     <div className="welcome-assessment-container">
-      <NavigationBar />
+   
 
       <ToastContainer 
         position="top-center" 

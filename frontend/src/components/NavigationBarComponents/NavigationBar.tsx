@@ -1,142 +1,111 @@
-import { useEffect, useState } from "react";
-// 1. Added OverlayTrigger and Tooltip to imports
-import {
-  Navbar,
-  Nav,
-  Container,
-  Button,
-  OverlayTrigger,
-  Tooltip,
-  type TooltipProps,
-} from "react-bootstrap";
-import { LogOut } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import LOGO from "../../assets/ccdi_banner1.png";
-import LOGO_Alt from "../../assets/logoCCDI.png"
-import "./NavigationBar.css";
-import { LogoutModal } from "../ui/modals/logout-modal";
-import { StorageEncryptor } from "../ResultPage/utils/encryption";
+  import { useEffect, useState } from "react";
+  import { LogOut, Menu, X } from "lucide-react";
+  import { useAuth } from "../../context/AuthContext";
+  import { useNavigate } from "react-router-dom";
+  import LOGO from "../../assets/ccdi_banner1.png";
+  import LOGO_Alt from "../../assets/logoCCDI.png";
+  import "./NavigationBar.css";
+  import { LogoutModal } from "../ui/modals/logout-modal";
+  import { StorageEncryptor } from "../ResultPage/utils/encryption";
 
-function NavigationBar() {
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
+  function NavigationBar() {
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate();
 
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 992);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+      const checkMobile = () => setIsMobile(window.innerWidth < 992);
+      checkMobile();
+      window.addEventListener("resize", checkMobile);
+      return () => window.removeEventListener("resize", checkMobile);
+    }, []);
 
-  const handleLogoutClick = (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    setShowLogoutModal(true);
-  };
+    const handleLogoutClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      setShowLogoutModal(true);
+      setIsMenuOpen(false);
+    };
 
-  const handleConfirmLogout = () => {
-    logout();
-    setShowLogoutModal(false);
-    StorageEncryptor.removeItem("user");
-    StorageEncryptor.removeItem("assessmentResults");
-    StorageEncryptor.removeItem("assessment-result");
-    StorageEncryptor.removeItem("evaluation-storage");
-    navigate("/signup");
-  };
+    const handleConfirmLogout = () => {
+      logout();
+      setShowLogoutModal(false);
+      StorageEncryptor.removeItem("user");
+      StorageEncryptor.removeItem("assessmentResults");
+      StorageEncryptor.removeItem("assessment-result");
+      StorageEncryptor.removeItem("evaluation-storage");
+      navigate("/signup");
+    };
 
-  const handleHome = () => {
-    navigate("/welcome");
-  };
+    const handleHome = () => {
+      navigate("/welcome");
+      setIsMenuOpen(false);
+    };
 
-  // 2. Define the Tooltip component
-  const renderHomeTooltip = (props: TooltipProps) => (
-    <Tooltip id="home-tooltip" {...props}>
-      ← Click to go to Home
-    </Tooltip>
-  );
 
-  return (
-    <>
-      <Navbar variant="dark" expand="sm" fixed="top" className="custom-navbar">
-        <Container fluid>
-          {/* 3. Wrap Navbar.Brand with OverlayTrigger */}
-          <OverlayTrigger
-            placement="bottom"
-            delay={{ show: 250, hide: 400 }}
-            overlay={renderHomeTooltip}
-          >
-            <Navbar.Brand
-              href="#home"
+
+    const toggleMenu = () => {
+      setIsMenuOpen(!isMenuOpen);
+    };
+
+    return (
+      <>
+        <nav className="custom-navbar">
+          <div className="navbar-container">
+            <div
+              className="navbar-brand"
               onClick={handleHome}
-              className="d-flex align-items-center"
-              style={{ cursor: "pointer" }}
+              title="Click to go to Home"
             >
               <img
                 src={isMobile ? LOGO_Alt : LOGO}
                 alt="CCDI Logo"
-                width={isMobile ? 50 : 500}
-                height={isMobile ? 50 : 80}
-                className="d-inline-block align-top"
-                style={{
-                  objectFit: "contain",
-                  margin: "0",
-                }}
-
-
-  
+                className="navbar-logo"
               />
-            </Navbar.Brand>
-          </OverlayTrigger>
+            </div>
 
-          <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-auto" />
-
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto d-flex align-items-center">
-              <Nav.Link
-                href="#home"
-                className="fw-semibold fs-6 mx-2 mx-md-3 nav-link-custom"
-              >
-                Courses
-              </Nav.Link>
-              <Nav.Link
-                href="#about"
-                className="fw-semibold fs-5 mx-2 mx-md-3 nav-link-custom"
-              >
-                About
-              </Nav.Link>
-              <Nav.Link
-                href="#contact"
-                className="fw-semibold fs-5 mx-2 mx-md-3 nav-link-custom"
-              >
-                Contact
-              </Nav.Link>
-
+            {/* Desktop Navigation */}
+            <div className="navbar-links desktop-only">
               {isAuthenticated && (
-                <Nav.Link
-                  as={Button}
-                  onClick={handleLogoutClick}
-                  className="logout-link fw-semibold fs-5 mx-2 mx-md-3"
-                >
-                  <LogOut size={18} className="me-1" />
-                  Log Out
-                </Nav.Link>
+                <button className="logout-button" onClick={handleLogoutClick}>
+                  <LogOut size={18} />
+                  <span>Log Out</span>
+                </button>
               )}
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
+            </div>
 
-      <LogoutModal
-        show={showLogoutModal}
-        onHide={() => setShowLogoutModal(false)}
-        onConfirm={handleConfirmLogout}
-      />
+            {/* Mobile Menu Toggle */}
+            <button className="menu-toggle mobile-only" onClick={toggleMenu}>
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
 
-      <div style={{ height: "40px" }}></div>
-    </>
-  );
-}
+          {/* Mobile Navigation */}
+          {isMenuOpen && (
+            <div className="mobile-menu">
+              {isAuthenticated && (
+                <button
+                  className="mobile-logout-button"
+                  onClick={handleLogoutClick}
+                >
+                  <LogOut size={18} />
+                  <span>Log Out</span>
+                </button>
+              )}
+            </div>
+          )}
+        </nav>
 
-export default NavigationBar;
+        <LogoutModal
+          show={showLogoutModal}
+          onHide={() => setShowLogoutModal(false)}
+          onConfirm={handleConfirmLogout}
+        />
+
+        <div className="navbar-spacer"></div>
+      </>
+    );
+  }
+
+  export default NavigationBar;

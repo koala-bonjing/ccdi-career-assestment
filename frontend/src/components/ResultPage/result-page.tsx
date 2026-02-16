@@ -1,7 +1,6 @@
 // src/pages/ResultsPage/index.tsx
 import { useState } from "react";
 import { useAuth, type User } from "../../context/AuthContext";
-import NavigationBar from "../../components/NavigationBarComponents/NavigationBar";
 
 // Views
 import NoResultsView from "../ui/views/result-view";
@@ -87,8 +86,8 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
         fontFamily: "'Poppins', sans-serif",
       }}
     >
-      <NavigationBar  />
-      <div className="container-fluid py-4 flex-grow-1 d-flex justify-content-center align-items-start">
+     
+      <div className="container-fluid py-5 flex-grow-1 d-flex justify-content-center align-items-start">
         <div className="row w-100 justify-content-center mx-0">
           <div className="col-xxl-10 col-xl-11 col-lg-12 col-md-12 col-sm-12 px-3 px-md-4">
             {/* 📄 Main Content Card */}

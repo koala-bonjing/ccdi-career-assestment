@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { saveAs } from "file-saver";
 import { Bounce, toast } from "react-toastify";
 import { categoryTitles } from "../config/constants";
@@ -24,9 +24,13 @@ interface AnswerLabels {
   [key: number]: string;
 }
 
-/**
- * Save answers as a Word document (.docx)
- */
+const sanitize = (text: string): string =>
+  text
+    .replace(/₱/g, "PHP")
+    .replace(/✓/g, "v")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[^\x00-\x7F]/g, "?");
+
 export const saveAnswersAsDocument = async ({
   formData,
   currentUser,
@@ -35,287 +39,210 @@ export const saveAnswersAsDocument = async ({
   try {
     const timestamp = new Date().toISOString();
 
-    // Helper to get question text from ID or return the key as-is
     const getQuestionText = (
       sectionKey: keyof AssessmentAnswers,
       questionKey: string,
     ): string => {
       if (!questions) return questionKey;
-
       const sectionQuestions = questions[sectionKey];
       if (!sectionQuestions) return questionKey;
-
-      // Try to find question by _id first, then by questionText
       const question = sectionQuestions.find(
         (q) => q._id === questionKey || q.questionText === questionKey,
       );
-
       return question?.questionText || questionKey;
     };
 
-    // Helper function to format answers for display
-    const formatAnswers = (answers: AssessmentAnswers): Paragraph[] => {
-      const paragraphs: Paragraph[] = [];
+    const pdfDoc = await PDFDocument.create();
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-      // Define section order
-      const sectionOrder: (keyof AssessmentAnswers)[] = [
-        "foundationalAssessment",
-        "academicAptitude",
-        "technicalSkills",
-        "careerInterest",
-        "learningWorkStyle",
-      ];
+    const PAGE_WIDTH = 612;
+    const PAGE_HEIGHT = 792;
+    const MARGIN = 50;
+    const LINE_HEIGHT = 16;
 
-      // Process each section in order
-      for (const sectionKey of sectionOrder) {
-        const sectionData = answers[sectionKey];
-        if (!sectionData || Object.keys(sectionData).length === 0) continue;
+    let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+    let y = PAGE_HEIGHT - MARGIN;
 
-        const sectionTitle = categoryTitles[sectionKey] || sectionKey;
-
-        // Section Header
-        paragraphs.push(
-          new Paragraph({
-            text: sectionTitle,
-            heading: HeadingLevel.HEADING_2,
-            spacing: { before: 300, after: 200 },
-          }),
-        );
-
-        let questionNumber = 1;
-
-        // Process each question in the section
-        for (const [questionKey, answer] of Object.entries(sectionData)) {
-          // Get the actual question text
-          const questionText = getQuestionText(sectionKey, questionKey);
-
-          let answerText = "";
-
-          // Format answer based on section type
-          if (sectionKey === "foundationalAssessment") {
-            answerText = String(answer || "Not answered");
-          } else if (sectionKey === "technicalSkills") {
-            answerText = answer ? "✓ Selected" : "Not Selected";
-          } else if (sectionKey === "learningWorkStyle") {
-            answerText = answer ? "✓ Selected" : "Not Selected";
-          } else if (
-            sectionKey === "academicAptitude" ||
-            sectionKey === "careerInterest"
-          ) {
-            // Numeric answers (Likert scale)
-            const labels: AnswerLabels = {
-              1: "Strongly Agree",
-              2: "Agree",
-              3: "Neutral",
-              4: "Disagree",
-              5: "Strongly Disagree",
-            };
-
-            const numericAnswer = Number(answer);
-            if (
-              !isNaN(numericAnswer) &&
-              numericAnswer >= 1 &&
-              numericAnswer <= 5
-            ) {
-              answerText = labels[numericAnswer];
-            } else {
-              answerText = `Rating: ${answer}`;
-            }
-          } else {
-            answerText = String(answer || "Not answered");
-          }
-
-          // Only include answered questions
-          if (
-            sectionKey === "technicalSkills" ||
-            sectionKey === "learningWorkStyle"
-          ) {
-            // Only show selected items for checkbox sections
-            if (answer === true) {
-              paragraphs.push(
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: `${questionNumber}. `,
-                      bold: true,
-                      size: 22,
-                    }),
-                    new TextRun({
-                      text: questionText,
-                      size: 22,
-                    }),
-                  ],
-                  indent: { left: 400 },
-                  spacing: { after: 100 },
-                }),
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: `   ${answerText}`,
-                      color: "22c55e",
-                      bold: true,
-                      size: 20,
-                    }),
-                  ],
-                  indent: { left: 600 },
-                  spacing: { after: 150 },
-                }),
-              );
-              questionNumber++;
-            }
-          } else {
-            // Show all questions for other sections
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: `${questionNumber}. `,
-                    bold: true,
-                    size: 22,
-                  }),
-                  new TextRun({
-                    text: questionText,
-                    size: 22,
-                  }),
-                ],
-                indent: { left: 400 },
-                spacing: { after: 100 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: `   Answer: ${answerText}`,
-                    size: 20,
-                    color: "2563eb",
-                  }),
-                ],
-                indent: { left: 600 },
-                spacing: { after: 150 },
-              }),
-            );
-            questionNumber++;
-          }
-        }
-
-        // Add spacing between sections
-        paragraphs.push(
-          new Paragraph({
-            text: "",
-            spacing: { after: 300 },
-          }),
-        );
+    const checkNewPage = () => {
+      if (y < MARGIN + LINE_HEIGHT * 2) {
+        page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+        y = PAGE_HEIGHT - MARGIN;
       }
-
-      return paragraphs;
     };
 
-    // Debug log
-    console.log("📋 Saving document with data:", {
-      formData,
-      hasQuestions: !!questions,
+    const drawLine = (
+      text: string,
+      x: number,
+      size: number,
+      font: typeof fontBold,
+      color = rgb(0, 0, 0),
+    ) => {
+      checkNewPage();
+      page.drawText(sanitize(text), { x, y, size, font, color });
+      y -= LINE_HEIGHT;
+    };
+
+    const drawWrapped = (
+      text: string,
+      x: number,
+      size: number,
+      font: typeof fontRegular,
+      color = rgb(0, 0, 0),
+    ) => {
+      const sanitized = sanitize(text);
+      const maxWidth = PAGE_WIDTH - x - MARGIN;
+      const words = sanitized.split(" ");
+      let line = "";
+      for (const word of words) {
+        const test = line ? `${line} ${word}` : word;
+        if (font.widthOfTextAtSize(test, size) > maxWidth) {
+          checkNewPage();
+          page.drawText(line, { x, y, size, font, color });
+          y -= LINE_HEIGHT;
+          line = word;
+        } else {
+          line = test;
+        }
+      }
+      if (line) {
+        checkNewPage();
+        page.drawText(line, { x, y, size, font, color });
+        y -= LINE_HEIGHT;
+      }
+    };
+
+    // Title
+    drawLine("Student Assessment Answers", MARGIN, 18, fontBold);
+    y -= 8;
+
+    // Student info
+    drawLine("Student Information", MARGIN, 13, fontBold, rgb(0.1, 0.1, 0.5));
+    y -= 4;
+    for (const [label, value] of [
+      ["Name:", currentUser?.name || currentUser?.email || "Not specified"],
+      ["Email:", currentUser?.email || "Not specified"],
+      ["Preferred Course:", currentUser?.preferredCourse || "Not specified"],
+      ["Date:", new Date(timestamp).toLocaleDateString()],
+    ] as [string, string][]) {
+      checkNewPage();
+      page.drawText(sanitize(label), {
+        x: MARGIN + 20,
+        y,
+        size: 11,
+        font: fontBold,
+        color: rgb(0, 0, 0),
+      });
+      page.drawText(sanitize(value), {
+        x: MARGIN + 140,
+        y,
+        size: 11,
+        font: fontRegular,
+        color: rgb(0, 0, 0),
+      });
+      y -= LINE_HEIGHT;
+    }
+
+    y -= 10;
+    page.drawLine({
+      start: { x: MARGIN, y },
+      end: { x: PAGE_WIDTH - MARGIN, y },
+      thickness: 1,
+      color: rgb(0.7, 0.7, 0.7),
     });
+    y -= 20;
 
-    // Build the document
-    const doc = new Document({
-      sections: [
-        {
-          children: [
-            // Main Title
-            new Paragraph({
-              text: "Student Assessment Answers",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 400 },
-            }),
+    // Sections
+    const sectionOrder: (keyof AssessmentAnswers)[] = [
+      "foundationalAssessment",
+      "academicAptitude",
+      "technicalSkills",
+      "careerInterest",
+      "learningWorkStyle",
+    ];
 
-            // Student Information Section
-            new Paragraph({
-              text: "Student Information",
-              heading: HeadingLevel.HEADING_2,
-              spacing: { before: 200, after: 200 },
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Name: ",
-                  bold: true,
-                  size: 24,
-                }),
-                new TextRun({
-                  text: currentUser?.name || currentUser?.email || "Not specified",
-                  size: 24,
-                }),
-              ],
-              spacing: { after: 100 },
-              indent: { left: 400 },
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Email: ",
-                  bold: true,
-                  size: 24,
-                }),
-                new TextRun({
-                  text: currentUser?.email || "Not specified",
-                  size: 24,
-                }),
-              ],
-              spacing: { after: 100 },
-              indent: { left: 400 },
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Preferred Course: ",
-                  bold: true,
-                  size: 24,
-                }),
-                new TextRun({
-                  text: currentUser?.preferredCourse || "Not specified",
-                  size: 24,
-                }),
-              ],
-              spacing: { after: 100 },
-              indent: { left: 400 },
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Date: ",
-                  bold: true,
-                  size: 24,
-                }),
-                new TextRun({
-                  text: new Date(timestamp).toLocaleDateString(),
-                  size: 24,
-                  italics: true,
-                }),
-              ],
-              spacing: { after: 300 },
-              indent: { left: 400 },
-            }),
+    const likertLabels: AnswerLabels = {
+      1: "Strongly Agree",
+      2: "Agree",
+      3: "Neutral",
+      4: "Disagree",
+      5: "Strongly Disagree",
+    };
 
-            // Divider
-            new Paragraph({
-              text: "─".repeat(80),
-              spacing: { before: 200, after: 200 },
-            }),
+    for (const sectionKey of sectionOrder) {
+      const sectionData = formData[sectionKey];
+      if (!sectionData || Object.keys(sectionData).length === 0) continue;
 
-            // Assessment Answers
-            ...formatAnswers(formData),
-          ],
-        },
-      ],
+      drawLine(
+        categoryTitles[sectionKey] || sectionKey,
+        MARGIN,
+        13,
+        fontBold,
+        rgb(0.1, 0.1, 0.5),
+      );
+      y -= 4;
+
+      let num = 1;
+      for (const [questionKey, answer] of Object.entries(sectionData)) {
+        if (
+          (sectionKey === "technicalSkills" ||
+            sectionKey === "learningWorkStyle") &&
+          answer !== true
+        )
+          continue;
+
+        const questionText = getQuestionText(sectionKey, questionKey);
+        let answerText = "";
+
+        if (sectionKey === "foundationalAssessment") {
+          answerText = String(answer || "Not answered");
+        } else if (
+          sectionKey === "technicalSkills" ||
+          sectionKey === "learningWorkStyle"
+        ) {
+          answerText = "Selected";
+        } else {
+          const n = Number(answer);
+          answerText =
+            !isNaN(n) && n >= 1 && n <= 5
+              ? likertLabels[n]
+              : `Rating: ${answer}`;
+        }
+
+        checkNewPage();
+        page.drawText(`${num}.`, {
+          x: MARGIN + 20,
+          y,
+          size: 10,
+          font: fontBold,
+          color: rgb(0, 0, 0),
+        });
+        drawWrapped(questionText, MARGIN + 40, 10, fontRegular);
+        drawLine(
+          `Answer: ${answerText}`,
+          MARGIN + 40,
+          10,
+          fontRegular,
+          sectionKey === "technicalSkills" || sectionKey === "learningWorkStyle"
+            ? rgb(0.13, 0.77, 0.37)
+            : rgb(0.15, 0.39, 0.92),
+        );
+        y -= 4;
+        num++;
+      }
+      y -= 16;
+    }
+
+    // ✅ Fix: use buffer cast to avoid Uint8Array type error
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
+      type: "application/pdf",
     });
+    saveAs(
+      blob,
+      `assessment-${sanitize(currentUser?.name || "student")}-${timestamp.split("T")[0]}.pdf`,
+    );
 
-    // Generate and trigger download
-    const blob = await Packer.toBlob(doc);
-    const fileName = `assessment-${currentUser?.name || "student"}-${
-      timestamp.split("T")[0]
-    }.docx`;
-    saveAs(blob, fileName);
-
-    // Success toast
     toast.success("Document saved successfully!", {
       position: "top-right",
       autoClose: 3000,
@@ -332,7 +259,7 @@ export const saveAnswersAsDocument = async ({
       transition: Bounce,
     });
   } catch (error) {
-    console.error("Error saving document:", error);
+    console.error("Error saving PDF:", error);
     toast.error("Failed to save document. Please try again.", {
       position: "top-right",
       autoClose: 3000,

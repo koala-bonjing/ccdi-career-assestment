@@ -1,784 +1,551 @@
-// src/hooks/saveResultsAsDocument.ts (UPDATED)
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  AlignmentType,
-  Table,
-  TableCell,
-  TableRow,
-  WidthType,
-} from "docx";
+// src/hooks/saveResultsAsPDF.ts
+// Dependencies: npm install pdf-lib file-saver
+// Types:        npm install -D @types/file-saver
+
+import { PDFDocument, rgb, StandardFonts, type RGB } from "pdf-lib";
 import { saveAs } from "file-saver";
-import type { User, AssessmentResult } from "../types";
 import { Bounce, toast } from "react-toastify";
+import type { User, AssessmentResult } from "../types";
 
-// NEW: Interface for printable document generation
-// interface PrintableDocumentOptions {
-//   result: AssessmentResult;
-//   user: User;
-//   format: "word" | "print" | "pdf";
-// }
+// ─── Colour helpers ───────────────────────────────────────────────────────────
+const hex = (r: number, g: number, b: number): RGB =>
+  rgb(r / 255, g / 255, b / 255);
 
-export const saveResultsAsDocument = async (result: AssessmentResult, user: User) => {
-  try {
-    // Create the Word document
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            // Header with CCDI branding
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: "CCDI AUTOMATED CAREER ASSESSMENT",
-                  bold: true,
-                  size: 32,
-                  color: "2B3176",
-                }),
-              ],
-            }),
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: "ASSESSMENT RESULTS REPORT",
-                  bold: true,
-                  size: 24,
-                  color: "1C6CB3",
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }), // Spacer
+const C = {
+  darkBlue: hex(43, 49, 118), // #2B3176
+  midBlue: hex(28, 108, 179), // #1C6CB3
+  red: hex(164, 29, 49), // #A41D31
+  lightBg: hex(240, 248, 255), // #F0F8FF
+  rowAlt: hex(248, 249, 255),
+  grey: hex(102, 102, 102),
+  lightGrey: hex(200, 200, 200),
+  white: rgb(1, 1, 1),
+  black: rgb(0, 0, 0),
+  bodyText: hex(44, 62, 80),
+};
 
-            // Student Information Section
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "STUDENT INFORMATION",
-                  bold: true,
-                  size: 28,
-                  color: "2B3176",
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
+// ─── Score helpers ────────────────────────────────────────────────────────────
+const getCategoryAssessment = (score: number): string => {
+  if (score >= 85) return "Excellent";
+  if (score >= 70) return "Strong";
+  if (score >= 55) return "Developing";
+  if (score >= 40) return "Emerging";
+  return "Needs Development";
+};
 
-            // Student details table
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: "single", size: 1, color: "2B3176" },
-                bottom: { style: "single", size: 1, color: "2B3176" },
-                left: { style: "single", size: 1, color: "2B3176" },
-                right: { style: "single", size: 1, color: "2B3176" },
-                insideHorizontal: { style: "single", size: 1, color: "D3D3D3" },
-                insideVertical: { style: "single", size: 1, color: "D3D3D3" },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({ text: "Full Name", bold: true }),
-                          ],
-                        }),
-                      ],
-                      shading: { fill: "F0F8FF" },
-                    }),
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: user.fullName || user.name || "Not specified",
-                            }),
-                          ],
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({ text: "Email", bold: true }),
-                          ],
-                        }),
-                      ],
-                      shading: { fill: "F0F8FF" },
-                    }),
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: user.email || "Not specified",
-                            }),
-                          ],
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: "Preferred Course",
-                              bold: true,
-                            }),
-                          ],
-                        }),
-                      ],
-                      shading: { fill: "F0F8FF" },
-                    }),
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: user.preferredCourse || "Not specified",
-                            }),
-                          ],
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
+const getCompatibilityText = (pct: number): string => {
+  if (pct >= 80) return "Excellent Match";
+  if (pct >= 60) return "Strong Compatibility";
+  if (pct >= 40) return "Moderate Alignment";
+  if (pct >= 20) return "Some Relevance";
+  return "Limited Compatibility";
+};
 
-            // Assessment Summary
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "ASSESSMENT SUMMARY",
-                  bold: true,
-                  size: 28,
-                  color: "2B3176",
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text:
-                    result.summary ||
-                    "Based on your comprehensive assessment, here are your personalized results and program recommendations...",
-                  size: 22,
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
+// ─── Page / layout constants (A4 in points: 595 × 842) ───────────────────────
+const PAGE_W = 595;
+const PAGE_H = 842;
+const MARGIN = 45;
+const CONTENT_W = PAGE_W - MARGIN * 2;
+const LINE_SM = 14;
+const LINE_MD = 17;
 
-            // Recommended Program (Highlighted)
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "RECOMMENDED PROGRAM",
-                  bold: true,
-                  size: 28,
-                  color: "2B3176",
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              shading: {
-                fill: "A41D31",
-              },
-              children: [
-                new TextRun({
-                  text: result.recommendedProgram,
-                  bold: true,
-                  size: 32,
-                  color: "FFFFFF",
-                }),
-              ],
-            }),
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: "Best match based on your skills, interests, and learning style",
-                  italics: true,
-                  size: 20,
-                  color: "666666",
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
+// ─── Drawing context ──────────────────────────────────────────────────────────
+type EmbeddedFont = Awaited<ReturnType<PDFDocument["embedFont"]>>;
 
-            // Detailed Evaluation
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "DETAILED EVALUATION",
-                  bold: true,
-                  size: 28,
-                  color: "2B3176",
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: result.evaluation,
-                  size: 22,
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
+interface Ctx {
+  doc: PDFDocument;
+  pages: ReturnType<PDFDocument["addPage"]>[];
+  bold: EmbeddedFont;
+  reg: EmbeddedFont;
+  italic: EmbeddedFont;
+  y: number;
+  pageIdx: number;
+}
 
-            // Personalized Recommendations
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "PERSONALIZED RECOMMENDATIONS",
-                  bold: true,
-                  size: 28,
-                  color: "2B3176",
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: result.detailedEvaluation,
-                  size: 22,
-                }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
+const currentPage = (ctx: Ctx) => ctx.pages[ctx.pageIdx];
 
-            // Category Scores Section
-            ...(result.categoryScores
-              ? [
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: "CATEGORY PERFORMANCE ANALYSIS",
-                        bold: true,
-                        size: 28,
-                        color: "2B3176",
-                      }),
-                    ],
-                  }),
-                  new Paragraph({ text: "" }),
-                  new Table({
-                    width: {
-                      size: 100,
-                      type: WidthType.PERCENTAGE,
-                    },
-                    borders: {
-                      top: { style: "single", size: 2, color: "2B3176" },
-                      bottom: { style: "single", size: 2, color: "2B3176" },
-                      left: { style: "single", size: 2, color: "2B3176" },
-                      right: { style: "single", size: 2, color: "2B3176" },
-                      insideHorizontal: {
-                        style: "single",
-                        size: 1,
-                        color: "D3D3D3",
-                      },
-                      insideVertical: {
-                        style: "single",
-                        size: 1,
-                        color: "D3D3D3",
-                      },
-                    },
-                    rows: [
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "CATEGORY",
-                                    bold: true,
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                              }),
-                            ],
-                            shading: { fill: "2B3176" },
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "SCORE",
-                                    bold: true,
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                              }),
-                            ],
-                            shading: { fill: "2B3176" },
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "ASSESSMENT",
-                                    bold: true,
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                              }),
-                            ],
-                            shading: { fill: "2B3176" },
-                          }),
-                        ],
-                      }),
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "Academic Aptitude",
-                                    bold: true,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: `${result.categoryScores.academic}%`,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: getCategoryAssessment(result.categoryScores.academic),
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                        ],
-                      }),
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "Technical Skills",
-                                    bold: true,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: `${result.categoryScores.technical}%`,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: getCategoryAssessment(result.categoryScores.technical),
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                        ],
-                      }),
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "Career Interest",
-                                    bold: true,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: `${result.categoryScores.career}%`,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: getCategoryAssessment(result.categoryScores.career),
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                        ],
-                      }),
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "Logistics & Work Style",
-                                    bold: true,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: `${result.categoryScores.logistics}%`,
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: getCategoryAssessment(result.categoryScores.logistics),
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                  new Paragraph({ text: "" }),
-                ]
-              : []),
+const newPage = (ctx: Ctx): void => {
+  ctx.pages.push(ctx.doc.addPage([PAGE_W, PAGE_H]));
+  ctx.pageIdx++;
+  ctx.y = PAGE_H - MARGIN;
+};
 
-            // Program Compatibility Table
-            ...(result.percent
-              ? [
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: "PROGRAM COMPATIBILITY ANALYSIS",
-                        bold: true,
-                        size: 28,
-                        color: "2B3176",
-                      }),
-                    ],
-                  }),
-                  new Paragraph({ text: "" }),
-                  new Table({
-                    width: {
-                      size: 100,
-                      type: WidthType.PERCENTAGE,
-                    },
-                    columnWidths: [3000, 2000, 3000],
-                    borders: {
-                      top: { style: "single", size: 2, color: "2B3176" },
-                      bottom: { style: "single", size: 2, color: "2B3176" },
-                      left: { style: "single", size: 2, color: "2B3176" },
-                      right: { style: "single", size: 2, color: "2B3176" },
-                      insideHorizontal: {
-                        style: "single",
-                        size: 1,
-                        color: "D3D3D3",
-                      },
-                      insideVertical: {
-                        style: "single",
-                        size: 1,
-                        color: "D3D3D3",
-                      },
-                    },
-                    rows: [
-                      // Header row
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "PROGRAM",
-                                    bold: true,
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                              }),
-                            ],
-                            shading: { fill: "2B3176" },
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "COMPATIBILITY",
-                                    bold: true,
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                              }),
-                            ],
-                            shading: { fill: "2B3176" },
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: [
-                                  new TextRun({
-                                    text: "ASSESSMENT",
-                                    bold: true,
-                                    color: "FFFFFF",
-                                  }),
-                                ],
-                              }),
-                            ],
-                            shading: { fill: "2B3176" },
-                          }),
-                        ],
-                      }),
-                      // Data rows
-                      ...Object.entries(result.percent).map(
-                        ([program, percentage]) => {
-                          const isRecommended =
-                            program === result.recommendedProgram;
-                          const getAssessmentText = (percent: number) => {
-                            if (percent >= 80) return "Excellent Match";
-                            if (percent >= 60) return "Strong Compatibility";
-                            if (percent >= 40) return "Moderate Alignment";
-                            if (percent >= 20) return "Some Relevance";
-                            return "Limited Compatibility";
-                          };
+const advance = (ctx: Ctx, amount: number): void => {
+  ctx.y -= amount;
+  if (ctx.y < MARGIN + 24) newPage(ctx);
+};
 
-                          return new TableRow({
-                            children: [
-                              new TableCell({
-                                children: [
-                                  new Paragraph({
-                                    children: [
-                                      new TextRun({
-                                        text: program,
-                                        bold: isRecommended,
-                                        color: isRecommended
-                                          ? "A41D31"
-                                          : "000000",
-                                      }),
-                                    ],
-                                  }),
-                                ],
-                                shading: isRecommended
-                                  ? { fill: "FFF0F0" }
-                                  : undefined,
-                              }),
-                              new TableCell({
-                                children: [
-                                  new Paragraph({
-                                    children: [
-                                      new TextRun({
-                                        text: `${percentage}%`,
-                                        bold: isRecommended,
-                                        color: isRecommended
-                                          ? "A41D31"
-                                          : "000000",
-                                      }),
-                                    ],
-                                  }),
-                                ],
-                                shading: isRecommended
-                                  ? { fill: "FFF0F0" }
-                                  : undefined,
-                              }),
-                              new TableCell({
-                                children: [
-                                  new Paragraph({
-                                    children: [
-                                      new TextRun({
-                                        text: getAssessmentText(percentage),
-                                        bold: isRecommended,
-                                        color: isRecommended
-                                          ? "A41D31"
-                                          : "000000",
-                                      }),
-                                    ],
-                                  }),
-                                ],
-                                shading: isRecommended
-                                  ? { fill: "FFF0F0" }
-                                  : undefined,
-                              }),
-                            ],
-                          });
-                        },
-                      ),
-                    ],
-                  }),
-                  new Paragraph({ text: "" }),
-                ]
-              : []),
+// ─── Text helpers ─────────────────────────────────────────────────────────────
+const drawWrapped = (
+  ctx: Ctx,
+  text: string,
+  opts: {
+    x?: number;
+    size?: number;
+    font?: EmbeddedFont;
+    color?: RGB;
+    lineHeight?: number;
+    maxWidth?: number;
+  } = {},
+): void => {
+  const {
+    x = MARGIN,
+    size = 10,
+    font = ctx.reg,
+    color = C.bodyText,
+    lineHeight = LINE_SM,
+    maxWidth = CONTENT_W,
+  } = opts;
 
-            // Preparation Needed Section
-            ...(result.preparationNeeded && result.preparationNeeded.length > 0
-              ? [
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: "PREPARATION RECOMMENDATIONS",
-                        bold: true,
-                        size: 28,
-                        color: "2B3176",
-                      }),
-                    ],
-                  }),
-                  new Paragraph({ text: "" }),
-                  ...result.preparationNeeded.map(
-                    (item) =>
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: "• " + item,
-                            size: 22,
-                          }),
-                        ],
-                      }),
-                  ),
-                  new Paragraph({ text: "" }),
-                ]
-              : []),
+  const words = text.replace(/\n/g, " ").split(" ");
+  let line = "";
 
-            // Success Roadmap
-            ...(result.successRoadmap
-              ? [
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: "YOUR SUCCESS ROADMAP",
-                        bold: true,
-                        size: 28,
-                        color: "2B3176",
-                      }),
-                    ],
-                  }),
-                  new Paragraph({ text: "" }),
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: result.successRoadmap,
-                        size: 22,
-                      }),
-                    ],
-                  }),
-                  new Paragraph({ text: "" }),
-                ]
-              : []),
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(test, size) > maxWidth && line) {
+      currentPage(ctx).drawText(line, { x, y: ctx.y, size, font, color });
+      advance(ctx, lineHeight);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) {
+    currentPage(ctx).drawText(line, { x, y: ctx.y, size, font, color });
+    advance(ctx, lineHeight);
+  }
+};
 
-            // Footer
-            new Paragraph({ text: "" }),
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: "Generated by CCDI Automated Career Assessment System",
-                  size: 18,
-                  color: "666666",
-                  italics: true,
-                }),
-              ],
-            }),
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: `Report generated on: ${new Date().toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    },
-                  )}`,
-                  size: 16,
-                  color: "999999",
-                }),
-              ],
-            }),
-          ],
-        },
-      ],
+const drawLine = (
+  ctx: Ctx,
+  text: string,
+  opts: {
+    x?: number;
+    size?: number;
+    font?: EmbeddedFont;
+    color?: RGB;
+    lineHeight?: number;
+    align?: "left" | "center" | "right";
+  } = {},
+): void => {
+  const {
+    x = MARGIN,
+    size = 10,
+    font = ctx.reg,
+    color = C.bodyText,
+    lineHeight = LINE_SM,
+    align = "left",
+  } = opts;
+
+  let drawX = x;
+  if (align === "center")
+    drawX = (PAGE_W - font.widthOfTextAtSize(text, size)) / 2;
+  if (align === "right")
+    drawX = PAGE_W - MARGIN - font.widthOfTextAtSize(text, size);
+
+  currentPage(ctx).drawText(text, { x: drawX, y: ctx.y, size, font, color });
+  advance(ctx, lineHeight);
+};
+
+// ─── Section heading ──────────────────────────────────────────────────────────
+const sectionHeading = (ctx: Ctx, title: string): void => {
+  advance(ctx, 6);
+  drawLine(ctx, title, {
+    size: 13,
+    font: ctx.bold,
+    color: C.darkBlue,
+    lineHeight: LINE_MD,
+  });
+  currentPage(ctx).drawLine({
+    start: { x: MARGIN, y: ctx.y + 2 },
+    end: { x: PAGE_W - MARGIN, y: ctx.y + 2 },
+    thickness: 0.6,
+    color: C.midBlue,
+  });
+  advance(ctx, 8);
+};
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+interface ColDef {
+  header: string;
+  width: number;
+  align?: "left" | "center";
+}
+interface RowData {
+  cells: string[];
+  highlight?: boolean;
+  shade?: boolean;
+}
+
+const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
+  const ROW_H = 20;
+  const PAD = 5;
+  const totalH = ROW_H * (rows.length + 1);
+
+  if (ctx.y - totalH < MARGIN + 24) newPage(ctx);
+
+  const startY = ctx.y;
+  const colWidths = cols.map((c) => c.width * CONTENT_W);
+
+  // Header background
+  currentPage(ctx).drawRectangle({
+    x: MARGIN,
+    y: startY - ROW_H,
+    width: CONTENT_W,
+    height: ROW_H,
+    color: C.darkBlue,
+  });
+
+  // Header text
+  let xc = MARGIN;
+  cols.forEach((col, ci) => {
+    const cw = colWidths[ci];
+    const tw = ctx.bold.widthOfTextAtSize(col.header, 9);
+    const tx = col.align === "center" ? xc + (cw - tw) / 2 : xc + PAD;
+    currentPage(ctx).drawText(col.header, {
+      x: tx,
+      y: startY - ROW_H + PAD + 2,
+      size: 9,
+      font: ctx.bold,
+      color: C.white,
+    });
+    xc += cw;
+  });
+
+  // Data rows
+  rows.forEach((row, ri) => {
+    const rowY = startY - ROW_H * (ri + 2);
+    const bgColor = row.highlight
+      ? hex(255, 240, 240)
+      : row.shade
+        ? C.rowAlt
+        : C.white;
+
+    currentPage(ctx).drawRectangle({
+      x: MARGIN,
+      y: rowY,
+      width: CONTENT_W,
+      height: ROW_H,
+      color: bgColor,
     });
 
-    // Generate the document and save it
-    const blob = await Packer.toBlob(doc);
+    let xr = MARGIN;
+    cols.forEach((col, ci) => {
+      const cw = colWidths[ci];
+      const text = row.cells[ci] ?? "";
+      const fnt = row.highlight ? ctx.bold : ctx.reg;
+      const clr = row.highlight ? C.red : C.bodyText;
+      const tw = fnt.widthOfTextAtSize(text, 9);
+      const tx = col.align === "center" ? xr + (cw - tw) / 2 : xr + PAD;
+      currentPage(ctx).drawText(text, {
+        x: tx,
+        y: rowY + PAD + 2,
+        size: 9,
+        font: fnt,
+        color: clr,
+      });
+      xr += cw;
+    });
+  });
 
-    // Create filename with student name and timestamp
-    const fileName = `CCDI_Assessment_Results_${
-      user.name?.replace(/[^a-zA-Z0-9]/g, "_") || user.fullName?.replace(/[^a-zA-Z0-9]/g, "_") || "Student"
-    }_${new Date().getTime()}.docx`;
+  // Outer border
+  currentPage(ctx).drawRectangle({
+    x: MARGIN,
+    y: startY - totalH,
+    width: CONTENT_W,
+    height: totalH,
+    borderColor: C.lightGrey,
+    borderWidth: 0.5,
+  });
 
-    // Save the file
-    saveAs(blob, fileName);
+  // Horizontal rules
+  for (let r = 0; r <= rows.length; r++) {
+    const ry = startY - ROW_H * (r + 1);
+    currentPage(ctx).drawLine({
+      start: { x: MARGIN, y: ry },
+      end: { x: PAGE_W - MARGIN, y: ry },
+      thickness: 0.3,
+      color: C.lightGrey,
+    });
+  }
 
-    // Show success toast
-    toast.success("Results document saved successfully!", {
+  ctx.y = startY - totalH - 4;
+};
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+export const saveResultsAsPDF = async (
+  result: AssessmentResult,
+  user: User,
+): Promise<void> => {
+  try {
+    const doc = await PDFDocument.create();
+    const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+    const reg = await doc.embedFont(StandardFonts.Helvetica);
+    const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
+
+    const ctx: Ctx = { doc, pages: [], bold, reg, italic, y: 0, pageIdx: -1 };
+    newPage(ctx);
+
+    // ── HEADER BANNER ──────────────────────────────────────────────────────
+    currentPage(ctx).drawRectangle({
+      x: 0,
+      y: PAGE_H - 52,
+      width: PAGE_W,
+      height: 52,
+      color: C.darkBlue,
+    });
+
+    const title = "CCDI AUTOMATED CAREER ASSESSMENT";
+    currentPage(ctx).drawText(title, {
+      x: (PAGE_W - bold.widthOfTextAtSize(title, 18)) / 2,
+      y: PAGE_H - 26,
+      size: 18,
+      font: bold,
+      color: C.white,
+    });
+
+    const sub = "ASSESSMENT RESULTS REPORT";
+    currentPage(ctx).drawText(sub, {
+      x: (PAGE_W - reg.widthOfTextAtSize(sub, 11)) / 2,
+      y: PAGE_H - 42,
+      size: 11,
+      font: reg,
+      color: hex(180, 200, 255),
+    });
+
+    ctx.y = PAGE_H - 52 - 20;
+
+    // ── DATE ───────────────────────────────────────────────────────────────
+    const dateStr = `Generated: ${new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+    drawLine(ctx, dateStr, {
+      size: 8,
+      color: C.grey,
+      align: "right",
+      lineHeight: LINE_MD,
+    });
+
+    // ── STUDENT INFORMATION ────────────────────────────────────────────────
+    sectionHeading(ctx, "STUDENT INFORMATION");
+    drawTable(
+      ctx,
+      [
+        { header: "FIELD", width: 0.3 },
+        { header: "DETAILS", width: 0.7 },
+      ],
+      [
+        { cells: ["Full Name", user.fullName || user.name || "Not specified"] },
+        { cells: ["Email", user.email || "Not specified"], shade: true },
+        {
+          cells: ["Preferred Course", user.preferredCourse || "Not specified"],
+        },
+      ],
+    );
+    advance(ctx, 10);
+
+    // ── ASSESSMENT SUMMARY ─────────────────────────────────────────────────
+    sectionHeading(ctx, "ASSESSMENT SUMMARY");
+    drawWrapped(
+      ctx,
+      result.summary ||
+        "Based on your comprehensive assessment, here are your personalized results and program recommendations.",
+      { size: 10, lineHeight: LINE_SM },
+    );
+    advance(ctx, 10);
+
+    // ── RECOMMENDED PROGRAM ────────────────────────────────────────────────
+    sectionHeading(ctx, "RECOMMENDED PROGRAM");
+
+    const BOX_H = 48;
+    if (ctx.y - BOX_H < MARGIN + 24) newPage(ctx);
+
+    currentPage(ctx).drawRectangle({
+      x: MARGIN,
+      y: ctx.y - BOX_H,
+      width: CONTENT_W,
+      height: BOX_H,
+      color: C.red,
+    });
+
+    const prog = result.recommendedProgram;
+    const progSize = Math.min(
+      18,
+      Math.max(11, 18 - Math.max(0, prog.length - 30) * 0.2),
+    );
+    currentPage(ctx).drawText(prog, {
+      x: (PAGE_W - bold.widthOfTextAtSize(prog, progSize)) / 2,
+      y: ctx.y - 20,
+      size: progSize,
+      font: bold,
+      color: C.white,
+    });
+
+    const tagline =
+      "Best match based on your skills, interests, and learning style";
+    currentPage(ctx).drawText(tagline, {
+      x: (PAGE_W - italic.widthOfTextAtSize(tagline, 8)) / 2,
+      y: ctx.y - 36,
+      size: 8,
+      font: italic,
+      color: hex(240, 200, 200),
+    });
+
+    ctx.y -= BOX_H;
+    advance(ctx, 14);
+
+    // ── DETAILED EVALUATION ────────────────────────────────────────────────
+    sectionHeading(ctx, "DETAILED EVALUATION");
+    drawWrapped(ctx, result.evaluation, { size: 10, lineHeight: LINE_SM });
+    advance(ctx, 10);
+
+    // ── PERSONALIZED RECOMMENDATIONS ──────────────────────────────────────
+    sectionHeading(ctx, "PERSONALIZED RECOMMENDATIONS");
+    drawWrapped(ctx, result.detailedEvaluation, {
+      size: 10,
+      lineHeight: LINE_SM,
+    });
+    advance(ctx, 10);
+
+    // ── CATEGORY PERFORMANCE ──────────────────────────────────────────────
+    if (result.categoryScores) {
+      sectionHeading(ctx, "CATEGORY PERFORMANCE ANALYSIS");
+      drawTable(
+        ctx,
+        [
+          { header: "CATEGORY", width: 0.45 },
+          { header: "SCORE", width: 0.2, align: "center" },
+          { header: "ASSESSMENT", width: 0.35, align: "center" },
+        ],
+        [
+          {
+            cells: [
+              "Academic Aptitude",
+              `${result.categoryScores.academic}%`,
+              getCategoryAssessment(result.categoryScores.academic),
+            ],
+          },
+          {
+            cells: [
+              "Technical Skills",
+              `${result.categoryScores.technical}%`,
+              getCategoryAssessment(result.categoryScores.technical),
+            ],
+            shade: true,
+          },
+          {
+            cells: [
+              "Career Interest",
+              `${result.categoryScores.career}%`,
+              getCategoryAssessment(result.categoryScores.career),
+            ],
+          },
+          {
+            cells: [
+              "Logistics & Work Style",
+              `${result.categoryScores.logistics}%`,
+              getCategoryAssessment(result.categoryScores.logistics),
+            ],
+            shade: true,
+          },
+        ],
+      );
+      advance(ctx, 10);
+    }
+
+    // ── PROGRAM COMPATIBILITY ─────────────────────────────────────────────
+    if (result.percent) {
+      sectionHeading(ctx, "PROGRAM COMPATIBILITY ANALYSIS");
+      const compRows: RowData[] = Object.entries(result.percent).map(
+        ([p, pct], i) => ({
+          cells: [p, `${pct}%`, getCompatibilityText(pct)],
+          highlight: p === result.recommendedProgram,
+          shade: p !== result.recommendedProgram && i % 2 === 1,
+        }),
+      );
+      drawTable(
+        ctx,
+        [
+          { header: "PROGRAM", width: 0.45 },
+          { header: "COMPATIBILITY", width: 0.2, align: "center" },
+          { header: "ASSESSMENT", width: 0.35, align: "center" },
+        ],
+        compRows,
+      );
+      advance(ctx, 10);
+    }
+
+    // ── PREPARATION RECOMMENDATIONS ───────────────────────────────────────
+    if (result.preparationNeeded && result.preparationNeeded.length > 0) {
+      sectionHeading(ctx, "PREPARATION RECOMMENDATIONS");
+      for (const item of result.preparationNeeded) {
+        drawWrapped(ctx, `\u2022  ${item}`, {
+          x: MARGIN + 6,
+          size: 10,
+          lineHeight: LINE_SM,
+          maxWidth: CONTENT_W - 6,
+        });
+      }
+      advance(ctx, 10);
+    }
+
+    // ── SUCCESS ROADMAP ───────────────────────────────────────────────────
+    if (result.successRoadmap) {
+      sectionHeading(ctx, "YOUR SUCCESS ROADMAP");
+      drawWrapped(ctx, result.successRoadmap, {
+        size: 10,
+        lineHeight: LINE_SM,
+      });
+      advance(ctx, 10);
+    }
+
+    // ── FOOTER on every page ──────────────────────────────────────────────
+    const totalPages = ctx.pages.length;
+    ctx.pages.forEach((pg, idx) => {
+      pg.drawRectangle({
+        x: 0,
+        y: 0,
+        width: PAGE_W,
+        height: 22,
+        color: C.darkBlue,
+      });
+
+      const footerText = "Generated by CCDI Automated Career Assessment System";
+      pg.drawText(footerText, {
+        x: (PAGE_W - reg.widthOfTextAtSize(footerText, 7.5)) / 2,
+        y: 9,
+        size: 7.5,
+        font: reg,
+        color: C.white,
+      });
+
+      const pageLabel = `Page ${idx + 1} of ${totalPages}`;
+      pg.drawText(pageLabel, {
+        x: PAGE_W - MARGIN - reg.widthOfTextAtSize(pageLabel, 7.5),
+        y: 9,
+        size: 7.5,
+        font: reg,
+        color: hex(180, 200, 255),
+      });
+    });
+
+    // ── SAVE ──────────────────────────────────────────────────────────────
+    const pdfBytes = await doc.save();
+    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
+      type: "application/pdf",
+    });
+
+    const safeName = (user.name || user.fullName || "Student").replace(
+      /[^a-zA-Z0-9]/g,
+      "_",
+    );
+    saveAs(blob, `CCDI_Assessment_Results_${safeName}_${Date.now()}.pdf`);
+
+    toast.success("PDF saved successfully!", {
       position: "top-right",
       autoClose: 3000,
       style: {
@@ -794,10 +561,9 @@ export const saveResultsAsDocument = async (result: AssessmentResult, user: User
       transition: Bounce,
     });
   } catch (error) {
-    console.error("Error generating Word document:", error);
+    console.error("Error generating PDF:", error);
 
-    // Show error toast
-    toast.error("Failed to save document. Please try again.", {
+    toast.error("Failed to save PDF. Please try again.", {
       position: "top-right",
       autoClose: 3000,
       style: {
@@ -817,403 +583,7 @@ export const saveResultsAsDocument = async (result: AssessmentResult, user: User
   }
 };
 
-// Helper function for category assessment text
-const getCategoryAssessment = (score: number): string => {
-  if (score >= 85) return "Excellent";
-  if (score >= 70) return "Strong";
-  if (score >= 55) return "Developing";
-  if (score >= 40) return "Emerging";
-  return "Needs Development";
-};
-
-// NEW: Function to generate print-friendly HTML document
-export const generatePrintableHTML = (result: AssessmentResult, user: User): string => {
-  const formatDate = () => {
-    return new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getCompatibilityLevel = (percentage: number) => {
-    if (percentage >= 80) return { text: "Excellent Match", color: "#22c55e" };
-    if (percentage >= 60) return { text: "Strong Compatibility", color: "#3b82f6" };
-    if (percentage >= 40) return { text: "Moderate Alignment", color: "#eab308" };
-    if (percentage >= 20) return { text: "Some Relevance", color: "#f97316" };
-    return { text: "Limited Compatibility", color: "#ef4444" };
-  };
-
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      academic: "#3b82f6",
-      technical: "#8b5cf6",
-      career: "#ec4899",
-      logistics: "#14b8a6",
-    };
-    return colors[category as keyof typeof colors] || "#6c757d";
-  };
-
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>CCDI Assessment Results - ${user.fullName || user.name || "Student"}</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-          * {
-            font-family: 'Poppins', sans-serif !important;
-          }
-          body {
-            background: white;
-            padding: 40px 20px;
-          }
-          .printable-document {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-          }
-          .letterhead {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e9ecef;
-          }
-          .letterhead h1 {
-            color: #2B3176;
-            font-weight: 700;
-            font-size: 2.2rem;
-            margin-bottom: 5px;
-          }
-          .letterhead h2 {
-            color: #1C6CB3;
-            font-weight: 600;
-            font-size: 1.4rem;
-          }
-          .student-info {
-            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-            padding: 20px;
-            border-radius: 16px;
-            border-left: 6px solid #2B3176;
-            margin-bottom: 40px;
-          }
-          .executive-summary {
-            background: linear-gradient(135deg, #f0f4ff 0%, #e6ecfe 100%);
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 40px;
-          }
-          .recommended-program {
-            background: linear-gradient(135deg, #A41D31 0%, #EC2326 100%);
-            padding: 40px;
-            border-radius: 24px;
-            color: white;
-            text-align: center;
-            margin-bottom: 40px;
-          }
-          .recommended-program h2 {
-            font-size: clamp(1.8rem, 5vw, 3rem);
-            font-weight: 700;
-            margin: 15px 0;
-          }
-          .compatibility-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 40px;
-          }
-          .compatibility-table th {
-            background: linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%);
-            color: white;
-            padding: 12px;
-          }
-          .compatibility-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e9ecef;
-          }
-          .progress {
-            height: 8px;
-            background: #f1f5f9;
-            border-radius: 4px;
-            overflow: hidden;
-          }
-          .progress-bar {
-            height: 100%;
-            border-radius: 4px;
-          }
-          .category-card {
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid #e9ecef;
-            margin-bottom: 20px;
-          }
-          .footer {
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 2px solid #dee2e6;
-            text-align: center;
-            color: #6c757d;
-            font-size: 0.85rem;
-          }
-          @media print {
-            body { 
-              padding: 0.5in !important;
-              background: white !important;
-            }
-            .printable-document {
-              box-shadow: none !important;
-              padding: 0 !important;
-            }
-            .recommended-program {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            .progress-bar {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="printable-document">
-          <!-- Letterhead -->
-          <div class="letterhead">
-            <h1>CCDI</h1>
-            <h2>Automated Career Assessment</h2>
-            <h3 style="font-size: 1.1rem; font-weight: 400; color: #6c757d;">Official Results Report</h3>
-            <div style="margin-top: 15px; color: #6c757d; font-size: 0.9rem;">
-              Report ID: CCDI-${new Date().getTime().toString().slice(-8)} • ${formatDate()}
-            </div>
-          </div>
-
-          <!-- Student Information -->
-          <div class="student-info">
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <div style="width: 56px; height: 56px; background: #2B3176; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
-                👤
-              </div>
-              <div>
-                <div style="text-transform: uppercase; font-size: 0.8rem; color: #6c757d; margin-bottom: 5px;">
-                  Student Information
-                </div>
-                <h4 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 5px;">
-                  ${user.fullName || user.name || "Student Name"}
-                </h4>
-                <div style="display: flex; gap: 20px;">
-                  <span style="font-size: 0.9rem;">📧 ${user.email || "Email not provided"}</span>
-                  <span style="font-size: 0.9rem;">📚 Preferred: ${user.preferredCourse || "Not specified"}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Executive Summary -->
-          <div class="executive-summary">
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-              <span style="font-size: 28px;">🏆</span>
-              <h4 style="color: #2B3176; font-weight: 700; margin: 0;">Executive Summary</h4>
-            </div>
-            <p style="font-size: 1.05rem; line-height: 1.6; color: #1a1e3c; margin: 0;">
-              ${result.summary || "Based on your comprehensive assessment across academic aptitude, technical skills, career interests, and work style preferences, we've identified the optimal program alignment for your profile."}
-            </p>
-          </div>
-
-          <!-- Recommended Program -->
-          <div class="recommended-program">
-            <span style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px;">
-              Recommended Program
-            </span>
-            <h2>${result.recommendedProgram}</h2>
-            <p style="font-size: 1.2rem; opacity: 0.95; margin: 0 auto; max-width: 600px;">
-              Best match based on your skills, interests, and learning style
-            </p>
-          </div>
-
-          <!-- Program Compatibility -->
-          ${result.percent ? `
-            <h4 style="color: #2B3176; font-weight: 700; margin-bottom: 20px;">
-              📊 Program Compatibility Analysis
-            </h4>
-            <table class="compatibility-table">
-              <thead>
-                <tr>
-                  <th>Program</th>
-                  <th>Compatibility</th>
-                  <th>Assessment</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${Object.entries(result.percent).map(([program, percentage]) => {
-                  const isRecommended = program === result.recommendedProgram;
-                  const level = getCompatibilityLevel(percentage);
-                  return `
-                    <tr style="background: ${isRecommended ? '#fff8f8' : 'white'};">
-                      <td style="font-weight: ${isRecommended ? '700' : '400'}; color: ${isRecommended ? '#A41D31' : 'inherit'};">
-                        ${program}
-                        ${isRecommended ? '<span style="background: #A41D31; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; margin-left: 8px;">Recommended</span>' : ''}
-                      </td>
-                      <td>
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                          <span style="font-size: 1.2rem; font-weight: 700; color: ${isRecommended ? '#A41D31' : level.color};">
-                            ${percentage}%
-                          </span>
-                          <div class="progress" style="width: 100px;">
-                            <div class="progress-bar" style="width: ${percentage}%; background: ${isRecommended ? '#A41D31' : level.color};"></div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style="color: ${level.color};">
-                        ${level.text}
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          ` : ''}
-
-          <!-- Detailed Evaluation -->
-          <h4 style="color: #2B3176; font-weight: 700; margin: 40px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #dee2e6;">
-            📝 Detailed Evaluation
-          </h4>
-          <div style="padding: 20px; background: white; border: 1px solid #e9ecef; border-radius: 16px; margin-bottom: 30px;">
-            <p style="font-size: 1rem; line-height: 1.7; color: #2c3e50; margin: 0;">
-              ${result.evaluation}
-            </p>
-          </div>
-
-          <!-- Personalized Recommendations -->
-          <h4 style="color: #2B3176; font-weight: 700; margin: 40px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #dee2e6;">
-            💡 Personalized Recommendations
-          </h4>
-          <div style="padding: 20px; background: #f8f9ff; border-left: 6px solid #1C6CB3; border-radius: 16px; margin-bottom: 30px;">
-            <p style="font-size: 1rem; line-height: 1.7; color: #2c3e50; margin: 0;">
-              ${result.detailedEvaluation}
-            </p>
-          </div>
-
-          <!-- Category Scores -->
-          ${result.categoryScores ? `
-            <h4 style="color: #2B3176; font-weight: 700; margin: 40px 0 20px 0;">
-              🧠 Category Performance Analysis
-            </h4>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
-              ${Object.entries(result.categoryScores).map(([key, score]) => {
-                const categoryLabels = {
-                  academic: "Academic Aptitude",
-                  technical: "Technical Skills",
-                  career: "Career Interest",
-                  logistics: "Logistics & Work Style"
-                };
-                const color = getCategoryColor(key);
-                return `
-                  <div class="category-card">
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                      <div style="width: 44px; height: 44px; background: ${color}20; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 22px; color: ${color};">●</span>
-                      </div>
-                      <div>
-                        <div style="font-weight: 600;">${categoryLabels[key as keyof typeof categoryLabels] || key}</div>
-                        <div style="display: flex; align-items: baseline; gap: 8px;">
-                          <span style="font-size: 1.5rem; font-weight: 700; color: ${color};">${score}%</span>
-                          <span style="color: #6c757d;">score</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="progress">
-                      <div class="progress-bar" style="width: ${score}%; background: ${color};"></div>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          ` : ''}
-
-          <!-- Preparation Needed -->
-          ${result.preparationNeeded && result.preparationNeeded.length > 0 ? `
-            <h4 style="color: #2B3176; font-weight: 700; margin: 40px 0 20px 0;">
-              ⚠️ Preparation Recommendations
-            </h4>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px;">
-              ${result.preparationNeeded.map(item => `
-                <div style="padding: 15px; background: #fff9e6; border: 1px solid #ffeeba; border-radius: 12px; display: flex; align-items: center; gap: 12px;">
-                  <span style="color: #eab308;">✓</span>
-                  <span>${item}</span>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-
-          <!-- Success Roadmap -->
-          ${result.successRoadmap ? `
-            <h4 style="color: #2B3176; font-weight: 700; margin: 40px 0 20px 0;">
-              📈 Your Success Roadmap
-            </h4>
-            <div style="padding: 25px; background: white; border: 2px solid #2B3176; border-radius: 16px; margin-bottom: 30px;">
-              <p style="font-size: 1rem; line-height: 1.7; margin: 0;">
-                ${result.successRoadmap}
-              </p>
-            </div>
-          ` : ''}
-
-          <!-- Footer -->
-          <div class="footer">
-            <p style="margin-bottom: 10px;">
-              This report was generated by the CCDI Automated Career Assessment System.
-              <br>
-              For inquiries or to discuss these results further, please contact the CCDI Career Guidance Office.
-            </p>
-            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px; color: #adb5bd; font-size: 0.75rem;">
-              <span>CCDI • Career Assessment Division</span>
-              <span>•</span>
-              <span>Report Version 2.0</span>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-};
-
-// NEW: Function to open print-friendly view
-export const openPrintableResults = (result: AssessmentResult, user: User) => {
-  const html = generatePrintableHTML(result, user);
-  const printWindow = window.open("", "_blank");
-  
-  if (!printWindow) {
-    toast.error("Please allow pop-ups to view the printable document.", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    return;
-  }
-
-  printWindow.document.write(html);
-  printWindow.document.close();
-  
-  // Trigger print dialog immediately or let user click print button
-  // Uncomment the next line if you want print dialog to open automatically
-  // printWindow.print();
-};
-
-// NEW: Complete results management hook
-export const useResultsDocument = () => {
-  const handleSaveWord = async (result: AssessmentResult, user: User) => {
-    await saveResultsAsDocument(result, user);
-  };
-
-  const handleViewPrint = (result: AssessmentResult, user: User) => {
-    openPrintableResults(result, user);
-  };
-
-  return {
-    saveAsWord: handleSaveWord,
-    viewPrintable: handleViewPrint,
-  };
-};
+// ─── Drop-in hook ─────────────────────────────────────────────────────────────
+export const useResultsPDF = () => ({
+  saveAsPDF: saveResultsAsPDF,
+});

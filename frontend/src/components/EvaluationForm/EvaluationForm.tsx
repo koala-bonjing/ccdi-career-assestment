@@ -184,11 +184,11 @@ const EvaluationForm = () => {
       // ✅ SEND TO YOUR EXPRESS BACKEND
       console.log(
         "📡 Sending request to:",
-        `${API_BASE_URL}/api/evaluate-assessment`,
+        `${API_BASE_URL}/api/assessments/evaluate-assessment`,
       );
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/evaluate-assessment`,
+        `${API_BASE_URL}/api/assessments/evaluate-assessment`,
         {
           userId: authUser._id,
           fullName: authUser.fullName || authUser.name,

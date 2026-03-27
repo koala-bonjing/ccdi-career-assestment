@@ -17,7 +17,7 @@ import CompatibilityLegend from "../ui/legend/compatibility-legend";
 
 // Hooks & utils
 import { useNormalizedPercentages } from "../../hooks/useNormalizePercentage";
-import { saveResultsAsDocument } from "../../hooks/saveResultsAsDocument";
+import { saveResultsAsPDF } from "../../hooks/saveResultsAsDocument"; 
 import { useAssessmentState } from "../../hooks/useAssessmentState"; // ✅ ADD THIS
 import { useEvaluationStore } from "../../../store/useEvaluationStore"; // ✅ ADD THIS
 
@@ -49,11 +49,6 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   // ✅ Priority: prop > store > assessment state
   const result = propResult || storeResult || assessmentResult;
 
-  console.log(
-    "Answer received:",
-    Object.values(result?.answers.foundationalAssessment || {}),
-  );
-
   // ✅ Call all hooks BEFORE any conditional returns
   const normalizedPercent = useNormalizedPercentages(result?.percent);
   useResultsHydration();
@@ -70,7 +65,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
 
     setSavingDocument(true);
     try {
-      await saveResultsAsDocument(result, authUser as User);
+      await saveResultsAsPDF(result, authUser as User);
     } catch (error) {
       console.error("Error saving document:", error);
     } finally {

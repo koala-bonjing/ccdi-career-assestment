@@ -93,6 +93,9 @@
       BSIS: 0,
       "BSET-E": 0,
       "BSET-EL": 0,
+      "ACT-MM": 0,
+      "ACT-P": 0,
+      "ACT-N": 0,
     });
 
     useEffect(() => {
@@ -219,7 +222,7 @@
       });
       setCurrentSection(0);
       setShowReview(false);
-      setProgramScores({ BSCS: 0, BSIT: 0, BSIS: 0, "BSET-E": 0, "BSET-EL": 0 });
+      setProgramScores({ BSCS: 0, BSIT: 0, BSIS: 0, "BSET-E": 0, "BSET-EL": 0, "ACT-MM": 0, "ACT-P": 0, "ACT-N": 0 });
       
       StorageEncryptor.removeItem("evaluation-answers");
       StorageEncryptor.removeItem("currentAssessmentSection");

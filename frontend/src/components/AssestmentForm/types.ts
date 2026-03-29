@@ -5,7 +5,10 @@ export type ProgramType =
   | "BSCS"
   | "BSIS"
   | "BSET Electronics Technology"
-  | "BSET Electrical Technology";
+  | "BSET Electrical Technology"
+  | "ACT - Multimedia & Animation"
+  | "ACT - Programming"
+  | "ACT - Networking";
 
 export interface ProgramScores {
   BSCS: number;
@@ -13,6 +16,9 @@ export interface ProgramScores {
   BSIS: number;
   "BSET-E": number;
   "BSET-EL": number;
+  "ACT-MM": number;
+  "ACT-P": number;
+  "ACT-N": number;
 }
 
 export interface AssessmentSectionProps {

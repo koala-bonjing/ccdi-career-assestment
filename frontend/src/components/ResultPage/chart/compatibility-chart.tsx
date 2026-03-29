@@ -12,6 +12,9 @@ import {
   XCircle,
   ShieldCheck,
   Trophy,
+  Palette,
+  Code2,
+  Network,
 } from "lucide-react";
 import {
   ProgramLabels,
@@ -64,6 +67,12 @@ const getProgramIcon = (programType: string, color: string): React.ReactNode => 
       return <Wifi {...iconProps} />;
     case "BSET Electrical Technology":
       return <Battery {...iconProps} />;
+    case "ACT - Multimedia & Animation":
+      return <Palette {...iconProps} />;
+    case "ACT - Programming":
+      return <Code2 {...iconProps} />;
+    case "ACT - Networking":
+      return <Network {...iconProps} />;
     default:
       return <BarChart3 {...iconProps} />;
   }

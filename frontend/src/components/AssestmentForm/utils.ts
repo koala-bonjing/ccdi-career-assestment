@@ -15,6 +15,9 @@ export const getRecommendedProgram = (scores: ProgramScores): ProgramType => {
     BSIS: "BSIS",
     "BSET-E": "BSET Electronics Technology",
     "BSET-EL": "BSET Electrical Technology",
+    "ACT-MM": "ACT - Multimedia & Animation",
+    "ACT-P": "ACT - Programming",
+    "ACT-N": "ACT - Networking",
   };
 
   return SHORT_TO_FULL[highestKey];

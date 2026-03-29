@@ -3,7 +3,10 @@ export type ProgramType =
   | "BSCS"
   | "BSIS"
   | "BSET Electronics Technology"
-  | "BSET Electrical Technology";
+  | "BSET Electrical Technology"
+  | "ACT - Multimedia & Animation"
+  | "ACT - Programming"
+  | "ACT - Networking";
 
 export const ProgramLabels: Record<ProgramType, string> = {
   BSCS: "BS in Computer Science",
@@ -11,6 +14,9 @@ export const ProgramLabels: Record<ProgramType, string> = {
   BSIS: "BS in Information Systems",
   "BSET Electronics Technology": "BSET in Electronics Technology",
   "BSET Electrical Technology": "BSET in Electrical Technology",
+  "ACT - Multimedia & Animation": "ACT in Multimedia & Animation",
+  "ACT - Programming": "ACT in Programming",
+  "ACT - Networking": "ACT in Networking",
 };
 
 export interface ProgramPercentages {
@@ -19,6 +25,9 @@ export interface ProgramPercentages {
   BSIS: number;
   "BSET Electronics Technology": number;
   "BSET Electrical Technology": number;
+  "ACT - Multimedia & Animation": number;
+  "ACT - Programming": number;
+  "ACT - Networking": number;
 }
 
 export interface ShortKeyPercentages {
@@ -27,6 +36,9 @@ export interface ShortKeyPercentages {
   BSIS: number;
   "BSET-E": number;
   "BSET-EL": number;
+  "ACT-MM": number;
+  "ACT-P": number;
+  "ACT-N": number;
 }
 
 export interface AcademicBreakdown {
@@ -76,7 +88,7 @@ export interface RecommendationReasoning {
 
 export interface EvaluationResult {
   recommendedProgram: ProgramType;
-  percent: Record<ProgramType | string, number>;
+  percent: Record<string, number>;
   evaluation: string;
   recommendations: string;
   summary?: string;

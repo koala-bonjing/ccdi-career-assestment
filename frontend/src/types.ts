@@ -15,7 +15,10 @@ export type ProgramType =
   | "BSCS"
   | "BSIS"
   | "BSET Electronics Technology"
-  | "BSET Electrical Technology";
+  | "BSET Electrical Technology"
+  | "ACT - Multimedia & Animation"
+  | "ACT - Programming"
+  | "ACT - Networking";
 
 export const ProgramLabels: Record<ProgramType, string> = {
   BSIT: "BSIT",
@@ -23,6 +26,9 @@ export const ProgramLabels: Record<ProgramType, string> = {
   BSIS: "BSIS",
   "BSET Electronics Technology": "BSET Electronics",
   "BSET Electrical Technology": "BSET Electrical",
+  "ACT - Multimedia & Animation": "ACT Multimedia & Animation",
+  "ACT - Programming": "ACT Programming",
+  "ACT - Networking": "ACT Networking",
 };
 
 export const PROGRAM_SHORT_KEY: Record<ProgramType, string> = {
@@ -31,6 +37,9 @@ export const PROGRAM_SHORT_KEY: Record<ProgramType, string> = {
   BSIS: "BSIS",
   "BSET Electronics Technology": "BSET-E",
   "BSET Electrical Technology": "BSET-EL",
+  "ACT - Multimedia & Animation": "ACT-MM",
+  "ACT - Programming": "ACT-P",
+  "ACT - Networking": "ACT-N",
 };
 
 export const SHORT_KEY_TO_PROGRAM: Record<string, ProgramType> = {
@@ -39,6 +48,9 @@ export const SHORT_KEY_TO_PROGRAM: Record<string, ProgramType> = {
   BSIS: "BSIS",
   "BSET-E": "BSET Electronics Technology",
   "BSET-EL": "BSET Electrical Technology",
+  "ACT-MM": "ACT - Multimedia & Animation",
+  "ACT-P": "ACT - Programming",
+  "ACT-N": "ACT - Networking",
 };
 
 export interface ProgramScores {
@@ -47,6 +59,9 @@ export interface ProgramScores {
   BSIS: number;
   "BSET-E": number;
   "BSET-EL": number;
+  "ACT-MM": number;
+  "ACT-P": number;
+  "ACT-N": number;
 }
 
 export interface Question {
@@ -92,13 +107,7 @@ export interface EvaluationResult {
   recommendation: string;
   detailedEvaluation: string;
   recommendedCourse: ProgramType;
-  percent: {
-    BSIT: number;
-    BSCS: number;
-    BSIS: number;
-    "BSET Electronics Technology": number;
-    "BSET Electrical Technology": number;
-  };
+  percent: Record<string, number>;
   answer: AssessmentAnswers;
   categoryExplanations?: CategoryExplanations;
   aiAnswer?: string;
@@ -128,13 +137,7 @@ export interface AssessmentResult {
   detailedEvaluation: string;
   recommendedProgram: ProgramType;
   user: User;
-  percent: {
-    BSIT: number;
-    BSCS: number;
-    BSIS: number;
-    "BSET Electronics Technology": number;
-    "BSET Electrical Technology": number;
-  };
+  percent: Record<string, number>;
   programScores: ProgramScores;
   submissionDate?: string;
   answers: AssessmentAnswers;

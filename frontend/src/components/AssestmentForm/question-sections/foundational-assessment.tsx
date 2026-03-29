@@ -106,7 +106,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
 
   const categoryConfig: Record<string, CategoryConfig> = {
     prerequisites: {
-      label: "Basic Skills",
+      label: "Basic Knowledge",
       icon: GraduationCap,
       color: "#2B3176",
       description: "Math, English, and Computer Literacy.",

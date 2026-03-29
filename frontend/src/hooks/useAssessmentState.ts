@@ -159,7 +159,7 @@ export const useAssessmentState = () => {
         );
 
         const response = await axios.get(
-          `${BASE_URL}/api/get-evaluations/${user._id}`,
+          `${BASE_URL}/api/assessments/get-evaluations/${user._id}`,
           { timeout: 5000 },
         );
 

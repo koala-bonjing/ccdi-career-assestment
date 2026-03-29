@@ -1,4 +1,3 @@
-// src/components/AssessmentForm/modals/AssessmentInstructionsModal.tsx
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import {

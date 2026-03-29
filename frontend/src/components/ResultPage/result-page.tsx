@@ -1,11 +1,8 @@
-// src/pages/ResultsPage/index.tsx
 import { useState } from "react";
 import { useAuth, type User } from "../../context/AuthContext";
 
-// Views
 import NoResultsView from "../ui/views/result-view";
 
-// Sub-components
 import ActionButtons from "../ui/buttons/action-buttons";
 import StudentInfoCard from "./cards/student-info-card";
 import SummaryCard from "./cards/summary-card";
@@ -15,11 +12,10 @@ import DetailedExplanationSection from "./section/detail-explenation-section";
 import CompatibilityChart from "./chart/compatibility-chart";
 import CompatibilityLegend from "../ui/legend/compatibility-legend";
 
-// Hooks & utils
 import { useNormalizedPercentages } from "../../hooks/useNormalizePercentage";
 import { saveResultsAsPDF } from "../../hooks/saveResultsAsDocument"; 
-import { useAssessmentState } from "../../hooks/useAssessmentState"; // ✅ ADD THIS
-import { useEvaluationStore } from "../../../store/useEvaluationStore"; // ✅ ADD THIS
+import { useAssessmentState } from "../../hooks/useAssessmentState";
+import { useEvaluationStore } from "../../../store/useEvaluationStore";
 
 import "./result-page.css";
 import type { AssessmentResult } from "../../types";
@@ -31,7 +27,7 @@ import PreparationAndRoadmapCard from "./cards/preparation-needed-card";
 import { useAssessmentQuestions } from "../../hooks/useAssessmentQuestions";
 
 interface ResultsPageProps {
-  result?: AssessmentResult; // Make it optional
+  result?: AssessmentResult;
 }
 
 const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
@@ -39,27 +35,20 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   const [showDetailed, setShowDetailed] = useState(false);
   const [savingDocument, setSavingDocument] = useState<boolean>(false);
 
-  // ✅ Get result from multiple sources
   const { assessmentResult } = useAssessmentState();
   const { result: storeResult } = useEvaluationStore();
   const { questions: dbQuestion } = useAssessmentQuestions();
 
-  // Hydrate Data on Mount
-
-  // ✅ Priority: prop > store > assessment state
   const result = propResult || storeResult || assessmentResult;
 
-  // ✅ Call all hooks BEFORE any conditional returns
   const normalizedPercent = useNormalizedPercentages(result?.percent);
   useResultsHydration();
 
-  // ✅ NOW check if result exists from ANY source
   if (!result) {
     console.log("❌ No result found from any source - showing NoResultsView");
     return <NoResultsView />;
   }
 
-  // Handler for saving document
   const handleSaveAsDocument = async (): Promise<void> => {
     if (!result || !authUser) return;
 

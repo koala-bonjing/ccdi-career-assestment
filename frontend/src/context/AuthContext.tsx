@@ -27,11 +27,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const getInitialAuthState = (): { user: User | null; loading: boolean } => {
   try {
-    const parsed = StorageEncryptor.getItem("user"); // This now returns the object
+    const parsed = StorageEncryptor.getItem("user");
 
     if (parsed) {
 
-      // FIX: Check 'parsed', not 'savedUser'
       if ((parsed._id || parsed.id) && parsed.email) {
         const normalizedUser = {
           ...parsed,
@@ -56,8 +55,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       console.log("🔑 Login attempt with data:", userData);
 
-      // Validate required fields
-      // ✅ FIXED: Check for both _id AND id (was checking _id twice)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!userData._id && !(userData as any).id) {
         console.error("❌ Cannot login: user data missing _id/id");
@@ -69,7 +66,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         throw new Error("Invalid user data: missing email");
       }
 
-      // Normalize user data
       const normalizedUser = {
         ...userData,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

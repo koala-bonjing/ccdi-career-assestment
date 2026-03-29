@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/components/Toasts/ProgressToast.tsx
 import { Toast, Button } from 'react-bootstrap';
 import { History, X } from 'lucide-react';
 

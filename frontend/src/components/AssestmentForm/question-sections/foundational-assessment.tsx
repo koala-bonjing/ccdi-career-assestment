@@ -32,11 +32,10 @@ interface CategoryConfig {
   description: string;
 }
 
-// Reusable icon props for consistency
 const ICON_PROPS = {
   size: 24,
   strokeWidth: 2,
-  "aria-hidden": true, // Decorative icons
+  "aria-hidden": true,
 } as const;
 
 const SMALL_ICON_PROPS = {

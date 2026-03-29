@@ -9,7 +9,7 @@ export default function LoadingSpinner() {
   useEffect(() => {
     const interval = setInterval(() => {
       setColorIndex((prev) => (prev + 1) % COLORS.length);
-    }, 500); // switch every 0.5s
+    }, 500);
     return () => clearInterval(interval);
   }, []);
 

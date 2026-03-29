@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/components/Modals/ContinueProgressModal.tsx
 import { Button, Modal } from "react-bootstrap";
 import { History, Sparkles } from "lucide-react";
 

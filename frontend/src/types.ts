@@ -1,6 +1,7 @@
-// src/types/index.ts (or wherever this lives)
-
-// 🔹 User
+/**
+ * Core TypeScript definitions for the CCDI Career Assessment application.
+ * Contains user models, program structures, scoring types, and evaluation results.
+ */
 export interface User {
   _id: string;
   name: string;
@@ -9,7 +10,6 @@ export interface User {
   preferredCourse?: string;
 }
 
-// 🔹 Program Types (canonical list)
 export type ProgramType =
   | "BSIT"
   | "BSCS"
@@ -17,7 +17,6 @@ export type ProgramType =
   | "BSET Electronics Technology"
   | "BSET Electrical Technology";
 
-// 🔹 Labels for UI display (e.g., dropdowns, cards)
 export const ProgramLabels: Record<ProgramType, string> = {
   BSIT: "BSIT",
   BSCS: "BSCS",
@@ -26,8 +25,6 @@ export const ProgramLabels: Record<ProgramType, string> = {
   "BSET Electrical Technology": "BSET Electrical",
 };
 
-// 🔹 Compact program keys for internal scoring (optional but helpful)
-// You can map full names ↔ short keys if you want to keep backend lightweight
 export const PROGRAM_SHORT_KEY: Record<ProgramType, string> = {
   BSIT: "BSIT",
   BSCS: "BSCS",
@@ -44,8 +41,6 @@ export const SHORT_KEY_TO_PROGRAM: Record<string, ProgramType> = {
   "BSET-EL": "BSET Electrical Technology",
 };
 
-// 🔹 ProgramScores — now matches ProgramType (but numeric values by key)
-// We'll use the short keys for object shape (cleaner than full names as keys)
 export interface ProgramScores {
   BSIT: number;
   BSCS: number;
@@ -54,7 +49,6 @@ export interface ProgramScores {
   "BSET-EL": number;
 }
 
-// 🔹 Question & Assessment structures
 export interface Question {
   _id: string;
   questionText: string;
@@ -92,7 +86,6 @@ export interface CategoryScores {
   career: number;
   logistics: number;
 }
-// 🔹 EvaluationResult — AI’s raw JSON response shape
 export interface EvaluationResult {
   result: string;
   summary: string;
@@ -119,15 +112,14 @@ export interface PreparationNeeded {
 
 export interface PrereqAnalysis {
   summary: string;
-  prerequisites: number;      // ✅ Changed from mathScore
-  studyHabits: number;        // ✅ Changed from timeScore
-  problemSolving: number;     // ✅ Changed from technicalScore
+  prerequisites: number;
+  studyHabits: number;
+  problemSolving: number;
   timeScore: number;
   overallScore: number;
   warnings: string[];
   recommendations: string[];
 }
-// 🔹 AssessmentResult — post-processed, ready for UI/storage
 export interface AssessmentResult {
   success: boolean;
   summary: string;
@@ -170,7 +162,7 @@ export interface FoundationalResult {
   earnedPoints: number;
   maxPoints: number;
   gradingReasoning: string;
-  percentageAwarded?: number; // For subjective questions
+  percentageAwarded?: number;
   isSubjective: boolean;
   subCategory: string;
 }
@@ -179,7 +171,7 @@ export interface WrongAnswer {
   studentAnswer: string;
   correctAnswer: string;
   subCategory: string;
-  aiReasoning?: string; // For subjective questions
+  aiReasoning?: string;
 }
 
 export interface SubjectiveGrading {
@@ -192,16 +184,15 @@ export interface SubjectiveGrading {
 }
 
 export interface FoundationalDetails {
-  score: number; // Percentage 0-100
-  earnedPoints: number; // Total points earned
-  totalPossible: number; // Total possible points
-  correctCount: number; // Number of correct answers
-  totalQuestions: number; // Total number of questions
-  results: FoundationalResult[]; // Detailed results per question
-  wrongAnswers: WrongAnswer[]; // Array of wrong answers
+  score: number;
+  earnedPoints: number;
+  totalPossible: number;
+  correctCount: number;
+  totalQuestions: number;
+  results: FoundationalResult[];
+  wrongAnswers: WrongAnswer[];
   subjectiveGradingDetails: SubjectiveGrading[];
 }
-// 🔹 Props for AssessmentForm
 export interface AssessmentFormProps {
   currentUser: User | null;
   setCurrentUser: (user: User) => void;
@@ -215,7 +206,6 @@ export interface AssessmentFormProps {
   onStartNew: () => void;
 }
 
-// 🔹 Optional: if you store evaluations in DB
 export interface Evaluation {
   date?: Date;
   answers: AssessmentAnswers;
@@ -223,15 +213,11 @@ export interface Evaluation {
   recommendedProgram: ProgramType;
 }
 
-// 🔹 Extended for UI display — derived, not stored
 export interface AssessmentDisplayResult extends AssessmentResult {
   completed: boolean;
   completionDate: string;
-  // Derived score: e.g., percentile of top program (0–100)
   score: number;
-  // Approx total questions (adjust if dynamic)
   totalQuestions: number;
-  // Human-readable top 3 programs
 }
 
 export type SectionAnswers = Record<

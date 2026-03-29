@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/components/ActionButtons.tsx
 import React, { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
@@ -8,7 +7,6 @@ interface ActionButtonsProps {
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({ onSave, saving }) => {
-  // Logic to check for mobile/tablet view (breakpoint 992px)
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -25,9 +23,6 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ onSave, saving }) => {
       <button
         onClick={onSave}
         disabled={saving}
-        // Conditionally apply classes:
-        // Mobile: full width, bottom margin handled by parent gap
-        // Desktop: specific padding (px-5), right margin (me-3), and general margin (m-2)
         className={`btn btn-lg fw-bold ${isMobile ? "w-100 py-3" : "px-5 py-3 me-3 m-2"}`}
         style={{
           background: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",

@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/components/Cards/ResultCard.tsx
 import { Card } from 'react-bootstrap';
 
 interface ResultCardProps {

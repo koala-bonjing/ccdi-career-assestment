@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/components/CompatibilityChart.tsx
 import React, { useEffect, useState } from "react";
 import {
   BarChart3,
@@ -89,7 +88,6 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Calculate rankings
   const rankedPrograms = Object.entries(ProgramLabels)
     .map(([programType, programLabel]) => ({
       programType,
@@ -101,7 +99,6 @@ const CompatibilityChart: React.FC<CompatibilityChartProps> = ({
 
   const topThree = rankedPrograms.slice(0, 3);
 
-  // Rank styling configuration
   const getRankStyle = (rank: number) => {
     switch (rank) {
       case 1:

@@ -1,4 +1,3 @@
-// src/components/Auth/SignupForm/SignupForm.tsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -50,11 +49,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const [nameError, setNameError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
   
-  // State for password visibility
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Updated course list matching CCDI programs
   const courses: Course[] = [
     { value: "Undecided", label: "I'm not sure yet" },
     { value: "BSCS", label: "Computer Science (BSCS)" },
@@ -70,7 +67,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     },
   ];
 
-  // Check if email is already registered
   const checkEmailAvailability = async (email: string): Promise<void> => {
     if (!email || !email.includes("@")) {
       setEmailError("");
@@ -90,12 +86,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         setEmailError("");
       }
     } catch (error: unknown) {
-      // If the endpoint doesn't exist yet, silently fail
       console.error("Email check failed:", error);
     }
   };
 
-  // Check if username (full name) is already registered
   const checkNameAvailability = async (fullName: string): Promise<void> => {
     if (!fullName || fullName.trim().length < 2) {
       setNameError("");
@@ -115,12 +109,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         setNameError("");
       }
     } catch (error: unknown) {
-      // If the endpoint doesn't exist yet, silently fail
       console.error("Name check failed:", error);
     }
   };
 
-  // Validate password match
   const validatePasswordMatch = (password: string, confirm: string) => {
     if (password && confirm && password !== confirm) {
       setPasswordError("Passwords do not match");
@@ -134,7 +126,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     setLoading(true);
     setMessage({ type: "", text: "" });
 
-    // Check if passwords match
     if (formData.password !== confirmPassword) {
       setMessage({
         type: "error",
@@ -144,7 +135,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       return;
     }
 
-    // Check for validation errors before submitting
     if (emailError) {
       setMessage({
         type: "error",
@@ -183,7 +173,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || "Signup failed";
 
-        // Handle specific duplicate errors from backend
         if (
           errorMessage.toLowerCase().includes("email") &&
           errorMessage.toLowerCase().includes("already")
@@ -222,7 +211,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       });
       setMessage({ type: "success", text: response.data.message });
       
-      // Auto-login after successful verification
       try {
         const loginResponse = await axios.post(`${BASE_URL}/api/auth/login`, {
           fullName: formData.fullName,
@@ -233,12 +221,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         const userData = loginResponse.data.user;
         const token = loginResponse.data.token;
         
-        // Store token if provided
         if (token) {
           localStorage.setItem("token", token);
         }
         
-        // Update auth context and user store
         login(userData);
         setCurrentUser({
           _id: userData._id || userData.id,
@@ -249,13 +235,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
         console.log("✅ Auto-login successful, redirecting to /welcome");
         
-        // Redirect to welcome page after auto-login
         setTimeout(() => {
           navigate("/welcome");
         }, 1500);
       } catch (loginError) {
         console.error("❌ Auto-login failed:", loginError);
-        // If auto-login fails, just redirect to login
         setTimeout(() => {
           onSwitchToLogin();
         }, 2000);
@@ -301,7 +285,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     }
   };
 
-  // === Verification Step ===
   if (step === "verify") {
     return (
       <div className="auth-container">
@@ -387,7 +370,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     );
   }
 
-  // === Signup Step ===
   return (
     <div className="auth-container">
       <div className="auth-card">

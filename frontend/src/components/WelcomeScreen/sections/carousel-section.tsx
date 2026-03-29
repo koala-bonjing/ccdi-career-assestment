@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/sections/carousel-section.tsx
 import React, { useEffect, useState } from "react";
 import { Carousel } from "react-bootstrap";
 import { BrainCircuit, Target, TrendingUp } from "lucide-react";
@@ -13,11 +12,9 @@ export const CarouselSection = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Using specific placeholder services that allow text and colors to simulate the final images
   const slides = [
     {
       id: 1,
-      // Navy Blue background with White text
       image: "https://placehold.co/1200x600/2B3176/FFFFFF/png?text=Holistic+Assessment&font=roboto", 
       icon: <BrainCircuit size={isMobile ? 30 : 40} className="text-white" />,
       title: "Holistic Evaluation",
@@ -25,15 +22,13 @@ export const CarouselSection = () => {
     },
     {
       id: 2,
-      // White background with Navy text (simulating the clean data look)
       image: "https://placehold.co/1200x600/F8F9FA/2B3176/png?text=AI+Compatibility+Analysis&font=roboto",
-      icon: <Target size={isMobile ? 30 : 40} style={{ color: "#A41D31" }} />, // Red accent
+      icon: <Target size={isMobile ? 30 : 40} style={{ color: "#A41D31" }} />,
       title: "Smart Compatibility",
       description: "Our algorithm matches your profile against specific program requirements to find your best fit."
     },
     {
       id: 3,
-      // Red gradient-like background
       image: "https://placehold.co/1200x600/A41D31/FFFFFF/png?text=Your+Success+Roadmap&font=roboto",
       icon: <TrendingUp size={isMobile ? 30 : 40} className="text-white" />,
       title: "Path to Success",
@@ -67,7 +62,7 @@ export const CarouselSection = () => {
               <div 
                 className="position-absolute w-100 h-100 top-0 start-0 d-flex flex-column justify-content-center align-items-center text-center p-4"
                 style={{
-                  background: "rgba(0, 0, 0, 0.4)", // Dark overlay for readability
+                  background: "rgba(0, 0, 0, 0.4)",
                   backdropFilter: "blur(2px)"
                 }}
               >

@@ -66,7 +66,6 @@ const FoundationalExamCard: React.FC<Props> = ({
 
   const accuracy = result?.foundationalScore || 0;
 
-  // ✅ GET PREREQUISITE ANALYSIS DATA
   const prereqAnalysis = result?.prereqAnalysis;
 
   const groupedQuestions: Record<string, GroupSection[]> = {};
@@ -75,7 +74,6 @@ const FoundationalExamCard: React.FC<Props> = ({
     questions.forEach((q) => {
       const userAnswerValue = userAnswers[q._id] || userAnswers[q.questionText];
 
-      // ✅ Ensure we are comparing correctly
       const correctAnswer = q.correctAnswer || "";
 
       const isCorrect =
@@ -108,7 +106,6 @@ const FoundationalExamCard: React.FC<Props> = ({
   const categories = Object.keys(groupedQuestions);
   const totalQuestions = questions?.length || 0;
 
-  // ✅ HELPER FUNCTIONS
   const getScoreBadgeClass = (score: number) => {
     if (score >= 4) return "bg-success";
     if (score >= 3) return "bg-warning";
@@ -129,26 +126,21 @@ const FoundationalExamCard: React.FC<Props> = ({
     );
   };
 
-  // Check if a question is subjective (has scoringRubrics instead of correctAnswer)
   const isSubjectiveQuestion = (
     question: GroupSection,
     originalQuestion?: Question,
   ) => {
-    // Check if it's a study habits question
     if (isStudyHabitsQuestion(question.subCategory || "")) {
       return true;
     }
-    // Check if the original question has scoringRubrics
     if (originalQuestion && "scoringRubrics" in originalQuestion) {
       return true;
     }
-    // If correctAnswer is empty or undefined, it's likely subjective
     if (!question.correctAnswer || question.correctAnswer.trim() === "") {
       return true;
     }
     return false;
   };
-  // Add this helper function to get category-specific icons
   const getCategoryIcon = (category: string, size: number = 16) => {
     const categoryLower = category.toLowerCase();
 
@@ -182,13 +174,10 @@ const FoundationalExamCard: React.FC<Props> = ({
       );
     }
 
-    // Default icon
     return (
       <FileText size={size} className="me-2" style={{ color: "#2B3176" }} />
     );
   };
-
-  // Common Tooltip Content
 
   const TooltipContent = () => {
     const [showDetails, setShowDetails] = useState(false);
@@ -276,7 +265,6 @@ const FoundationalExamCard: React.FC<Props> = ({
       "Combined average of Prerequisites, Study Habits, and Problem Solving scores",
   };
 
-  // --- MOBILE VIEW ---
   if (isMobile) {
     return (
       <div className="card border-0 shadow-lg mt-4 rounded-4 overflow-hidden">
@@ -541,7 +529,6 @@ const FoundationalExamCard: React.FC<Props> = ({
                       const isStudyHabit = isStudyHabitsQuestion(
                         item.subCategory || "",
                       );
-                      // Check if this is a subjective question
                       const isSubjective = isSubjectiveQuestion(item);
 
                       return (
@@ -697,7 +684,6 @@ const FoundationalExamCard: React.FC<Props> = ({
     );
   }
 
-  // --- DESKTOP VIEW ---
   const activeCategory = categories[activeSlideIndex];
   const activeQuestions = groupedQuestions[activeCategory] || [];
 
@@ -997,7 +983,6 @@ const FoundationalExamCard: React.FC<Props> = ({
               const isStudyHabit = isStudyHabitsQuestion(
                 item.subCategory || "",
               );
-              // Check if this is a subjective question
               const isSubjective = isSubjectiveQuestion(item);
 
               return (

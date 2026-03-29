@@ -1,4 +1,3 @@
-// src/components/AssessmentForm/AssessmentActionFooter.tsx
 import React, { useState } from "react";
 import { Card, Row, Col, Button, Badge } from "react-bootstrap";
 import { Rocket } from "lucide-react";

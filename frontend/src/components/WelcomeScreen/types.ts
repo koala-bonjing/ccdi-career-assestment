@@ -1,5 +1,3 @@
-// src/components/WelcomeScreen/types.ts
-
 export interface AssessmentResult {
   completed: boolean;
   score?: number;

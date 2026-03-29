@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/cards/preparation-roadmap-card.tsx
 import React from "react";
 
 interface PreparationAndRoadmapCardProps {
@@ -10,7 +9,6 @@ const PreparationAndRoadmapCard: React.FC<PreparationAndRoadmapCardProps> = ({
   preparationNeeded,
   successRoadmap,
 }) => {
-  // Parse the roadmap string into steps
   const roadmapSteps = successRoadmap
     ? successRoadmap
         .split(/\d+\.\s/)
@@ -18,7 +16,6 @@ const PreparationAndRoadmapCard: React.FC<PreparationAndRoadmapCardProps> = ({
         .map((step) => step.trim())
     : [];
 
-  // Don't render if both are empty
   if (
     (!preparationNeeded || preparationNeeded.length === 0) &&
     roadmapSteps.length === 0

@@ -1,4 +1,3 @@
-// src/utils/colorUtils.ts
 import type { ProgramType } from "../types";
 
 export const getProgramTextColor = (program: ProgramType): string => {

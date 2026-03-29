@@ -1,4 +1,3 @@
-// src/components/AssessmentForm/AcademicAptitudeSection.tsx
 import React from "react";
 import {
   Card,
@@ -162,7 +161,6 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
                       id={`academic-${currentIndex}-${val}`}
                       checked={isSelected}
                       onChange={() => {
-                        // Save the answer
                         onChange(
                           "academicAptitude",
                           currentQuestion.questionText,
@@ -175,7 +173,7 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
                           }, 250);
                         }
                       }}
-                      style={{ display: "none" }} // Use inline style instead of class
+                      style={{ display: "none" }}
                     />
                     {/* Custom radio indicator */}
                     <span
@@ -183,7 +181,7 @@ const AcademicAptitudeSection: React.FC<AssessmentSectionProps> = ({
                       style={{
                         width: "20px",
                         height: "20px",
-                        minWidth: "20px", // Prevents shrinking
+                        minWidth: "20px",
                         minHeight: "20px",
                         borderColor: isSelected ? "#0d6efd" : "#ced4da",
                         borderWidth: "2px",

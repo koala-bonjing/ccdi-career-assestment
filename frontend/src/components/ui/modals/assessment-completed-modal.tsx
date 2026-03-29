@@ -1,4 +1,3 @@
-// src/components/ui/modals/assessment-completed-modal.tsx
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import { CheckCircle, BarChart3 } from "lucide-react";

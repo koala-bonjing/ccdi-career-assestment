@@ -23,7 +23,6 @@ export interface SubmissionData {
   recommendedProgram: ProgramType;
 }
 
-// ✅ Use the correct environment variable
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -56,7 +55,6 @@ const EvaluationForm = () => {
 
   const loadSavedData = (): void => {
     try {
-      // ✅ FIX: Use consistent storage method (StorageEncryptor)
       const savedAnswers = StorageEncryptor.getItem("evaluation-answers");
       console.log("📥 Raw saved answers:", savedAnswers);
       
@@ -64,7 +62,6 @@ const EvaluationForm = () => {
         const parsed: AssessmentAnswers = JSON.parse(savedAnswers);
         console.log("📥 Parsed saved answers:", parsed);
 
-        // ✅ Ensure all sections exist
         const formData: AssessmentAnswers = {
           foundationalAssessment: parsed.foundationalAssessment || {},
           academicAptitude: parsed.academicAptitude || {},
@@ -94,31 +91,26 @@ const EvaluationForm = () => {
   ): Record<string, string | number | boolean> => {
     const flat: Record<string, string | number | boolean> = {};
 
-    // Foundational Assessment (string answers)
     if (nested.foundationalAssessment) {
       Object.entries(nested.foundationalAssessment).forEach(
         ([questionId, value]) => {
-          flat[questionId] = value; // ✅ NO PREFIX!
+          flat[questionId] = value;
         },
       );
     }
 
-    // Academic Aptitude (numbers)
     Object.entries(nested.academicAptitude).forEach(([question, value]) => {
       flat[`academicAptitude.${question}`] = value;
     });
 
-    // Technical Skills (booleans)
     Object.entries(nested.technicalSkills).forEach(([question, value]) => {
       flat[`technicalSkills.${question}`] = value;
     });
 
-    // Career Interest (numbers)
     Object.entries(nested.careerInterest).forEach(([question, value]) => {
       flat[`careerInterest.${question}`] = value;
     });
 
-    // Learning Style (numbers)
     Object.entries(nested.learningWorkStyle).forEach(([question, value]) => {
       flat[`learningStyle.${question}`] = value;
     });
@@ -129,14 +121,11 @@ const EvaluationForm = () => {
   const handleStartNew = (): void => {
     console.log("🆕 Starting new assessment - clearing all progress");
     
-    // ✅ Clear only progress, NOT completed results
     StorageEncryptor.removeItem("evaluation-answers");
     StorageEncryptor.removeItem("currentAssessmentSection");
     
-    // Clear Zustand store
     clearAllAnswers();
     
-    // Reset restored form data
     setRestoredFormData({
       foundationalAssessment: {},
       academicAptitude: {},
@@ -154,7 +143,6 @@ const EvaluationForm = () => {
     console.log("🚀 Submitting assessment...");
     console.log("👤 Current authUser:", authUser);
 
-    // CRITICAL: Validate user authentication FIRST
     if (!authUser) {
       console.error("❌ No authenticated user found");
       setError(
@@ -177,11 +165,9 @@ const EvaluationForm = () => {
     const { answers, programScores } = submissionData;
 
     try {
-      // ✅ Save progress temporarily (in case of error)
       StorageEncryptor.setItem("evaluation-answers", JSON.stringify(answers));
       StorageEncryptor.setItem("currentAssessmentSection", "summary");
 
-      // ✅ SEND TO YOUR EXPRESS BACKEND
       console.log(
         "📡 Sending request to:",
         `${API_BASE_URL}/api/assessments/evaluate-assessment`,
@@ -201,10 +187,8 @@ const EvaluationForm = () => {
 
       console.log("✅ Backend response:", response.data);
 
-      // The backend returns the full AssessmentResult
       const backendResult = response.data;
 
-      // Transform backend response to match your AssessmentResult type
       const transformed: AssessmentResult = {
         success: backendResult.success,
         summary: backendResult.summary,
@@ -229,14 +213,11 @@ const EvaluationForm = () => {
         weaknesses: backendResult.weaknesses,
       };
 
-      // Store result in Zustand
       setResult(transformed);
 
-      // ✅ IMPORTANT: Only clear progress after successful submission
       StorageEncryptor.removeItem("evaluation-answers");
       StorageEncryptor.removeItem("currentAssessmentSection");
       
-      // ✅ Save completed result (so it persists on refresh)
       StorageEncryptor.setItem("assessment-result", JSON.stringify(transformed));
 
       console.log("✅ Evaluation complete and stored");

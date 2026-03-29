@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/cards/success-roadmap-card.tsx
 import React from "react";
 
 interface SuccessRoadmapCardProps {
@@ -8,7 +7,6 @@ interface SuccessRoadmapCardProps {
 const SuccessRoadmapCard: React.FC<SuccessRoadmapCardProps> = ({
   successRoadmap,
 }) => {
-  // Handle both string and array formats
   const roadmapSteps = Array.isArray(successRoadmap)
     ? successRoadmap
     : typeof successRoadmap === "string"

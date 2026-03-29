@@ -1,4 +1,3 @@
-// src/pages/ResetPassword/ResetPassword.tsx
 import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -32,12 +31,8 @@ const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Get email from URL params (sent from login page)
   const emailFromUrl = searchParams.get('email') || '';
 
-  // Step 1: Enter email (skip if email provided)
-  // Step 2: Enter verification code
-  // Step 3: Enter new password
   const [step, setStep] = useState<1 | 2 | 3>(emailFromUrl ? 2 : 1);
 
   const [email, setEmail] = useState(emailFromUrl);
@@ -50,7 +45,6 @@ const ResetPassword: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Step 1: Request reset code
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -71,7 +65,6 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  // Step 2: Verify reset code
   const handleVerifyCode = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -95,7 +88,6 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  // Step 3: Reset password
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -131,7 +123,6 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  // Resend reset code
   const handleResendCode = async () => {
     setLoading(true);
     setMessage(null);

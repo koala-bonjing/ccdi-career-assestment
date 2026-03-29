@@ -1,21 +1,16 @@
-// src/hooks/saveResultsAsPDF.ts
-// Dependencies: npm install pdf-lib file-saver
-// Types:        npm install -D @types/file-saver
-
 import { PDFDocument, rgb, StandardFonts, type RGB } from "pdf-lib";
 import { saveAs } from "file-saver";
 import { Bounce, toast } from "react-toastify";
 import type { User, AssessmentResult } from "../types";
 
-// ─── Colour helpers ───────────────────────────────────────────────────────────
 const hex = (r: number, g: number, b: number): RGB =>
   rgb(r / 255, g / 255, b / 255);
 
 const C = {
-  darkBlue: hex(43, 49, 118), // #2B3176
-  midBlue: hex(28, 108, 179), // #1C6CB3
-  red: hex(164, 29, 49), // #A41D31
-  lightBg: hex(240, 248, 255), // #F0F8FF
+  darkBlue: hex(43, 49, 118),
+  midBlue: hex(28, 108, 179),
+  red: hex(164, 29, 49),
+  lightBg: hex(240, 248, 255),
   rowAlt: hex(248, 249, 255),
   grey: hex(102, 102, 102),
   lightGrey: hex(200, 200, 200),
@@ -24,7 +19,6 @@ const C = {
   bodyText: hex(44, 62, 80),
 };
 
-// ─── Score helpers ────────────────────────────────────────────────────────────
 const getCategoryAssessment = (score: number): string => {
   if (score >= 85) return "Excellent";
   if (score >= 70) return "Strong";
@@ -41,7 +35,6 @@ const getCompatibilityText = (pct: number): string => {
   return "Limited Compatibility";
 };
 
-// ─── Page / layout constants (A4 in points: 595 × 842) ───────────────────────
 const PAGE_W = 595;
 const PAGE_H = 842;
 const MARGIN = 45;
@@ -49,7 +42,6 @@ const CONTENT_W = PAGE_W - MARGIN * 2;
 const LINE_SM = 14;
 const LINE_MD = 17;
 
-// ─── Drawing context ──────────────────────────────────────────────────────────
 type EmbeddedFont = Awaited<ReturnType<PDFDocument["embedFont"]>>;
 
 interface Ctx {
@@ -75,7 +67,6 @@ const advance = (ctx: Ctx, amount: number): void => {
   if (ctx.y < MARGIN + 24) newPage(ctx);
 };
 
-// ─── Text helpers ─────────────────────────────────────────────────────────────
 const drawWrapped = (
   ctx: Ctx,
   text: string,
@@ -147,7 +138,6 @@ const drawLine = (
   advance(ctx, lineHeight);
 };
 
-// ─── Section heading ──────────────────────────────────────────────────────────
 const sectionHeading = (ctx: Ctx, title: string): void => {
   advance(ctx, 6);
   drawLine(ctx, title, {
@@ -165,7 +155,6 @@ const sectionHeading = (ctx: Ctx, title: string): void => {
   advance(ctx, 8);
 };
 
-// ─── Table ────────────────────────────────────────────────────────────────────
 interface ColDef {
   header: string;
   width: number;
@@ -187,7 +176,6 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
   const startY = ctx.y;
   const colWidths = cols.map((c) => c.width * CONTENT_W);
 
-  // Header background
   currentPage(ctx).drawRectangle({
     x: MARGIN,
     y: startY - ROW_H,
@@ -196,7 +184,6 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
     color: C.darkBlue,
   });
 
-  // Header text
   let xc = MARGIN;
   cols.forEach((col, ci) => {
     const cw = colWidths[ci];
@@ -212,7 +199,6 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
     xc += cw;
   });
 
-  // Data rows
   rows.forEach((row, ri) => {
     const rowY = startY - ROW_H * (ri + 2);
     const bgColor = row.highlight
@@ -248,7 +234,6 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
     });
   });
 
-  // Outer border
   currentPage(ctx).drawRectangle({
     x: MARGIN,
     y: startY - totalH,
@@ -258,7 +243,6 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
     borderWidth: 0.5,
   });
 
-  // Horizontal rules
   for (let r = 0; r <= rows.length; r++) {
     const ry = startY - ROW_H * (r + 1);
     currentPage(ctx).drawLine({
@@ -272,7 +256,6 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
   ctx.y = startY - totalH - 4;
 };
 
-// ─── Main export ──────────────────────────────────────────────────────────────
 export const saveResultsAsPDF = async (
   result: AssessmentResult,
   user: User,
@@ -286,7 +269,6 @@ export const saveResultsAsPDF = async (
     const ctx: Ctx = { doc, pages: [], bold, reg, italic, y: 0, pageIdx: -1 };
     newPage(ctx);
 
-    // ── HEADER BANNER ──────────────────────────────────────────────────────
     currentPage(ctx).drawRectangle({
       x: 0,
       y: PAGE_H - 52,
@@ -315,7 +297,6 @@ export const saveResultsAsPDF = async (
 
     ctx.y = PAGE_H - 52 - 20;
 
-    // ── DATE ───────────────────────────────────────────────────────────────
     const dateStr = `Generated: ${new Date().toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -330,7 +311,6 @@ export const saveResultsAsPDF = async (
       lineHeight: LINE_MD,
     });
 
-    // ── STUDENT INFORMATION ────────────────────────────────────────────────
     sectionHeading(ctx, "STUDENT INFORMATION");
     drawTable(
       ctx,
@@ -348,7 +328,6 @@ export const saveResultsAsPDF = async (
     );
     advance(ctx, 10);
 
-    // ── ASSESSMENT SUMMARY ─────────────────────────────────────────────────
     sectionHeading(ctx, "ASSESSMENT SUMMARY");
     drawWrapped(
       ctx,
@@ -358,7 +337,6 @@ export const saveResultsAsPDF = async (
     );
     advance(ctx, 10);
 
-    // ── RECOMMENDED PROGRAM ────────────────────────────────────────────────
     sectionHeading(ctx, "RECOMMENDED PROGRAM");
 
     const BOX_H = 48;
@@ -398,12 +376,10 @@ export const saveResultsAsPDF = async (
     ctx.y -= BOX_H;
     advance(ctx, 14);
 
-    // ── DETAILED EVALUATION ────────────────────────────────────────────────
     sectionHeading(ctx, "DETAILED EVALUATION");
     drawWrapped(ctx, result.evaluation, { size: 10, lineHeight: LINE_SM });
     advance(ctx, 10);
 
-    // ── PERSONALIZED RECOMMENDATIONS ──────────────────────────────────────
     sectionHeading(ctx, "PERSONALIZED RECOMMENDATIONS");
     drawWrapped(ctx, result.detailedEvaluation, {
       size: 10,
@@ -411,7 +387,6 @@ export const saveResultsAsPDF = async (
     });
     advance(ctx, 10);
 
-    // ── CATEGORY PERFORMANCE ──────────────────────────────────────────────
     if (result.categoryScores) {
       sectionHeading(ctx, "CATEGORY PERFORMANCE ANALYSIS");
       drawTable(
@@ -457,7 +432,6 @@ export const saveResultsAsPDF = async (
       advance(ctx, 10);
     }
 
-    // ── PROGRAM COMPATIBILITY ─────────────────────────────────────────────
     if (result.percent) {
       sectionHeading(ctx, "PROGRAM COMPATIBILITY ANALYSIS");
       const compRows: RowData[] = Object.entries(result.percent).map(
@@ -479,7 +453,6 @@ export const saveResultsAsPDF = async (
       advance(ctx, 10);
     }
 
-    // ── PREPARATION RECOMMENDATIONS ───────────────────────────────────────
     if (result.preparationNeeded && result.preparationNeeded.length > 0) {
       sectionHeading(ctx, "PREPARATION RECOMMENDATIONS");
       for (const item of result.preparationNeeded) {
@@ -493,7 +466,6 @@ export const saveResultsAsPDF = async (
       advance(ctx, 10);
     }
 
-    // ── SUCCESS ROADMAP ───────────────────────────────────────────────────
     if (result.successRoadmap) {
       sectionHeading(ctx, "YOUR SUCCESS ROADMAP");
       drawWrapped(ctx, result.successRoadmap, {
@@ -503,7 +475,6 @@ export const saveResultsAsPDF = async (
       advance(ctx, 10);
     }
 
-    // ── FOOTER on every page ──────────────────────────────────────────────
     const totalPages = ctx.pages.length;
     ctx.pages.forEach((pg, idx) => {
       pg.drawRectangle({
@@ -533,7 +504,6 @@ export const saveResultsAsPDF = async (
       });
     });
 
-    // ── SAVE ──────────────────────────────────────────────────────────────
     const pdfBytes = await doc.save();
     const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: "application/pdf",
@@ -583,7 +553,6 @@ export const saveResultsAsPDF = async (
   }
 };
 
-// ─── Drop-in hook ─────────────────────────────────────────────────────────────
 export const useResultsPDF = () => ({
   saveAsPDF: saveResultsAsPDF,
 });

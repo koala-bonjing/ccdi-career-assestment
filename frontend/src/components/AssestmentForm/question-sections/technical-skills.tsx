@@ -1,4 +1,3 @@
-// src/components/AssessmentForm/TechnicalSkillsSection.tsx
 import React from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import { Wrench, CheckCircle2, Circle } from "lucide-react";
@@ -41,13 +40,11 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
 
   return (
     <Card
-      // Responsive vertical margins: mt-3 on mobile, mt-5 on desktop
       className="border-0 shadow-lg w-100 mt-3 mt-md-5 mb-3 mb-md-5 mx-auto"
       style={{ maxWidth: "1300px", borderRadius: "16px" }}
     >
       <SectionHeader
         title="Technical Skills & Interests"
-        // Slightly smaller icon for mobile
         icon={<Wrench size={window.innerWidth < 768 ? 28 : 40} />}
         variant="warning"
         sectionType="technicalSkills"
@@ -100,7 +97,6 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                       skill.program,
                     )
                   }
-                  // Balanced padding for mobile thumbs
                   className="p-3 rounded-3 h-100 d-flex align-items-center gap-3"
                   style={{
                     cursor: "pointer",
@@ -133,7 +129,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                     style={{
                       fontWeight: isSelected ? "600" : "400",
                       color: isSelected ? "#292524" : "#57534e",
-                      fontSize: "0.9rem", // Slightly smaller for better text fitting
+                      fontSize: "0.9rem",
                       lineHeight: "1.2",
                     }}
                   >

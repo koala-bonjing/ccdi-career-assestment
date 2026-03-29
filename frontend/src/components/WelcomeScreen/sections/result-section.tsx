@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/components/Sections/ResultsSection.tsx
 import { Row, Col, ProgressBar, } from 'react-bootstrap';
 import { TrendingUp, Target, Star, CheckCircle, BookOpen, BarChart3, Sparkles } from 'lucide-react';
 import { Button } from 'react-bootstrap';

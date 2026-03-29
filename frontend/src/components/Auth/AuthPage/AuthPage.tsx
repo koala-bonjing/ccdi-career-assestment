@@ -1,4 +1,3 @@
-// src/components/Auth/AuthPage/AuthPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, type User } from "../../../context/AuthContext";
@@ -17,7 +16,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ initialMode = "login" }) => {
 
   const handleLoginSuccess = (user: User) => {
     login(user);
-    navigate("/welcome"); // Redirect to welcome screen after successful login
+    navigate("/welcome");
   };
 
   const handleSwitchToLogin = () => {

@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/utils/compatibilityUtils.ts
 export const getCompatibilityDescription = (percentage: number): string => {
   if (percentage >= 80)
     return "🎯 Excellent match with your profile and career goals";

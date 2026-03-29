@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/components/Modals/ResultsModal.tsx
 import { Modal, Row, Col, ProgressBar, Badge } from "react-bootstrap";
 import {
   Award,
@@ -11,9 +10,8 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Button } from "react-bootstrap";
-import { ResultCard } from "../../WelcomeScreen/cards/result-card"; // ✅ fixed path (was WelcomeForm/cards/...)
+import { ResultCard } from "../../WelcomeScreen/cards/result-card";
 
-// 🔹 Keep local interface for now (but eventually import from types)
 interface AssessmentResult {
   completed: boolean;
   score?: number;

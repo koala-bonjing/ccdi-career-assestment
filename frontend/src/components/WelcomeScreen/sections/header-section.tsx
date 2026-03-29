@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/components/Sections/HeaderSection.tsx
 import { Sparkles } from 'lucide-react';
 
 interface HeaderSectionProps {

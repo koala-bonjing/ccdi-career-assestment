@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/components/DetailedExplanationToggle.tsx
 import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 

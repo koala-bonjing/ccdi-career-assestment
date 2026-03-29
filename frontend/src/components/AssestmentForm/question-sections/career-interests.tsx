@@ -1,4 +1,3 @@
-// src/components/AssessmentForm/CareerInterestSection.tsx
 import {
   Card,
   Row,
@@ -37,8 +36,6 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
     return Math.round((answered / questions.length) * 100);
   };
 
-  // Labels aligned with your original `choiceLabels` mapping:
-  // 1: "Strongly Matches", 2: "Matches", ..., 5: "Does Not Match"
   const labelMap = [
     "Strongly Agree",
     "Agree",
@@ -163,7 +160,6 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
                       id={`academic-${currentIndex}-${val}`}
                       checked={isSelected}
                       onChange={() => {
-                        // Save the answer
                         onChange(
                           "careerInterest",
                           currentQuestion.questionText,
@@ -176,7 +172,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
                           }, 250);
                         }
                       }}
-                      style={{ display: "none" }} // Use inline style instead of class
+                      style={{ display: "none" }}
                     />
                     {/* Custom radio indicator */}
                     <span
@@ -184,7 +180,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
                       style={{
                         width: "20px",
                         height: "20px",
-                        minWidth: "20px", // Prevents shrinking
+                        minWidth: "20px",
                         minHeight: "20px",
                         borderColor: isSelected ? "#0d6efd" : "#ced4da",
                         borderWidth: "2px",

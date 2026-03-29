@@ -1,4 +1,3 @@
-  // src/pages/ResultsPage/components/StudentInfoCard.tsx
   import React from "react";
   import { Award } from "lucide-react";
 

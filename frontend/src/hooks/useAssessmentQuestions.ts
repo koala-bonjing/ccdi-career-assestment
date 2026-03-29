@@ -1,4 +1,3 @@
-// hooks/useAssessmentQuestions.ts
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { BASE_URL } from "../config/constants";
@@ -10,10 +9,10 @@ export interface Question {
   weight?: number;
   correctAnswer: string;
   options?: string[];
-  category?: string; // Add this
-  subCategory?: string; // ADD THIS LINE - This is what's missing!
+  category?: string;
+  subCategory?: string;
   order?: number;
-  questionType?: string; // e.g., "multiple-choice", "true-false"
+  questionType?: string;
   isActive?: boolean;
   helperText?: string;
 }
@@ -61,10 +60,8 @@ export const useAssessmentQuestions = () => {
           `${BASE_URL}/api/questions`,
         );
 
-        // Add debug logging
         console.log("📥 Raw API response:", response.data);
 
-        // Check if response is already grouped by category
         const responseData = response.data;
         const hasGroupedStructure =
           "foundationalAssessment" in responseData ||
@@ -78,18 +75,16 @@ export const useAssessmentQuestions = () => {
           typeof responseData === "object" &&
           !Array.isArray(responseData)
         ) {
-          // It's already in the grouped format
           const groupedData = responseData as ApiResponse;
 
           const normalizeQuestion = (q: Question): Question => {
             const id = q._id || q.id || q.questionText;
             return {
               ...q,
-              _id: String(id), // Ensure it's a string for the backend key
+              _id: String(id),
               id: String(id),
             };
           };
-          // Debug: Check what fields are in learningWorkStyle questions
           if (
             groupedData.learningWorkStyle &&
             groupedData.learningWorkStyle.length > 0
@@ -122,7 +117,6 @@ export const useAssessmentQuestions = () => {
             learningWorkStyle: normalizeGroup(groupedData.learningWorkStyle),
           });
         } else if (Array.isArray(responseData)) {
-          // Transform flat array to grouped structure
           const transformedQuestions: BackendQuestions = {
             foundationalAssessment: [],
             academicAptitude: [],
@@ -140,8 +134,8 @@ export const useAssessmentQuestions = () => {
               program: question.program,
               weight: question.weight,
               options: question.options || undefined,
-              category: question.category, // Include category
-              subCategory: question.subCategory, // ADD THIS - THIS IS THE FIX
+              category: question.category,
+              subCategory: question.subCategory,
               order: question.order,
               isActive: question.isActive,
               helperText: question.helperText,
@@ -168,7 +162,6 @@ export const useAssessmentQuestions = () => {
             }
           });
 
-          // Debug: Check final structure
           console.log("📊 Final transformed questions:", {
             learningWorkStyleCount:
               transformedQuestions.learningWorkStyle.length,

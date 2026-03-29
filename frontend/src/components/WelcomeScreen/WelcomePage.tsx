@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/WelcomeScreenComponent.tsx
 import { useEffect, useState } from "react";
 import { useWelcomeScreen } from "../../../store/useWelcomeScreenStore";
 import { useAuth } from "../../context/AuthContext";
@@ -9,7 +8,6 @@ import { useEvaluationStore } from "../../../store/useEvaluationStore";
 import { ToastContainer } from "react-bootstrap";
 import "./WelcomePage.css";
 
-// Submodules
 import { ProgressToast } from "../ui/toast/progress-toast";
 import { ContinueProgressModal } from "../ui/modals/continue-progress-modal";
 import { HeaderSection } from "./sections/header-section";
@@ -41,7 +39,7 @@ export default function WelcomeScreenComponent({
   const [showContinueModal, setShowContinueModal] = useState(false);
   const [hasShownContinueModal, setHasShownContinueModal] = useState(false);
 
-  // Responsive state logic
+  /* Responsive sizing hook */
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 992);
@@ -69,7 +67,7 @@ export default function WelcomeScreenComponent({
     restoredFormData: !!restoredFormData,
   });
 
-  // ✅ FIX: Show progress toast when there's progress but no completed assessment
+  /* Handles progress notification visibility */
   useEffect(() => {
     if (isAuthenticated && !loading) {
       if (hasProgress && !hasCompleted) {
@@ -79,18 +77,13 @@ export default function WelcomeScreenComponent({
     }
   }, [isAuthenticated, hasCompleted, hasProgress, loading]);
 
-  // ✅ FIX: Show continue modal based on hasProgress - REMOVE restoredFormData check
+  /* Controls the continue assessment modal based on user progress state */
   useEffect(() => {
-    // Prevent showing modal multiple times
     if (hasShownContinueModal) {
       console.log("⏭️ Already shown continue modal, skipping");
       return;
     }
 
-    // Only show if:
-    // 1. Not loading anymore
-    // 2. Has progress but hasn't completed
-    // 3. User is authenticated
     if (!loading && isAuthenticated && hasProgress && !hasCompleted) {
       console.log("✅ Conditions met, showing continue modal");
       const timer = setTimeout(() => {
@@ -128,11 +121,11 @@ export default function WelcomeScreenComponent({
     );
   }
 
-  // 🚀 Action Handlers
+  /* View Actions */
   const startNewAssessment = () => {
     console.log("🆕 Starting new assessment");
     clearAssessmentStorage();
-    setHasShownContinueModal(false); // Reset so modal can show again if needed
+    setHasShownContinueModal(false);
     if (onStartNew) onStartNew();
     else navigate("/assessment");
     hideWelcome();
@@ -145,7 +138,6 @@ export default function WelcomeScreenComponent({
     setShowContinueModal(false);
   };
 
-  // ✅ Load result into store BEFORE navigating
   const viewResults = () => {
     console.log("📊 Viewing results");
     console.log("📊 assessmentResult:", assessmentResult);
@@ -162,7 +154,6 @@ export default function WelcomeScreenComponent({
   };
 
   const handleStartAssessment = () => {
-    // If there's progress, show the modal to confirm
     if (hasProgress && !hasCompleted) {
       console.log("⚠️ Has progress, showing continue modal");
       setShowContinueModal(true);
@@ -201,7 +192,6 @@ export default function WelcomeScreenComponent({
 
       <div className={`welcome-main-content ${isMobile ? "px-2 pb-4" : "pb-5"}`}>
         <div className="d-flex justify-content-center">
-          {/* Responsive Wrapper: Full width on mobile, Container on desktop */}
           <div className={isMobile ? "w-100" : "container-lg"}>
             
             <HeaderSection hasCompleted={hasCompleted} />

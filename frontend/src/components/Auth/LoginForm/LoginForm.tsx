@@ -1,4 +1,3 @@
-// src/components/Auth/LoginForm/LoginForm.tsx
 import React, { useState } from "react";
 import axios from "axios";
 import {
@@ -39,7 +38,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState<Record<string, boolean>>({});
   
-  // Forgot Password State
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
@@ -92,7 +90,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         type: "success", 
         text: response.data.message || "Password reset code sent! Check your email." 
       });
-      // Navigate to reset password page after short delay
       setTimeout(() => {
         navigate(`/reset-password?email=${encodeURIComponent(resetEmail)}`);
       }, 2000);

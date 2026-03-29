@@ -112,11 +112,9 @@ export const saveAnswersAsDocument = async ({
       }
     };
 
-    // Title
     drawLine("Student Assessment Answers", MARGIN, 18, fontBold);
     y -= 8;
 
-    // Student info
     drawLine("Student Information", MARGIN, 13, fontBold, rgb(0.1, 0.1, 0.5));
     y -= 4;
     for (const [label, value] of [
@@ -152,7 +150,6 @@ export const saveAnswersAsDocument = async ({
     });
     y -= 20;
 
-    // Sections
     const sectionOrder: (keyof AssessmentAnswers)[] = [
       "foundationalAssessment",
       "academicAptitude",
@@ -233,7 +230,6 @@ export const saveAnswersAsDocument = async ({
       y -= 16;
     }
 
-    // ✅ Fix: use buffer cast to avoid Uint8Array type error
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: "application/pdf",

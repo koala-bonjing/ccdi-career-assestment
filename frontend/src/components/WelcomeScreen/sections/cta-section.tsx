@@ -1,4 +1,3 @@
-  // src/components/WelcomeScreen/components/Sections/CtaSection.tsx
   import { Button } from 'react-bootstrap';
   import { Play, History, ArrowRight } from 'lucide-react';
 

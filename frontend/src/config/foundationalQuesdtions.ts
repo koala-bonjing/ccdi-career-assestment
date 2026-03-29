@@ -7,7 +7,6 @@ export interface FoundationalQuestion {
 
 export const FOUNDATIONAL_QUESTIONS_MAP: Record<string, FoundationalQuestion> =
   {
-    // Prerequisite Questions (1-15)
     found_prereq_001: {
       text: "What math subjects have you finished in high school?",
       correct: "Grade 12 Math or higher",
@@ -96,7 +95,6 @@ export const FOUNDATIONAL_QUESTIONS_MAP: Record<string, FoundationalQuestion> =
       helper: "We use simple examples to explain technical ideas.",
     },
 
-    // Study Habit Questions (16-27)
     found_study_001: {
       text: "How much time can you spend studying EACH WEEK (outside of class)?",
       correct: "More than 15 hours",
@@ -181,7 +179,6 @@ export const FOUNDATIONAL_QUESTIONS_MAP: Record<string, FoundationalQuestion> =
       isSubjective: true,
     },
 
-    // Problem Solving Questions (28-37)
     found_problem_001: {
       text: "SIMPLE MATH: If you have 20 pesos and spend 7 pesos, how much is left?",
       correct: "13 pesos",

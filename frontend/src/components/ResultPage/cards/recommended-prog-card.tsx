@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/components/RecommendedProgramCard.tsx
 import React, { useEffect, useState } from "react";
 import { Target } from "lucide-react";
 import { ProgramLabels, type ProgramType } from "../types";
@@ -19,7 +18,6 @@ const RecommendedProgramCard: React.FC<RecommendedProgramCardProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // ✅ Safe: `program` is of type `ProgramType`, so key exists in `ProgramLabels`
   const programName = ProgramLabels[program] || program;
 
   return (
@@ -39,7 +37,7 @@ const RecommendedProgramCard: React.FC<RecommendedProgramCardProps> = ({
         style={{
           background: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
           border: "3px solid #2B3176",
-          maxWidth: "100%", // Ensures it doesn't overflow screen width on very small mobiles
+          maxWidth: "100%",
         }}
       >
         <span className={`fw-bold ${isMobile ? "fs-4" : "fs-2"}`}>

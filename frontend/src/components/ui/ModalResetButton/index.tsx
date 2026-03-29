@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 export default function ResetWithModal() {
   const handleReset = () => {
-    // 👉 put your reset logic here
     console.log("Form reset!");
   };
 

@@ -47,7 +47,6 @@
     const [showInstructions, setShowInstructions] = useState(false);
     const hasShownInstructionsRef = useRef(false);
 
-    // ✅ Simple state initialization - no migration needed
     const [formData, setFormData] = useState<AssessmentAnswers>(() => {
       const baseStructure: AssessmentAnswers = {
         foundationalAssessment: {},
@@ -57,12 +56,10 @@
         learningWorkStyle: {},
       };
 
-      // Use restored data if provided
       if (restoredFormData) {
         return { ...baseStructure, ...restoredFormData };
       }
 
-      // Load from storage
       try {
         const saved = StorageEncryptor.getItem("evaluation-answers");
         if (saved) {
@@ -90,7 +87,6 @@
     const [showReview, setShowReview] = useState(false);
     const sectionKey = sections[currentSection];
 
-    // ✅ Scoring State
     const [programScores, setProgramScores] = useState<ProgramScores>({
       BSCS: 0,
       BSIT: 0,
@@ -99,13 +95,11 @@
       "BSET-EL": 0,
     });
 
-    // ✅ Persist answers
     useEffect(() => {
       StorageEncryptor.setItem("evaluation-answers", JSON.stringify(formData));
       StorageEncryptor.setItem("currentAssessmentSection", currentSection.toString());
     }, [formData, currentSection]);
 
-    // Show instructions on first load
     useEffect(() => {
       if (
         questions &&
@@ -124,7 +118,9 @@
       }
     }, [questions, loading, currentSection]);
 
-    // ✅ Handle answer changes - always use _id
+    /**
+     * Handles updating form data, global store, and evaluating program weights.
+     */
     const handleChange = (
       sectionKey: keyof AssessmentAnswers,
       questionId: string,
@@ -133,16 +129,13 @@
     ) => {
       console.log(`📝 Answer saved: ${sectionKey}.${questionId.substring(0, 8)}... = ${value}`);
       
-      // 1. Update UI State using the unique ID as the key
       setFormData((prev) => ({
         ...prev,
         [sectionKey]: { ...prev[sectionKey], [questionId]: value },
       }));
 
-      // 2. Sync with Global Store
       updateAnswer(`${sectionKey}.${questionId}`, value);
 
-      // 3. Weighting Algorithm
       if (typeof value === "number" && value >= 1 && value <= 5 && program) {
         setProgramScores((prev) => {
           const newScores = { ...prev };
@@ -172,7 +165,6 @@
       return questionMap[sectionKey] || [];
     };
 
-    // ✅ Validation Logic
     const { validateSection } = useAssessmentValidation({
       formData,
       section: sectionKey,
@@ -264,7 +256,6 @@
               show={showInstructions}
             />
 
-            {/* SECTION 0: foundationalAssessment */}
             {currentSection === 0 && (
               <FoundationalAssessmentSection
                 questions={questions.foundationalAssessment}
@@ -280,7 +271,6 @@
               />
             )}
 
-            {/* SECTION 1: ACADEMIC */}
             {currentSection === 1 && (
               <AcademicAptitudeSection
                 questions={questions.academicAptitude}
@@ -296,7 +286,6 @@
               />
             )}
 
-            {/* SECTION 2: TECHNICAL */}
             {currentSection === 2 && (
               <TechnicalSkillsSection
                 questions={questions.technicalSkills}
@@ -310,7 +299,6 @@
               />
             )}
 
-            {/* SECTION 3: CAREER */}
             {currentSection === 3 && (
               <CareerInterestSection
                 questions={questions.careerInterest}
@@ -326,7 +314,6 @@
               />
             )}
 
-            {/* SECTION 4: LEARNING STYLE */}
             {currentSection === 4 && (
               <LearningStyleSection
                 questions={questions.learningWorkStyle}
@@ -344,7 +331,6 @@
           </>
         )}
 
-        {/* Instruction FAB */}
         <div className="assessment-instruction-fab">
           <button
             type="button"

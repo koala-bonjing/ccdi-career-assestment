@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/types.ts
 export type ProgramType =
   | "BSIT"
   | "BSCS"
@@ -14,7 +13,6 @@ export const ProgramLabels: Record<ProgramType, string> = {
   "BSET Electrical Technology": "BSET in Electrical Technology",
 };
 
-// Full-name percentages (normalized)
 export interface ProgramPercentages {
   BSIT: number;
   BSCS: number;
@@ -23,7 +21,6 @@ export interface ProgramPercentages {
   "BSET Electrical Technology": number;
 }
 
-// Short-key (backend format — for normalization only)
 export interface ShortKeyPercentages {
   BSIT: number;
   BSCS: number;

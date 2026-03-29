@@ -108,7 +108,6 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
     [academic, technical, career, logistics, categoryExplanations],
   );
 
-  // Get full program name
   const getFullProgramName = (name: string) => {
     const upperName = name.toUpperCase();
     if (upperName.includes("BSIT"))

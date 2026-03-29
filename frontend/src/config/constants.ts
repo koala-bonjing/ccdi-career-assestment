@@ -1,6 +1,5 @@
 import type { AssessmentAnswers } from "../types";
 
-// src/config/constants.ts
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 const categoryTitles: Record<string, string> = {
@@ -10,7 +9,6 @@ const categoryTitles: Record<string, string> = {
   careerInterest: "Career Interest",
   learningWorkStyle: "Learning & Work Style",
 };
-// Map each section to its button background color
 const sectionBgColors: Record<string, string> = {
   academicAptitude: "bg-blue-500",
   technicalSkills: "bg-orange-500",
@@ -25,21 +23,14 @@ const sectionHoverColors: Record<string, string> = {
   learningWorkStyle: "hover:bg-pink-400/50",
 };
 
-// const sectionFormBgColors: Record<keyof AssessmentAnswers, string> = {
-//   academicAptitude: "bg-blue-400/20",
-//   technicalSkills: "bg-orange-400/20",
-//   careerInterest: "bg-purple-400/20",
-//   learningWorkStyle: "bg-pink-400/20",
-// };
-
 export const sectionDotColors: Record<
   string,
   { base: string; active: string }
 > = {
-  academicAptitude: { base: "#1E3A8A", active: "#3B82F6" }, // Blue shades
-  technicalSkills: { base: "#92400E", active: "#F97316" }, // Orange shades
-  careerInterest: { base: "#581C87", active: "#A855F7" }, // Purple shades
-  learningWorkStyle: { base: "#831843", active: "#EC4899" }, // Pink shades
+  academicAptitude: { base: "#1E3A8A", active: "#3B82F6" },
+  technicalSkills: { base: "#92400E", active: "#F97316" },
+  careerInterest: { base: "#581C87", active: "#A855F7" },
+  learningWorkStyle: { base: "#831843", active: "#EC4899" },
 };
 
 const sections: (keyof AssessmentAnswers)[] = [
@@ -81,7 +72,6 @@ export {
   categoryTitles,
   sectionBgColors,
   sectionHoverColors,
-  // sectionFormBgColors,
   sections,
   getSectionColorClass,
   getSectionColorClasses,

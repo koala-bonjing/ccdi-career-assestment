@@ -1,7 +1,6 @@
-// src/components/WelcomeScreen/components/Sections/UserSection.tsx
 import { User, Target, Award } from "lucide-react";
 import { Badge } from "react-bootstrap";
-import type { User as AuthUser } from "../../../context/AuthContext"; // adjust path as needed
+import type { User as AuthUser } from "../../../context/AuthContext";
 import type { AssessmentResult } from "../../../types";
 
 interface UserSectionProps {

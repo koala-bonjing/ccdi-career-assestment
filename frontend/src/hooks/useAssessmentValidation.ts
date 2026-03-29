@@ -1,4 +1,3 @@
-// src/hooks/useAssessmentValidation.ts
 import { useCallback } from "react";
 import { toast, Bounce } from "react-toastify";
 import type { AssessmentAnswers, Question, SectionAnswers } from "../types";
@@ -17,7 +16,9 @@ interface ValidationResult {
   firstUnansweredIndex?: number;
 }
 
-// Type guards for different answer types
+/**
+ * Validates section completeness based on section-specific rules.
+ */
 const isNumberAnswer = (value: unknown): value is number => {
   return typeof value === "number" && value >= 1 && value <= 5;
 };
@@ -30,7 +31,6 @@ const isStringAnswer = (value: unknown): value is string => {
   return typeof value === "string" && value.trim().length > 0;
 };
 
-// Helper function to get answer from answers object
 const getAnswerValue = (
   answers: SectionAnswers | undefined,
   question: Question,
@@ -39,7 +39,6 @@ const getAnswerValue = (
     return undefined;
   }
 
-  // Try multiple possible keys to find the answer
   const possibleKeys = [
     question._id,
     question.questionText,
@@ -65,7 +64,6 @@ export const useAssessmentValidation = ({
   const validateSection = useCallback((): ValidationResult => {
     const answers = formData[section as keyof AssessmentAnswers];
 
-    // If no answers object exists for this section
     if (!answers || typeof answers !== "object") {
       return {
         isValid: false,
@@ -74,17 +72,14 @@ export const useAssessmentValidation = ({
       };
     }
 
-    // COMMON VALIDATION FOR ALL SECTIONS (except technicalSkills which has different rules)
     if (section !== "technicalSkills" && section !== "learningWorkStyle") {
       const firstUnansweredIndex = currentQuestions.findIndex((q: Question) => {
         const answer = getAnswerValue(answers, q);
 
-        // Check if answer is undefined/null/empty string
         if (answer === undefined || answer === null || answer === "") {
           return true;
         }
 
-        // Additional type-specific validation based on section
         if (section === "academicAptitude" || section === "careerInterest") {
           return !isNumberAnswer(answer);
         }
@@ -97,7 +92,6 @@ export const useAssessmentValidation = ({
           return !isStringAnswer(answer);
         }
 
-        // For prerequisites and other sections, just check if it exists
         return false;
       });
 
@@ -106,7 +100,6 @@ export const useAssessmentValidation = ({
 
         let specificMessage = "";
 
-        // Provide more specific guidance based on section
         if (section === "academicAptitude" || section === "careerInterest") {
           specificMessage = `Please rate question ${firstUnansweredIndex + 1} on a scale of 1-5`;
         } else if (section === "learningWorkStyle") {
@@ -126,10 +119,7 @@ export const useAssessmentValidation = ({
       }
     }
 
-    // SECTION-SPECIFIC ADDITIONAL VALIDATION
-
     if (section === "foundationalAssessment") {
-      // Group questions by subCategory to check each category separately
       const questionsBySubCategory: Record<string, Question[]> = {};
       currentQuestions.forEach((question) => {
         const subCategory = question.subCategory || "prerequisites";
@@ -139,7 +129,6 @@ export const useAssessmentValidation = ({
         questionsBySubCategory[subCategory].push(question);
       });
 
-      // Check each category for completeness
       for (const [, questionsInCategory] of Object.entries(
         questionsBySubCategory,
       )) {
@@ -163,12 +152,10 @@ export const useAssessmentValidation = ({
     }
 
     if (section === "technicalSkills") {
-      // Get all boolean answers
       const booleanAnswers = currentQuestions
         .map((q) => getAnswerValue(answers, q))
         .filter((val): val is boolean => isBooleanAnswer(val));
 
-      // Check if we have at least one true value
       const hasAtLeastOneTrue = booleanAnswers.some((val) => val === true);
 
       if (!hasAtLeastOneTrue) {
@@ -180,7 +167,6 @@ export const useAssessmentValidation = ({
     }
 
     if (section === "learningWorkStyle") {
-      // Group questions by subCategory
       const questionsBySubCategory: Record<string, Question[]> = {};
       currentQuestions.forEach((question) => {
         const subCategory = question.subCategory || "Uncategorized";
@@ -190,7 +176,6 @@ export const useAssessmentValidation = ({
         questionsBySubCategory[subCategory].push(question);
       });
 
-      // Define required categories (these should match your actual subCategory values)
       const requiredCategories = [
         "Learning Preferences",
         "Work Style Preferences",
@@ -198,13 +183,11 @@ export const useAssessmentValidation = ({
         "Career Goals & Logistics",
       ];
 
-      // Check each required category has at least one "Yes" answer
       const incompleteCategories: string[] = [];
 
       for (const category of requiredCategories) {
         const questionsInCategory = questionsBySubCategory[category] || [];
 
-        // Check if at least one answer is true in this category
         const hasTrueAnswer = questionsInCategory.some((q) => {
           const answer = getAnswerValue(answers, q);
           return isBooleanAnswer(answer) && answer === true;
@@ -216,7 +199,6 @@ export const useAssessmentValidation = ({
       }
 
       if (incompleteCategories.length > 0) {
-        // Find the first question in the first incomplete category
         const firstIncompleteCategory = incompleteCategories[0];
         const questionsInCategory =
           questionsBySubCategory[firstIncompleteCategory] || [];
@@ -227,7 +209,6 @@ export const useAssessmentValidation = ({
             )
           : 0;
 
-        // Create a user-friendly message
         let message = "Please select at least one option from each category. ";
 
         if (incompleteCategories.length > 2) {
@@ -255,7 +236,6 @@ export const useAssessmentValidation = ({
     const result = validateSection();
 
     if (!result.isValid && result.message) {
-      // Clean, professional toast styling without neon effects
       const toastStyle = {
         backgroundColor: "#ffffff",
         color: "#333333",

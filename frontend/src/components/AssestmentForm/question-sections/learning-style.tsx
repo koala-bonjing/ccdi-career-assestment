@@ -1,5 +1,3 @@
-// Updated LearningStyleSection.tsx with Lucide React Icons
-
 import React, { useState, useMemo, useEffect } from "react";
 import { Card, Row, Col, Form, Alert, Badge } from "react-bootstrap";
 import {
@@ -39,7 +37,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   const [activeGroup, setActiveGroup] = useState(0);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
-  // Responsive state to avoid hydration mismatches
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -143,7 +140,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   const currentGroup = questionGroups[activeGroup];
   const isSectionComplete = completedGroups === totalGroups;
 
-  // Icon sizing helpers
   const tabIconSize = isMobile ? 24 : 32;
   const headerIconSize = isMobile ? 32 : 48;
   const checkboxIconSize = 22;

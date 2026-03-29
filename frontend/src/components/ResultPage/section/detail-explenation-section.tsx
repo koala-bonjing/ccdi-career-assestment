@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/components/DetailedExplanationSection.tsx
 import React, { useEffect, useState } from "react";
 import { BarChart3, Target } from "lucide-react";
 

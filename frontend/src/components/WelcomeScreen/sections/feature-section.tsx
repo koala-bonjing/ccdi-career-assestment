@@ -1,4 +1,3 @@
-// src/components/WelcomeScreen/components/Sections/FeaturesSection.tsx
 import { BarChart3, Target, Timer } from 'lucide-react';
 import { Row, Col } from 'react-bootstrap';
 

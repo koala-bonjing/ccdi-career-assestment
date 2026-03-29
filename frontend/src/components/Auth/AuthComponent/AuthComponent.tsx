@@ -1,4 +1,3 @@
-// components/Auth/AuthComponent.tsx
 import React, { useState } from "react";
 import SignupForm from "../SignUpForm/SignUpForm";
 import LoginForm from "../LoginForm/LoginForm";
@@ -15,7 +14,6 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ initialMode }) => {
   const { setCurrentUser } = useUserStore();
 
   const handleLoginSuccess = (userData: User): void => {
-    // Update both auth context and user store
     login(userData);
     setCurrentUser({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

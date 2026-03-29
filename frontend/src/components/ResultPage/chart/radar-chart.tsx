@@ -35,7 +35,6 @@ const RadarChart: React.FC<RadarChartProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Data updated with Lucide icons
   const data = [
     {
       label: "Academic Readiness",
@@ -67,7 +66,6 @@ const RadarChart: React.FC<RadarChartProps> = ({
     },
   ];
 
-  // Responsive sizing
   const size = isMobile ? 320 : 460;
   const center = size / 2;
   const maxRadius = isMobile ? 110 : 160;
@@ -107,7 +105,6 @@ const RadarChart: React.FC<RadarChartProps> = ({
     const x = center + labelRadius * Math.cos(angle);
     const y = center + labelRadius * Math.sin(angle);
 
-    // Better positioning for mobile
     let textAnchor: "start" | "middle" | "end" = "middle";
 
     if (isMobile) {
@@ -162,12 +159,10 @@ const RadarChart: React.FC<RadarChartProps> = ({
           onMouseLeave={() => !isMobile && setActiveIndex(null)}
         >
           {isMobile ? (
-            // Mobile: Show just the first word
             <tspan x={isMobile ? x : x} dy={0}>
               {item.label.split(" ")[0]}
             </tspan>
           ) : (
-            // Desktop: Show full label
             item.label.split(" ").map((word, idx) => (
               <tspan key={idx} x={x} dy={idx === 0 ? 0 : 14}>
                 {word}

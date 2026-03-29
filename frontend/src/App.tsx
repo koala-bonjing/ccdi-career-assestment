@@ -1,16 +1,14 @@
-// src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthComponent from "./components/Auth/AuthComponent/AuthComponent";
 import NavigationBar from "./components/NavigationBarComponents/NavigationBar";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import WelcomeScreenComponent from "./components/WelcomeScreen/WelcomePage"; // Fixed import path
+import WelcomeScreenComponent from "./components/WelcomeScreen/WelcomePage";
 import EvaluationForm from "./components/EvaluationForm/EvaluationForm";
-import { Container } from "react-bootstrap"; // Fixed import - use react-bootstrap instead of lucide-react
+import { Container } from "react-bootstrap";
 import { Spinner } from "react-bootstrap";
 import ResultsPage from "./components/ResultPage/result-page";
 import ResetPassword from "./components/Auth/LoginForm/ReserPassword";
 
-// Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -27,7 +25,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
-// Public Route Component (redirect to welcome if already authenticated)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 

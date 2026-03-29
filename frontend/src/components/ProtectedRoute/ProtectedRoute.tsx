@@ -1,4 +1,3 @@
-// src/components/ProtectedRoute/ProtectedRoute.tsx
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Spinner, Container } from "react-bootstrap";

@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/components/SummaryCard.tsx
 import React, { useEffect, useState } from "react";
 import { BookOpen } from "lucide-react";
 

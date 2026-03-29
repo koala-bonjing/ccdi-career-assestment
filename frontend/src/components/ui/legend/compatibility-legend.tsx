@@ -1,4 +1,3 @@
-// src/pages/ResultsPage/components/CompatibilityLegend.tsx
 import React, { useEffect, useState } from "react";
 import { 
   Info, 

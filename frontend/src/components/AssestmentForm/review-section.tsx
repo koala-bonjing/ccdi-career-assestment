@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   Row,
@@ -7,6 +7,7 @@ import {
   Button,
   Spinner,
   Collapse,
+  Modal,
 } from "react-bootstrap";
 import {
   Eye,
@@ -17,10 +18,11 @@ import {
   CircleCheck,
   ChevronDown,
   ChevronUp,
+  Printer,
 } from "lucide-react";
 import type { AssessmentAnswers, User } from "../../types";
 import { categoryTitles, sections } from "../../config/constants";
-import { saveAnswersAsDocument } from "../../hooks/saveAnswersAsDocument";
+import { generateAssessmentDocument, saveAnswersAsDocument } from "../../hooks/saveAnswersAsDocument";
 import { type ProgramScores } from "./types";
 import type { Question } from "../../hooks/useAssessmentQuestions";
 
@@ -56,6 +58,46 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     careerInterest: false,
     learningWorkStyle: false,
   });
+
+  const [showPreview, setShowPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const handlePreviewDocument = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      const blob = await generateAssessmentDocument({
+        formData,
+        programScores,
+        currentSection: sections.length - 1,
+        sections,
+        currentUser: currentUser as User,
+        questions,
+      });
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      setShowPreview(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.print();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   useEffect(() => {
     const newOpenSections: Record<string, boolean> = {};
@@ -1060,16 +1102,8 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
             <Button
               variant="outline-primary"
               size="lg"
-              onClick={() => {
-                saveAnswersAsDocument({
-                  formData,
-                  programScores,
-                  currentSection: sections.length - 1,
-                  sections,
-                  currentUser: currentUser as User,
-                  questions,
-                });
-              }}
+              onClick={handlePreviewDocument}
+              disabled={isGeneratingPdf}
               className="px-4 py-2 action-btn"
               style={{
                 background: "white",
@@ -1077,12 +1111,91 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                 border: "2px solid #2B3176",
               }}
             >
-              <Download size={20} className="me-2" />
-              Save as Document
+              {isGeneratingPdf ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    className="me-2"
+                  />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Eye size={20} className="me-2" />
+                  Preview Document
+                </>
+              )}
             </Button>
           </div>
         </div>
       </Card.Body>
+
+      {/* Document Preview Modal */}
+      <Modal
+        show={showPreview}
+        onHide={() => setShowPreview(false)}
+        size="lg"
+        centered
+        dialogClassName="modal-90w"
+      >
+        <Modal.Header closeButton style={{ background: "#f8f9ff", borderBottom: "2px solid #2B3176" }}>
+          <Modal.Title style={{ color: "#2B3176", fontWeight: "bold" }}>
+            <Eye size={24} className="me-2 mb-1" />
+            Document Preview
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0" style={{ background: "#e9ecef" }}>
+          {pdfUrl ? (
+            <iframe
+              ref={iframeRef}
+              src={pdfUrl}
+              style={{ width: "100%", height: "70vh", border: "none" }}
+              title="PDF Preview"
+            />
+          ) : (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh", color: "#6c757d" }}>
+              <Spinner animation="border" className="me-2" />
+              Loading Preview...
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer style={{ background: "#f8f9ff", borderTop: "1px solid #dee2e6" }}>
+          <Button variant="outline-secondary" onClick={() => setShowPreview(false)}>
+            Close
+          </Button>
+          <Button
+            variant="outline-primary"
+            onClick={handlePrint}
+            className="d-flex align-items-center"
+            style={{ borderColor: "#2B3176", color: "#2B3176" }}
+          >
+            <Printer size={18} className="me-2" />
+            Print Form
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              saveAnswersAsDocument({
+                formData,
+                programScores,
+                currentSection: sections.length - 1,
+                sections,
+                currentUser: currentUser as User,
+                questions,
+              });
+            }}
+            className="d-flex align-items-center"
+            style={{ background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)", border: "none" }}
+          >
+            <Download size={18} className="me-2" />
+            Download PDF
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Card>
   );
 };

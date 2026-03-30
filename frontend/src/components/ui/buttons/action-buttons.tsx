@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Download } from "lucide-react";
+import { Eye } from "lucide-react";
 
 interface ActionButtonsProps {
   onSave: () => Promise<void>;
@@ -46,12 +46,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ onSave, saving }) => {
               className="spinner-border spinner-border-sm me-2"
               role="status"
             />
-            Saving Document...
+            Generating Preview...
           </>
         ) : (
           <>
-            <Download size={20} className="me-2" />
-            Save as Document
+            <Eye size={20} className="me-2" />
+            Preview Document
           </>
         )}
       </button>

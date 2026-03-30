@@ -256,10 +256,10 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
   ctx.y = startY - totalH - 4;
 };
 
-export const saveResultsAsPDF = async (
+export const generateResultsDocument = async (
   result: AssessmentResult,
   user: User,
-): Promise<void> => {
+): Promise<Blob> => {
   try {
     const doc = await PDFDocument.create();
     const bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -434,7 +434,10 @@ export const saveResultsAsPDF = async (
 
     if (result.percent) {
       sectionHeading(ctx, "PROGRAM COMPATIBILITY ANALYSIS");
-      const compRows: RowData[] = Object.entries(result.percent).map(
+      const sortedPercents = Object.entries(result.percent).sort(
+        (a, b) => b[1] - a[1]
+      );
+      const compRows: RowData[] = sortedPercents.map(
         ([p, pct], i) => ({
           cells: [p, `${pct}%`, getCompatibilityText(pct)],
           highlight: p === result.recommendedProgram,
@@ -505,9 +508,38 @@ export const saveResultsAsPDF = async (
     });
 
     const pdfBytes = await doc.save();
-    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
+    return new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: "application/pdf",
     });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+
+    toast.error("Failed to generate PDF. Please try again.", {
+      position: "top-right",
+      autoClose: 3000,
+      style: {
+        backgroundColor: "rgba(239, 68, 68, 0.3)",
+        backdropFilter: "blur(6px)",
+        border: "2px solid #ef4444",
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: "14px",
+        borderRadius: "8px",
+        fontFamily: "Poppins",
+      },
+      transition: Bounce,
+    });
+
+    throw error;
+  }
+};
+
+export const saveResultsAsPDF = async (
+  result: AssessmentResult,
+  user: User,
+): Promise<void> => {
+  try {
+    const blob = await generateResultsDocument(result, user);
 
     const safeName = (user.name || user.fullName || "Student").replace(
       /[^a-zA-Z0-9]/g,
@@ -531,25 +563,7 @@ export const saveResultsAsPDF = async (
       transition: Bounce,
     });
   } catch (error) {
-    console.error("Error generating PDF:", error);
-
-    toast.error("Failed to save PDF. Please try again.", {
-      position: "top-right",
-      autoClose: 3000,
-      style: {
-        backgroundColor: "rgba(239, 68, 68, 0.3)",
-        backdropFilter: "blur(6px)",
-        border: "2px solid #ef4444",
-        color: "#fff",
-        fontWeight: "bold",
-        fontSize: "14px",
-        borderRadius: "8px",
-        fontFamily: "Poppins",
-      },
-      transition: Bounce,
-    });
-
-    throw error;
+    // Error already handled in generateResultsDocument
   }
 };
 

@@ -31,11 +31,11 @@ const sanitize = (text: string): string =>
     // eslint-disable-next-line no-control-regex
     .replace(/[^\x00-\x7F]/g, "?");
 
-export const saveAnswersAsDocument = async ({
+export const generateAssessmentDocument = async ({
   formData,
   currentUser,
   questions,
-}: SaveAnswersParams): Promise<void> => {
+}: SaveAnswersParams): Promise<Blob> => {
   try {
     const timestamp = new Date().toISOString();
 
@@ -231,12 +231,38 @@ export const saveAnswersAsDocument = async ({
     }
 
     const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
+    return new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: "application/pdf",
     });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast.error("Failed to generate document. Please try again.", {
+      position: "top-right",
+      autoClose: 3000,
+      style: {
+        backgroundColor: "rgba(239, 68, 68, 0.3)",
+        backdropFilter: "blur(6px)",
+        border: "2px solid #ef4444",
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: "14px",
+        borderRadius: "8px",
+        fontFamily: "Poppins",
+      },
+      transition: Bounce,
+    });
+    throw error;
+  }
+};
+
+export const saveAnswersAsDocument = async (params: SaveAnswersParams): Promise<void> => {
+  try {
+    const blob = await generateAssessmentDocument(params);
+    const timestamp = new Date().toISOString();
+    const studentName = sanitize(params.currentUser?.name || "student");
     saveAs(
       blob,
-      `assessment-${sanitize(currentUser?.name || "student")}-${timestamp.split("T")[0]}.pdf`,
+      `assessment-${studentName}-${timestamp.split("T")[0]}.pdf`,
     );
 
     toast.success("Document saved successfully!", {
@@ -255,21 +281,6 @@ export const saveAnswersAsDocument = async ({
       transition: Bounce,
     });
   } catch (error) {
-    console.error("Error saving PDF:", error);
-    toast.error("Failed to save document. Please try again.", {
-      position: "top-right",
-      autoClose: 3000,
-      style: {
-        backgroundColor: "rgba(239, 68, 68, 0.3)",
-        backdropFilter: "blur(6px)",
-        border: "2px solid #ef4444",
-        color: "#fff",
-        fontWeight: "bold",
-        fontSize: "14px",
-        borderRadius: "8px",
-        fontFamily: "Poppins",
-      },
-      transition: Bounce,
-    });
+    // Error is already handled/toasted in generateAssessmentDocument
   }
 };

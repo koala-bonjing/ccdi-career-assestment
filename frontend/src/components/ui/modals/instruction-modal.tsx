@@ -208,15 +208,28 @@ export const AssessmentInstructionsModal: React.FC<
                 <strong>BSIS</strong> - Information Systems (Business Analysis,
                 Data)
               </p>
-            </div>
-            <div className="col-md-6">
-              <p className="mb-1">
+              <p className="mb-1 mt-2">
                 <strong>BSET Electronics</strong> - Electronics Technology
                 (Circuits, Robotics)
               </p>
               <p className="mb-1">
                 <strong>BSET Electrical</strong> - Electrical Technology (Power
                 Systems, Automation)
+              </p>
+            </div>
+            <div className="col-md-6">
+              <p className="fw-semibold mb-1 text-primary">
+                Associate in Computer Technology (ACT):
+              </p>
+              <p className="mb-1 ms-2">
+                • <strong>Multimedia & Animation</strong> (Design, Video
+                Editing)
+              </p>
+              <p className="mb-1 ms-2">
+                • <strong>Programming</strong> (Web & App Development)
+              </p>
+              <p className="mb-1 ms-2">
+                • <strong>Networking</strong> (System Administration, Hardware)
               </p>
             </div>
           </div>

@@ -52,21 +52,32 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const courses: Course[] = [
-    { value: "Undecided", label: "I'm not sure yet" },
-    { value: "BSCS", label: "Computer Science (BSCS)" },
-    { value: "BSIT", label: "Information Technology (BSIT)" },
-    { value: "BSIS", label: "Information Systems (BSIS)" },
-    {
-      value: "BSET Electronics Technology",
-      label: "Electronics Technology (BSET)",
-    },
-    {
-      value: "BSET Electrical Technology",
-      label: "Electrical Technology (BSET)",
-    },
-  ];
-
+ const courses: Course[] = [
+  { value: "Undecided", label: "I'm not sure yet" },
+  { value: "BSCS", label: "Computer Science (BSCS)" },
+  { value: "BSIT", label: "Information Technology (BSIT)" },
+  { value: "BSIS", label: "Information Systems (BSIS)" },
+  {
+    value: "BSET Electronics Technology",
+    label: "Electronics Technology (BSET)",
+  },
+  {
+    value: "BSET Electrical Technology",
+    label: "Electrical Technology (BSET)",
+  },
+  {
+    value: "ACT - Multimedia & Animation",
+    label: "Multimedia & Animation (ACT)",
+  },
+  {
+    value: "ACT - Programming",
+    label: "Programming (ACT)",
+  },
+  {
+    value: "ACT - Networking",
+    label: "Networking (ACT)",
+  },
+];
   const checkEmailAvailability = async (email: string): Promise<void> => {
     if (!email || !email.includes("@")) {
       setEmailError("");
@@ -655,13 +666,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
                 <h6>2. Eligibility</h6>
                 <p>
-                  You must be at least 19 years old and a student or prospective
-                  student of CCDI Sorsogon.
+                 Eligibility is limited to students and prospective students of CCDI Sorsogon. 
+                 Minors must obtain parental consent.
                 </p>
 
                 <h6>3. Account Responsibility</h6>
                 <p>
-                  You're responsible for your account security. Notify us
+                  You are responsible for your account security. Notify us
                   immediately of unauthorized access.
                 </p>
 

@@ -26,8 +26,6 @@ export interface SubmissionData {
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
-console.log("🔗 API Base URL:", API_BASE_URL);
-
 const EvaluationForm = () => {
   const { showWelcome } = useWelcomeScreen();
   const {
@@ -75,7 +73,7 @@ const EvaluationForm = () => {
         const flatData = flattenAnswers(formData);
         setStoreAnswer(flatData);
         
-        console.log("✅ Successfully loaded saved progress");
+        console.log("✅ Successfully loaded saved progress"); 
       } else {
         console.log("ℹ️ No saved progress found");
       }

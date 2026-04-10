@@ -59,7 +59,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       const response = await axios.post(`${BASE_URL}/api/auth/login`, formData);
       setMessage({ type: "success", text: response.data.message });
       navigate("/welcome");
-      onLoginSuccess(response.data.user);
+      onLoginSuccess(response.data.user, response.data.token);
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         setMessage({

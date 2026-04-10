@@ -236,7 +236,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
           localStorage.setItem("token", token);
         }
         
-        login(userData);
+        login(userData, token);
         setCurrentUser({
           _id: userData._id || userData.id,
           name: userData.fullName || userData.name,

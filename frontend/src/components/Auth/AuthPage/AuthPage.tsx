@@ -14,8 +14,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ initialMode = "login" }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLoginSuccess = (user: User) => {
-    login(user);
+  const handleLoginSuccess = (user: User, token: string) => {
+    login(user, token);
     navigate("/welcome");
   };
 

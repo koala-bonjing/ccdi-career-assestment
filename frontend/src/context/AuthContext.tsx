@@ -4,7 +4,6 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-
 import { StorageEncryptor } from "../components/ResultPage/utils/encryption";
 
 export interface User {
@@ -17,7 +16,8 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (user: User) => void;
+  token: string | null;
+  login: (user: User, token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
@@ -25,24 +25,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const getInitialAuthState = (): { user: User | null; loading: boolean } => {
+const getInitialAuthState = (): {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+} => {
   try {
     const parsed = StorageEncryptor.getItem("user");
+    const token = StorageEncryptor.getItem("token") as string | null;
 
-    if (parsed) {
-
-      if ((parsed._id || parsed.id) && parsed.email) {
-        const normalizedUser = {
-          ...parsed,
-          _id: parsed._id || parsed.id,
-        };
-        return { user: normalizedUser, loading: false };
-      }
+    if (parsed && token && (parsed._id || parsed.id) && parsed.email) {
+      return {
+        user: { ...parsed, _id: parsed._id || parsed.id },
+        token,
+        loading: false,
+      };
     }
   } catch (e) {
-    console.error("❌ Failed to parse user:", e);
+    console.error("❌ Failed to restore auth state:", e);
   }
-  return { user: null, loading: false };
+  return { user: null, token: null, loading: false };
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
@@ -50,31 +52,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [state, setState] = useState(() => getInitialAuthState());
 
-
-  const login = (userData: User) => {
+  const login = (userData: User, token: string) => {
     try {
-      console.log("🔑 Login attempt with data:", userData);
+      const id = userData._id || (userData as { _id?: string; id?: string }).id;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (!userData._id && !(userData as any).id) {
-        console.error("❌ Cannot login: user data missing _id/id");
+      if (!id) {
+        console.error("❌ Received user data:", userData);
         throw new Error("Invalid user data: missing ID");
       }
-
       if (!userData.email) {
-        console.error("❌ Cannot login: user data missing email");
         throw new Error("Invalid user data: missing email");
       }
+      if (!token) {
+        throw new Error("Invalid auth: missing token");
+      }
 
-      const normalizedUser = {
+      const normalizedUser: User = {
         ...userData,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        _id: userData._id || (userData as any).id,
+        _id: id,
       };
 
       StorageEncryptor.setItem("user", normalizedUser);
-      setState({ user: normalizedUser, loading: false });
-      console.log("✅ User logged in successfully:", normalizedUser._id);
+      StorageEncryptor.setItem("token", token);
+      setState({ user: normalizedUser, token, loading: false });
+
+      console.log("✅ User logged in:", normalizedUser._id);
     } catch (e) {
       console.error("❌ Login failed:", e);
       throw e;
@@ -82,18 +84,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const logout = () => {
-    console.log("👋 Logging out user:", state.user?._id);
     StorageEncryptor.removeItem("user");
-    setState({ user: null, loading: false });
+    StorageEncryptor.removeItem("token");
+    setState({ user: null, token: null, loading: false });
   };
 
   return (
     <AuthContext.Provider
       value={{
         user: state.user,
+        token: state.token,
         login,
         logout,
-        isAuthenticated: !!state.user,
+        isAuthenticated: !!state.user && !!state.token,
         loading: state.loading,
       }}
     >
@@ -105,8 +108,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

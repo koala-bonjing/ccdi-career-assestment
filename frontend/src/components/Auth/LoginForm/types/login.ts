@@ -2,7 +2,7 @@ import { type User } from "./../../../../context/AuthContext";
 
 export interface LoginFormProps {
   onSwitchToSignup: () => void;
-  onLoginSuccess: (user: User) => void;
+  onLoginSuccess: (user: User, token: string) => void;
 }
 
 export interface FormData {

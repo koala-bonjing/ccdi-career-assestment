@@ -1126,7 +1126,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               ) : (
                 <>
                   <Eye size={20} className="me-2" />
-                  Preview Document
+                  Preview Answer
                 </>
               )}
             </Button>

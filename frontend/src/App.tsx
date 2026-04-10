@@ -8,6 +8,17 @@ import { Container } from "react-bootstrap";
 import { Spinner } from "react-bootstrap";
 import ResultsPage from "./components/ResultPage/result-page";
 import ResetPassword from "./components/Auth/LoginForm/ReserPassword";
+import axios from "axios";
+import { StorageEncryptor } from "./components/ResultPage/utils/encryption";
+
+axios.interceptors.request.use((config) => {
+  const token = StorageEncryptor.getItem("token") as string | null;
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,

@@ -13,8 +13,8 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ initialMode }) => {
   const { login } = useAuth();
   const { setCurrentUser } = useUserStore();
 
-  const handleLoginSuccess = (userData: User): void => {
-    login(userData);
+  const handleLoginSuccess = (userData: User, token: string): void => {
+    login(userData, token);
     setCurrentUser({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       _id: userData._id || (userData as any).id, 

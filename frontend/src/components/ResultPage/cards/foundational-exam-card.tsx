@@ -56,7 +56,13 @@ const FoundationalExamCard: React.FC<Props> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  if (!userAnswers || Object.keys(userAnswers).length === 0) {
+  const hasAnswers = userAnswers && Object.keys(userAnswers).length > 0;
+  const hasScoreData =
+    result?.foundationalScore !== undefined ||
+    result?.prereqAnalysis ||
+    result?.examAnalysis;
+
+  if (!hasAnswers && !hasScoreData) {
     return (
       <div className="card border-0 shadow-sm mt-5 p-4 text-center">
         <p className="text-muted">No foundational assessment data available.</p>
@@ -477,7 +483,6 @@ const FoundationalExamCard: React.FC<Props> = ({
             const correctInCat = questionsInCategory.filter(
               (q) => q.isCorrect,
             ).length;
-           
 
             return (
               <div key={category} className="mb-3">
@@ -511,7 +516,6 @@ const FoundationalExamCard: React.FC<Props> = ({
                         {correctInCat}/{questionsInCategory.length} correct
                       </small>
                       <span className="mx-1 text-muted">•</span>
-                    
                     </div>
                   </div>
                   <span className="text-muted">

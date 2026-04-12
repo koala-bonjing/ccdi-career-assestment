@@ -15,13 +15,15 @@ import CompatibilityChart from "./chart/compatibility-chart";
 import CompatibilityLegend from "../ui/legend/compatibility-legend";
 
 import { useNormalizedPercentages } from "../../hooks/useNormalizePercentage";
-import { saveResultsAsPDF, generateResultsDocument } from "../../hooks/saveResultsAsDocument"; 
+import {
+  saveResultsAsPDF,
+  generateResultsDocument,
+} from "../../hooks/saveResultsAsDocument";
 import { useAssessmentState } from "../../hooks/useAssessmentState";
 import { useEvaluationStore } from "../../../store/useEvaluationStore";
 
 import "./result-page.css";
 import type { AssessmentResult } from "../../types";
-import { useResultsHydration } from "../../hooks/useResultHydaration";
 import RadarChart from "./chart/radar-chart";
 import ProgramBreakdownChart from "./chart/program-breakdown-chart";
 import FoundationalExamCard from "./cards/foundational-exam-card";
@@ -83,7 +85,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
     return <NoResultsView />;
   }
 
- return (
+  return (
     <>
       <div
         className="min-vh-100 d-flex flex-column"
@@ -162,9 +164,12 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                       />
                     </>
                   )}
-                  {result.answers?.foundationalAssessment && (
+                  {(result.answers?.foundationalAssessment ||
+                    result.foundationalScore !== undefined) && (
                     <FoundationalExamCard
-                      userAnswers={result?.answers.foundationalAssessment || {}}
+                      userAnswers={
+                        result?.answers?.foundationalAssessment || {}
+                      }
                       result={result}
                       questions={dbQuestion?.foundationalAssessment}
                     />
@@ -236,8 +241,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
             }}
             className="d-flex align-items-center"
             style={{
-              background:
-                "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+              background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
               border: "none",
             }}
           >

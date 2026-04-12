@@ -53,9 +53,8 @@ const EvaluationForm = () => {
 
   const loadSavedData = (): void => {
     try {
-      const savedAnswers = StorageEncryptor.getItem("evaluation-answers");
-      console.log("📥 Raw saved answers:", savedAnswers);
-      
+      const savedAnswers = StorageEncryptor.getItem("evaluation-answers");   
+
       if (savedAnswers) {
         const parsed: AssessmentAnswers = JSON.parse(savedAnswers);
         console.log("📥 Parsed saved answers:", parsed);
@@ -72,8 +71,8 @@ const EvaluationForm = () => {
 
         const flatData = flattenAnswers(formData);
         setStoreAnswer(flatData);
-        
-        console.log("✅ Successfully loaded saved progress"); 
+
+        console.log("✅ Successfully loaded saved progress");
       } else {
         console.log("ℹ️ No saved progress found");
       }
@@ -118,12 +117,12 @@ const EvaluationForm = () => {
 
   const handleStartNew = (): void => {
     console.log("🆕 Starting new assessment - clearing all progress");
-    
+
     StorageEncryptor.removeItem("evaluation-answers");
     StorageEncryptor.removeItem("currentAssessmentSection");
-    
+
     clearAllAnswers();
-    
+
     setRestoredFormData({
       foundationalAssessment: {},
       academicAptitude: {},
@@ -215,8 +214,11 @@ const EvaluationForm = () => {
 
       StorageEncryptor.removeItem("evaluation-answers");
       StorageEncryptor.removeItem("currentAssessmentSection");
-      
-      StorageEncryptor.setItem("assessment-result", JSON.stringify(transformed));
+
+      StorageEncryptor.setItem(
+        "assessment-result",
+        JSON.stringify(transformed),
+      );
 
       console.log("✅ Evaluation complete and stored");
     } catch (err: unknown) {

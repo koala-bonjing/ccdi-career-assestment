@@ -22,9 +22,14 @@ import {
 } from "lucide-react";
 import type { AssessmentAnswers, User } from "../../types";
 import { categoryTitles, sections } from "../../config/constants";
-import { generateAssessmentDocument, saveAnswersAsDocument } from "../../hooks/saveAnswersAsDocument";
+import {
+  generateAssessmentDocument,
+  saveAnswersAsDocument,
+} from "../../hooks/saveAnswersAsDocument";
 import { type ProgramScores } from "./types";
 import type { Question } from "../../hooks/useAssessmentQuestions";
+import PDFViewer from "../ui/iframe/PDFViewer";
+import { toast } from "react-toastify";
 
 interface ReviewSectionProps {
   formData: AssessmentAnswers;
@@ -60,6 +65,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   });
 
   const [showPreview, setShowPreview] = useState(false);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -67,6 +73,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   const handlePreviewDocument = async () => {
     try {
       setIsGeneratingPdf(true);
+      console.log("🔵 Generating PDF...");
       const blob = await generateAssessmentDocument({
         formData,
         programScores,
@@ -75,11 +82,16 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
         currentUser: currentUser as User,
         questions,
       });
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
+
+      console.log("✅ PDF Blob generated:", blob);
+      console.log("📦 Blob size:", blob.size, "bytes");
+      console.log("📦 Blob type:", blob.type);
+
+      setPdfBlob(blob);
       setShowPreview(true);
     } catch (error) {
       console.error(error);
+      toast.error("Failed to generate document");
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -91,6 +103,20 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     }
   };
 
+  // Create URL from blob when pdfBlob changes
+  useEffect(() => {
+    if (pdfBlob) {
+      const url = URL.createObjectURL(pdfBlob);
+      console.log("🔗 Created URL:", url);  
+      setPdfUrl(url);
+
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    }
+  }, [pdfBlob]);
+
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       if (pdfUrl) {
@@ -106,23 +132,33 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
       const hasAnswers = sectionQuestions.some((q) => {
         let answer;
         if (sectionKey === "foundationalAssessment") {
-          answer = formData.foundationalAssessment?.[q._id] || formData.foundationalAssessment?.[q.questionText];
+          answer =
+            formData.foundationalAssessment?.[q._id] ||
+            formData.foundationalAssessment?.[q.questionText];
           return typeof answer === "string" && answer.trim() !== "";
         }
         if (sectionKey === "academicAptitude") {
-          answer = formData.academicAptitude?.[q._id] || formData.academicAptitude?.[q.questionText];
+          answer =
+            formData.academicAptitude?.[q._id] ||
+            formData.academicAptitude?.[q.questionText];
           return typeof answer === "number" && answer >= 1 && answer <= 5;
         }
         if (sectionKey === "careerInterest") {
-          answer = formData.careerInterest?.[q._id] || formData.careerInterest?.[q.questionText];
+          answer =
+            formData.careerInterest?.[q._id] ||
+            formData.careerInterest?.[q.questionText];
           return typeof answer === "number" && answer >= 1 && answer <= 5;
         }
         if (sectionKey === "technicalSkills") {
-          answer = formData.technicalSkills?.[q._id] || formData.technicalSkills?.[q.questionText];
+          answer =
+            formData.technicalSkills?.[q._id] ||
+            formData.technicalSkills?.[q.questionText];
           return answer === true;
         }
         if (sectionKey === "learningWorkStyle") {
-          answer = formData.learningWorkStyle?.[q._id] || formData.learningWorkStyle?.[q.questionText];
+          answer =
+            formData.learningWorkStyle?.[q._id] ||
+            formData.learningWorkStyle?.[q.questionText];
           return answer === true;
         }
         return false;
@@ -211,13 +247,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     }
 
     if (typeof value === "number") {
-      const colors = [
-        "#28a745",
-        "#20c997",
-        "#6c757d",
-        "#fd7e14",
-        "#dc3545",
-      ];
+      const colors = ["#28a745", "#20c997", "#6c757d", "#fd7e14", "#dc3545"];
       return colors[value - 1] || "#6c757d";
     }
 
@@ -251,28 +281,28 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
       }
 
       if (sectionKey === "academicAptitude") {
-        answer = 
+        answer =
           formData.academicAptitude?.[q._id] ||
           formData.academicAptitude?.[q.questionText];
         return typeof answer === "number" && answer >= 1 && answer <= 5;
       }
 
       if (sectionKey === "careerInterest") {
-        answer = 
+        answer =
           formData.careerInterest?.[q._id] ||
           formData.careerInterest?.[q.questionText];
         return typeof answer === "number" && answer >= 1 && answer <= 5;
       }
 
       if (sectionKey === "technicalSkills") {
-        answer = 
+        answer =
           formData.technicalSkills?.[q._id] ||
           formData.technicalSkills?.[q.questionText];
         return answer === true;
       }
 
       if (sectionKey === "learningWorkStyle") {
-        answer = 
+        answer =
           formData.learningWorkStyle?.[q._id] ||
           formData.learningWorkStyle?.[q.questionText];
         return answer === true;
@@ -334,28 +364,28 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
       }
 
       if (sectionKey === "academicAptitude") {
-        answer = 
+        answer =
           formData.academicAptitude?.[q._id] ||
           formData.academicAptitude?.[q.questionText];
         return typeof answer === "number" && answer >= 1 && answer <= 5;
       }
 
       if (sectionKey === "careerInterest") {
-        answer = 
+        answer =
           formData.careerInterest?.[q._id] ||
           formData.careerInterest?.[q.questionText];
         return typeof answer === "number" && answer >= 1 && answer <= 5;
       }
 
       if (sectionKey === "technicalSkills") {
-        answer = 
+        answer =
           formData.technicalSkills?.[q._id] ||
           formData.technicalSkills?.[q.questionText];
         return answer === true;
       }
 
       if (sectionKey === "learningWorkStyle") {
-        answer = 
+        answer =
           formData.learningWorkStyle?.[q._id] ||
           formData.learningWorkStyle?.[q.questionText];
         return answer === true;
@@ -936,11 +966,19 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                 {answeredQuestions.map((question, qIndex) => {
                                   const answer =
                                     sectionKey === "academicAptitude"
-                                      ? (formData.academicAptitude[question._id] ||
-                                         formData.academicAptitude[question.questionText])
+                                      ? formData.academicAptitude[
+                                          question._id
+                                        ] ||
+                                        formData.academicAptitude[
+                                          question.questionText
+                                        ]
                                       : sectionKey === "careerInterest"
-                                        ? (formData.careerInterest[question._id] ||
-                                           formData.careerInterest[question.questionText])
+                                        ? formData.careerInterest[
+                                            question._id
+                                          ] ||
+                                          formData.careerInterest[
+                                            question.questionText
+                                          ]
                                         : undefined;
 
                                   const answerColor = getAnswerColor(
@@ -1126,7 +1164,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               ) : (
                 <>
                   <Eye size={20} className="me-2" />
-                  Preview Answer
+                  Preview Answer Document
                 </>
               )}
             </Button>
@@ -1137,12 +1175,19 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
       {/* Document Preview Modal */}
       <Modal
         show={showPreview}
-        onHide={() => setShowPreview(false)}
+        onHide={() => {
+          setShowPreview(false);
+          setPdfBlob(null);
+          setPdfUrl(null);
+        }}
         size="lg"
         centered
         dialogClassName="modal-90w"
       >
-        <Modal.Header closeButton style={{ background: "#f8f9ff", borderBottom: "2px solid #2B3176" }}>
+        <Modal.Header
+          closeButton
+          style={{ background: "#f8f9ff", borderBottom: "2px solid #2B3176" }}
+        >
           <Modal.Title style={{ color: "#2B3176", fontWeight: "bold" }}>
             <Eye size={24} className="me-2 mb-1" />
             Document Preview
@@ -1150,21 +1195,28 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
         </Modal.Header>
         <Modal.Body className="p-0" style={{ background: "#e9ecef" }}>
           {pdfUrl ? (
-            <iframe
-              ref={iframeRef}
-              src={pdfUrl}
-              style={{ width: "100%", height: "70vh", border: "none" }}
-              title="PDF Preview"
-            />
+            <PDFViewer pdfUrl={pdfUrl} />
           ) : (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: "70vh", color: "#6c757d" }}>
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{ height: "70vh", color: "#6c757d" }}
+            >
               <Spinner animation="border" className="me-2" />
               Loading Preview...
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer style={{ background: "#f8f9ff", borderTop: "1px solid #dee2e6" }}>
-          <Button variant="outline-secondary" onClick={() => setShowPreview(false)}>
+        <Modal.Footer
+          style={{ background: "#f8f9ff", borderTop: "1px solid #dee2e6" }}
+        >
+          <Button
+            variant="outline-secondary"
+            onClick={() => {
+              setShowPreview(false);
+              setPdfBlob(null);
+              setPdfUrl(null);
+            }}
+          >
             Close
           </Button>
           <Button
@@ -1189,7 +1241,10 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               });
             }}
             className="d-flex align-items-center"
-            style={{ background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)", border: "none" }}
+            style={{
+              background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+              border: "none",
+            }}
           >
             <Download size={18} className="me-2" />
             Download PDF

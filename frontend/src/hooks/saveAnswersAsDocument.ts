@@ -229,9 +229,10 @@ export const generateAssessmentDocument = async ({
       }
       y -= 16;
     }
-
     const pdfBytes = await pdfDoc.save();
-    return new Blob([pdfBytes.buffer as ArrayBuffer], {
+
+    // Runtime-safe: Blob accepts Uint8Array regardless of underlying buffer type
+    return new Blob([pdfBytes as unknown as ArrayBuffer], {
       type: "application/pdf",
     });
   } catch (error) {
@@ -255,15 +256,14 @@ export const generateAssessmentDocument = async ({
   }
 };
 
-export const saveAnswersAsDocument = async (params: SaveAnswersParams): Promise<void> => {
+export const saveAnswersAsDocument = async (
+  params: SaveAnswersParams,
+): Promise<void> => {
   try {
     const blob = await generateAssessmentDocument(params);
     const timestamp = new Date().toISOString();
     const studentName = sanitize(params.currentUser?.name || "student");
-    saveAs(
-      blob,
-      `assessment-${studentName}-${timestamp.split("T")[0]}.pdf`,
-    );
+    saveAs(blob, `assessment-${studentName}-${timestamp.split("T")[0]}.pdf`);
 
     toast.success("Document saved successfully!", {
       position: "top-right",
@@ -282,5 +282,38 @@ export const saveAnswersAsDocument = async (params: SaveAnswersParams): Promise<
     });
   } catch (error) {
     // Error is already handled/toasted in generateAssessmentDocument
+    // Handle specific error types
+    let errorMessage = "Failed to save document. Please try again.";
+
+    if (error instanceof Error) {
+      if (error.message.includes("Blob") || error.message.includes("PDF")) {
+        errorMessage =
+          "Failed to generate PDF document. Please check your data and try again.";
+      } else if (error.message.includes("saveAs")) {
+        errorMessage =
+          "Failed to download the document. Please check your browser settings.";
+      } else {
+        errorMessage = `Failed to save document: ${error.message}`;
+      }
+    }
+
+    toast.error(errorMessage, {
+      position: "top-right",
+      autoClose: 5000,
+      style: {
+        backgroundColor: "rgba(239, 68, 68, 0.3)",
+        backdropFilter: "blur(6px)",
+        border: "2px solid #ef4444",
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: "14px",
+        borderRadius: "8px",
+        fontFamily: "Poppins",
+      },
+      transition: Bounce,
+    });
+
+    // Re-throw if you want calling code to handle it too
+    throw error;
   }
 };

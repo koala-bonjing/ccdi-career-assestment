@@ -72,29 +72,31 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
               Question {currentIndex + 1} of {questions.length}
             </Badge>
           </Col>
-          <Col md={4} className="text-center">
+          <Col xs={12} md={4} className="text-center mb-2 mb-md-0">
             <div className="d-flex gap-2 justify-content-center">
               <Button
                 variant="outline-primary"
-                size="sm"
+                size="lg"
                 onClick={() =>
                   setCurrentQuestionIndex(Math.max(0, currentIndex - 1))
                 }
                 disabled={currentIndex === 0}
-                className="px-3"
+                className="px-3 py-1"
               >
-                <ChevronLeft size={16} /> Previous
+                <ChevronLeft size={14} /> Previous
               </Button>
               <Button
                 variant="outline-primary"
-                size="sm"
+                size="lg"
                 onClick={() =>
-                  setCurrentQuestionIndex(Math.max(0, currentIndex + 1))
+                  setCurrentQuestionIndex(
+                    Math.min(questions.length - 1, currentIndex + 1),
+                  )
                 }
                 disabled={currentIndex === questions.length - 1}
-                className="px-3"
+                className="px-3 py-1"
               >
-                Next <ChevronRight size={16} />
+                Next <ChevronRight size={14} />
               </Button>
             </div>
           </Col>
@@ -123,8 +125,7 @@ const CareerInterestSection: React.FC<AssessmentSectionProps> = ({
             <div className="d-grid gap-2 gap-md-3">
               {[1, 2, 3, 4, 5].map((val) => {
                 const isSelected =
-                  formData.careerInterest[currentQuestion.questionText] ===
-                  val;
+                  formData.careerInterest[currentQuestion.questionText] === val;
                 return (
                   <label
                     key={val}

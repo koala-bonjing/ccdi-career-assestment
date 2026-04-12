@@ -435,15 +435,13 @@ export const generateResultsDocument = async (
     if (result.percent) {
       sectionHeading(ctx, "PROGRAM COMPATIBILITY ANALYSIS");
       const sortedPercents = Object.entries(result.percent).sort(
-        (a, b) => b[1] - a[1]
+        (a, b) => b[1] - a[1],
       );
-      const compRows: RowData[] = sortedPercents.map(
-        ([p, pct], i) => ({
-          cells: [p, `${pct}%`, getCompatibilityText(pct)],
-          highlight: p === result.recommendedProgram,
-          shade: p !== result.recommendedProgram && i % 2 === 1,
-        }),
-      );
+      const compRows: RowData[] = sortedPercents.map(([p, pct], i) => ({
+        cells: [p, `${pct}%`, getCompatibilityText(pct)],
+        highlight: p === result.recommendedProgram,
+        shade: p !== result.recommendedProgram && i % 2 === 1,
+      }));
       drawTable(
         ctx,
         [
@@ -562,8 +560,22 @@ export const saveResultsAsPDF = async (
       },
       transition: Bounce,
     });
-  } catch (error) {
-    // Error already handled in generateResultsDocument
+  } catch {
+    toast.error("Failed to save document. Please try again.", {
+      position: "top-right",
+      autoClose: 5000,
+      style: {
+        backgroundColor: "rgba(239, 68, 68, 0.3)",
+        backdropFilter: "blur(6px)",
+        border: "2px solid #ef4444",
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: "14px",
+        borderRadius: "8px",
+        fontFamily: "Poppins",
+      },
+      transition: Bounce,
+    });
   }
 };
 

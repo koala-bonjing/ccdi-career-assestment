@@ -44,22 +44,23 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
       style={{ maxWidth: "1300px", borderRadius: "16px" }}
     >
       <SectionHeader
-        title="Technical Skills & Interests"
+        title="Technical Interests"
         icon={<Wrench size={window.innerWidth < 768 ? 28 : 40} />}
         variant="warning"
         sectionType="technicalSkills"
       />
 
       <Card.Body className="p-3 p-md-5">
-        {/* Progress Header - Stacks on extra small screens */}
+        {/* Header */}
         <div className="mb-4">
           <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-end mb-2 gap-2">
             <div>
               <h5 className="fw-bold mb-1" style={{ fontSize: "1.1rem" }}>
-                Skills & Experience
+                What Do You Want to Learn?
               </h5>
               <small className="text-muted">
-                Select all skills you have experience with
+                Select every area you're genuinely interested in — no prior
+                experience needed
               </small>
             </div>
             <div className="text-sm-end w-100 w-sm-auto">
@@ -70,18 +71,18 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           </div>
         </div>
 
-        {/* Info Text - Smaller font and padding for mobile */}
+        {/* Dynamic feedback text */}
         <div className="text-center mb-4 px-1 px-md-3">
           <p className="text-muted mb-0 small" style={{ lineHeight: "1.4" }}>
             {selectedCount === 0
-              ? "Click on any skills you're familiar with. Don't worry if you're still learning!"
+              ? "Tap any area that excites you — even things you've never tried before."
               : selectedCount === questions.length
-                ? "🎉 Awesome! You've selected all skills."
-                : `Great! ${selectedCount} skill${selectedCount !== 1 ? "s" : ""} selected.`}
+                ? "🎉 You've selected all areas — that's a wide range of interests!"
+                : `${selectedCount} area${selectedCount !== 1 ? "s" : ""} selected. Keep going if more apply to you.`}
           </p>
         </div>
 
-        {/* Skills Grid - Reduced gutter for mobile (g-2) */}
+        {/* Questions grid */}
         <Row className="g-2 g-md-3">
           {questions.map((skill) => {
             const isSelected = !!formData.technicalSkills[skill.questionText];
@@ -109,7 +110,6 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                   }}
                   role="button"
                 >
-                  {/* flex-shrink-0 ensures the icon never squishes */}
                   <div className="flex-shrink-0 d-flex align-items-center">
                     {isSelected ? (
                       <CheckCircle2
@@ -141,13 +141,15 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           })}
         </Row>
 
-        {/* Helper Text - Simplified padding for mobile */}
+        {/* Tip box */}
         <div className="mt-4 p-3 rounded-3" style={{ background: "#fef3c7" }}>
           <p
             className="text-muted small mb-0 text-center"
             style={{ fontSize: "0.8rem" }}
           >
-            💡 <strong>Tip:</strong> Include skills you're currently learning.
+            💡 <strong>Tip:</strong> Select based on genuine interest, not just
+            what you already know. If a topic sounds exciting, that's enough to
+            select it.
           </p>
         </div>
       </Card.Body>

@@ -10,6 +10,8 @@ const C = {
   darkBlue: hex(43, 49, 118),
   midBlue: hex(28, 108, 179),
   red: hex(164, 29, 49),
+  green: hex(25, 135, 84),
+  orange: hex(253, 126, 20),
   lightBg: hex(240, 248, 255),
   rowAlt: hex(248, 249, 255),
   grey: hex(102, 102, 102),
@@ -18,6 +20,29 @@ const C = {
   black: rgb(0, 0, 0),
   bodyText: hex(44, 62, 80),
 };
+
+// ── text sanitization helper ──────────────────────────────────────────────────
+const sanitizeText = (text: string): string => {
+  if (!text) return "";
+  return text
+    .replace(/[\u20B1]/g, "PHP ") // Peso symbol to "PHP"
+    .replace(/[\u00A3]/g, "GBP ") // Pound symbol to "GBP"
+    .replace(/[\u00A5]/g, "JPY ") // Yen symbol to "JPY"
+    .replace(/[\u20AC]/g, "EUR ") // Euro symbol to "EUR"
+    .replace(/[\u0024]/g, "$") // Dollar symbol (keep as is, but ensure ASCII)
+    .replace(/[\u26A0\u26A1]/g, "[!]") // Warning symbols
+    .replace(/[\u2022\u25E6\u2023]/g, "-") // Bullet points
+    .replace(/[\u2018\u2019]/g, "'") // Smart single quotes
+    .replace(/[\u201C\u201D]/g, '"') // Smart double quotes
+    .replace(/[\u2013\u2014]/g, "-") // En/Em dashes
+    .replace(/[\u00A9]/g, "(c)") // Copyright symbol
+    .replace(/[\u00AE]/g, "(r)") // Registered trademark
+    .replace(/[\u2122]/g, "(tm)") // Trademark
+    .replace(/[\u2026]/g, "..."); // Ellipsis
+  // .replace(/[^\x00-\x7F\s]/g, "");        // Remove any other non-ASCII characters
+};
+
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 const getCategoryAssessment = (score: number): string => {
   if (score >= 85) return "Excellent";
@@ -35,9 +60,26 @@ const getCompatibilityText = (pct: number): string => {
   return "Limited Compatibility";
 };
 
-const PAGE_W = 595;
-const PAGE_H = 842;
-const MARGIN = 45;
+const getFoundationalLabel = (score: number): string => {
+  if (score >= 80) return "Strong Readiness";
+  if (score >= 60) return "Moderate Readiness";
+  if (score >= 40) return "Developing Readiness";
+  return "Needs Improvement";
+};
+
+const getSubScoreLabel = (score: number): string => {
+  if (score >= 4) return "Excellent";
+  if (score >= 3) return "Good";
+  if (score >= 2) return "Fair";
+  return "Needs Work";
+};
+
+// ── PDF layout constants ──────────────────────────────────────────────────────
+
+// A4 dimensions in points: 595.28 x 841.89
+const PAGE_W = 595.28;
+const PAGE_H = 841.89;
+const MARGIN = 50;
 const CONTENT_W = PAGE_W - MARGIN * 2;
 const LINE_SM = 14;
 const LINE_MD = 17;
@@ -88,13 +130,23 @@ const drawWrapped = (
     maxWidth = CONTENT_W,
   } = opts;
 
-  const words = text.replace(/\n/g, " ").split(" ");
+  // Sanitize the input text
+  const sanitizedText = sanitizeText(text);
+  const words = sanitizedText.replace(/\n/g, " ").split(" ");
   let line = "";
 
   for (const word of words) {
     const test = line ? `${line} ${word}` : word;
-    if (font.widthOfTextAtSize(test, size) > maxWidth && line) {
-      currentPage(ctx).drawText(line, { x, y: ctx.y, size, font, color });
+    const testWidth = font.widthOfTextAtSize(test, size);
+
+    if (testWidth > maxWidth && line) {
+      currentPage(ctx).drawText(line, {
+        x,
+        y: ctx.y,
+        size,
+        font,
+        color,
+      });
       advance(ctx, lineHeight);
       line = word;
     } else {
@@ -102,7 +154,13 @@ const drawWrapped = (
     }
   }
   if (line) {
-    currentPage(ctx).drawText(line, { x, y: ctx.y, size, font, color });
+    currentPage(ctx).drawText(line, {
+      x,
+      y: ctx.y,
+      size,
+      font,
+      color,
+    });
     advance(ctx, lineHeight);
   }
 };
@@ -128,13 +186,22 @@ const drawLine = (
     align = "left",
   } = opts;
 
+  // Sanitize the input text
+  const sanitizedText = sanitizeText(text);
+
   let drawX = x;
   if (align === "center")
-    drawX = (PAGE_W - font.widthOfTextAtSize(text, size)) / 2;
+    drawX = (PAGE_W - font.widthOfTextAtSize(sanitizedText, size)) / 2;
   if (align === "right")
-    drawX = PAGE_W - MARGIN - font.widthOfTextAtSize(text, size);
+    drawX = PAGE_W - MARGIN - font.widthOfTextAtSize(sanitizedText, size);
 
-  currentPage(ctx).drawText(text, { x: drawX, y: ctx.y, size, font, color });
+  currentPage(ctx).drawText(sanitizedText, {
+    x: drawX,
+    y: ctx.y,
+    size,
+    font,
+    color,
+  });
   advance(ctx, lineHeight);
 };
 
@@ -164,6 +231,7 @@ interface RowData {
   cells: string[];
   highlight?: boolean;
   shade?: boolean;
+  accentColor?: RGB;
 }
 
 const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
@@ -176,6 +244,7 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
   const startY = ctx.y;
   const colWidths = cols.map((c) => c.width * CONTENT_W);
 
+  // header row
   currentPage(ctx).drawRectangle({
     x: MARGIN,
     y: startY - ROW_H,
@@ -187,9 +256,10 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
   let xc = MARGIN;
   cols.forEach((col, ci) => {
     const cw = colWidths[ci];
-    const tw = ctx.bold.widthOfTextAtSize(col.header, 9);
+    const sanitizedHeader = sanitizeText(col.header);
+    const tw = ctx.bold.widthOfTextAtSize(sanitizedHeader, 9);
     const tx = col.align === "center" ? xc + (cw - tw) / 2 : xc + PAD;
-    currentPage(ctx).drawText(col.header, {
+    currentPage(ctx).drawText(sanitizedHeader, {
       x: tx,
       y: startY - ROW_H + PAD + 2,
       size: 9,
@@ -199,6 +269,7 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
     xc += cw;
   });
 
+  // data rows
   rows.forEach((row, ri) => {
     const rowY = startY - ROW_H * (ri + 2);
     const bgColor = row.highlight
@@ -215,14 +286,29 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
       color: bgColor,
     });
 
+    // optional left accent stripe
+    if (row.accentColor) {
+      currentPage(ctx).drawRectangle({
+        x: MARGIN,
+        y: rowY,
+        width: 3,
+        height: ROW_H,
+        color: row.accentColor,
+      });
+    }
+
     let xr = MARGIN;
     cols.forEach((col, ci) => {
       const cw = colWidths[ci];
-      const text = row.cells[ci] ?? "";
+      const rawText = row.cells[ci] ?? "";
+      const text = sanitizeText(rawText);
       const fnt = row.highlight ? ctx.bold : ctx.reg;
       const clr = row.highlight ? C.red : C.bodyText;
       const tw = fnt.widthOfTextAtSize(text, 9);
-      const tx = col.align === "center" ? xr + (cw - tw) / 2 : xr + PAD;
+      const tx =
+        col.align === "center"
+          ? xr + (cw - tw) / 2
+          : xr + PAD + (ci === 0 && row.accentColor ? 4 : 0);
       currentPage(ctx).drawText(text, {
         x: tx,
         y: rowY + PAD + 2,
@@ -234,6 +320,7 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
     });
   });
 
+  // outer border
   currentPage(ctx).drawRectangle({
     x: MARGIN,
     y: startY - totalH,
@@ -243,6 +330,7 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
     borderWidth: 0.5,
   });
 
+  // horizontal dividers
   for (let r = 0; r <= rows.length; r++) {
     const ry = startY - ROW_H * (r + 1);
     currentPage(ctx).drawLine({
@@ -255,6 +343,68 @@ const drawTable = (ctx: Ctx, cols: ColDef[], rows: RowData[]): void => {
 
   ctx.y = startY - totalH - 4;
 };
+
+// ── score bar (used for foundational sub-scores) ──────────────────────────────
+
+const drawScoreBar = (
+  ctx: Ctx,
+  label: string,
+  score: number,
+  maxScore: number,
+  barColor: RGB,
+): void => {
+  const BAR_W = CONTENT_W * 0.5;
+  const BAR_H = 10;
+  const LABEL_W = CONTENT_W * 0.35;
+  const filled = Math.round((score / maxScore) * BAR_W);
+
+  if (ctx.y - 20 < MARGIN + 24) newPage(ctx);
+
+  // label
+  currentPage(ctx).drawText(sanitizeText(label), {
+    x: MARGIN,
+    y: ctx.y - 2,
+    size: 9,
+    font: ctx.reg,
+    color: C.bodyText,
+  });
+
+  // track
+  currentPage(ctx).drawRectangle({
+    x: MARGIN + LABEL_W,
+    y: ctx.y - BAR_H,
+    width: BAR_W,
+    height: BAR_H,
+    color: hex(230, 230, 230),
+    borderColor: C.lightGrey,
+    borderWidth: 0.3,
+  });
+
+  // fill
+  if (filled > 0) {
+    currentPage(ctx).drawRectangle({
+      x: MARGIN + LABEL_W,
+      y: ctx.y - BAR_H,
+      width: filled,
+      height: BAR_H,
+      color: barColor,
+    });
+  }
+
+  // score text
+  const scoreText = `${score}/${maxScore}`;
+  currentPage(ctx).drawText(scoreText, {
+    x: MARGIN + LABEL_W + BAR_W + 6,
+    y: ctx.y - 2,
+    size: 9,
+    font: ctx.bold,
+    color: C.bodyText,
+  });
+
+  advance(ctx, 16);
+};
+
+// ── main export ───────────────────────────────────────────────────────────────
 
 export const generateResultsDocument = async (
   result: AssessmentResult,
@@ -269,18 +419,19 @@ export const generateResultsDocument = async (
     const ctx: Ctx = { doc, pages: [], bold, reg, italic, y: 0, pageIdx: -1 };
     newPage(ctx);
 
+    // ── cover header ──────────────────────────────────────────────────────────
     currentPage(ctx).drawRectangle({
       x: 0,
-      y: PAGE_H - 52,
+      y: PAGE_H - 60,
       width: PAGE_W,
-      height: 52,
+      height: 60,
       color: C.darkBlue,
     });
 
     const title = "CCDI AUTOMATED CAREER ASSESSMENT";
     currentPage(ctx).drawText(title, {
       x: (PAGE_W - bold.widthOfTextAtSize(title, 18)) / 2,
-      y: PAGE_H - 26,
+      y: PAGE_H - 28,
       size: 18,
       font: bold,
       color: C.white,
@@ -289,13 +440,13 @@ export const generateResultsDocument = async (
     const sub = "ASSESSMENT RESULTS REPORT";
     currentPage(ctx).drawText(sub, {
       x: (PAGE_W - reg.widthOfTextAtSize(sub, 11)) / 2,
-      y: PAGE_H - 42,
+      y: PAGE_H - 46,
       size: 11,
       font: reg,
       color: hex(180, 200, 255),
     });
 
-    ctx.y = PAGE_H - 52 - 20;
+    ctx.y = PAGE_H - 80;
 
     const dateStr = `Generated: ${new Date().toLocaleDateString("en-US", {
       year: "numeric",
@@ -311,6 +462,9 @@ export const generateResultsDocument = async (
       lineHeight: LINE_MD,
     });
 
+    advance(ctx, 10);
+
+    // ── student info ──────────────────────────────────────────────────────────
     sectionHeading(ctx, "STUDENT INFORMATION");
     drawTable(
       ctx,
@@ -328,6 +482,7 @@ export const generateResultsDocument = async (
     );
     advance(ctx, 10);
 
+    // ── summary ───────────────────────────────────────────────────────────────
     sectionHeading(ctx, "ASSESSMENT SUMMARY");
     drawWrapped(
       ctx,
@@ -337,9 +492,10 @@ export const generateResultsDocument = async (
     );
     advance(ctx, 10);
 
+    // ── recommended program ───────────────────────────────────────────────────
     sectionHeading(ctx, "RECOMMENDED PROGRAM");
 
-    const BOX_H = 48;
+    const BOX_H = 50;
     if (ctx.y - BOX_H < MARGIN + 24) newPage(ctx);
 
     currentPage(ctx).drawRectangle({
@@ -350,14 +506,14 @@ export const generateResultsDocument = async (
       color: C.red,
     });
 
-    const prog = result.recommendedProgram;
+    const prog = sanitizeText(result.recommendedProgram);
     const progSize = Math.min(
-      18,
-      Math.max(11, 18 - Math.max(0, prog.length - 30) * 0.2),
+      16,
+      Math.max(11, 16 - Math.max(0, prog.length - 25) * 0.2),
     );
     currentPage(ctx).drawText(prog, {
       x: (PAGE_W - bold.widthOfTextAtSize(prog, progSize)) / 2,
-      y: ctx.y - 20,
+      y: ctx.y - 22,
       size: progSize,
       font: bold,
       color: C.white,
@@ -367,7 +523,7 @@ export const generateResultsDocument = async (
       "Best match based on your skills, interests, and learning style";
     currentPage(ctx).drawText(tagline, {
       x: (PAGE_W - italic.widthOfTextAtSize(tagline, 8)) / 2,
-      y: ctx.y - 36,
+      y: ctx.y - 38,
       size: 8,
       font: italic,
       color: hex(240, 200, 200),
@@ -376,6 +532,7 @@ export const generateResultsDocument = async (
     ctx.y -= BOX_H;
     advance(ctx, 14);
 
+    // ── detailed evaluation ───────────────────────────────────────────────────
     sectionHeading(ctx, "DETAILED EVALUATION");
     drawWrapped(ctx, result.evaluation, { size: 10, lineHeight: LINE_SM });
     advance(ctx, 10);
@@ -387,6 +544,7 @@ export const generateResultsDocument = async (
     });
     advance(ctx, 10);
 
+    // ── category performance ──────────────────────────────────────────────────
     if (result.categoryScores) {
       sectionHeading(ctx, "CATEGORY PERFORMANCE ANALYSIS");
       drawTable(
@@ -432,13 +590,14 @@ export const generateResultsDocument = async (
       advance(ctx, 10);
     }
 
+    // ── program compatibility ─────────────────────────────────────────────────
     if (result.percent) {
       sectionHeading(ctx, "PROGRAM COMPATIBILITY ANALYSIS");
       const sortedPercents = Object.entries(result.percent).sort(
         (a, b) => b[1] - a[1],
       );
       const compRows: RowData[] = sortedPercents.map(([p, pct], i) => ({
-        cells: [p, `${pct}%`, getCompatibilityText(pct)],
+        cells: [sanitizeText(p), `${pct}%`, getCompatibilityText(pct)],
         highlight: p === result.recommendedProgram,
         shade: p !== result.recommendedProgram && i % 2 === 1,
       }));
@@ -454,10 +613,203 @@ export const generateResultsDocument = async (
       advance(ctx, 10);
     }
 
+    // ── foundational assessment results ───────────────────────────────────────
+    if (result.foundationalScore !== undefined || result.prereqAnalysis) {
+      sectionHeading(ctx, "FOUNDATIONAL READINESS ASSESSMENT");
+
+      // overall score banner
+      const fScore = result.foundationalScore ?? 0;
+      const fLabel = getFoundationalLabel(fScore);
+      const bannerColor =
+        fScore >= 80
+          ? C.green
+          : fScore >= 60
+            ? C.midBlue
+            : fScore >= 40
+              ? C.orange
+              : C.red;
+
+      if (ctx.y - 32 < MARGIN + 24) newPage(ctx);
+
+      currentPage(ctx).drawRectangle({
+        x: MARGIN,
+        y: ctx.y - 32,
+        width: CONTENT_W,
+        height: 32,
+        color: bannerColor,
+      });
+
+      const overallText = `Overall Foundational Score: ${fScore}%  -  ${fLabel}`;
+      currentPage(ctx).drawText(overallText, {
+        x: (PAGE_W - bold.widthOfTextAtSize(overallText, 11)) / 2,
+        y: ctx.y - 20,
+        size: 11,
+        font: bold,
+        color: C.white,
+      });
+
+      ctx.y -= 32;
+      advance(ctx, 12);
+
+      // sub-category score bars
+      if (result.prereqAnalysis) {
+        const pa = result.prereqAnalysis;
+
+        drawLine(ctx, "Readiness Breakdown by Category", {
+          size: 10,
+          font: ctx.bold,
+          color: C.darkBlue,
+          lineHeight: LINE_SM,
+        });
+        advance(ctx, 4);
+
+        drawScoreBar(
+          ctx,
+          "Basic Knowledge (Prerequisites)",
+          pa.prerequisites,
+          5,
+          C.darkBlue,
+        );
+        drawScoreBar(
+          ctx,
+          "Study Habits & Time Management",
+          pa.studyHabits,
+          5,
+          C.midBlue,
+        );
+        drawScoreBar(
+          ctx,
+          "Problem Solving & Logic",
+          pa.problemSolving,
+          5,
+          C.green,
+        );
+
+        advance(ctx, 4);
+
+        // overall readiness row
+        drawTable(
+          ctx,
+          [
+            { header: "CATEGORY", width: 0.4 },
+            { header: "SCORE (/5)", width: 0.2, align: "center" },
+            { header: "RATING", width: 0.2, align: "center" },
+            { header: "STATUS", width: 0.2, align: "center" },
+          ],
+          [
+            {
+              cells: [
+                "Basic Knowledge",
+                `${pa.prerequisites}/5`,
+                getSubScoreLabel(pa.prerequisites),
+                pa.prerequisites >= 3 ? "Ready" : "Needs Work",
+              ],
+              accentColor: C.darkBlue,
+            },
+            {
+              cells: [
+                "Study Habits",
+                `${pa.studyHabits}/5`,
+                getSubScoreLabel(pa.studyHabits),
+                pa.studyHabits >= 3 ? "Ready" : "Needs Work",
+              ],
+              shade: true,
+              accentColor: C.midBlue,
+            },
+            {
+              cells: [
+                "Problem Solving",
+                `${pa.problemSolving}/5`,
+                getSubScoreLabel(pa.problemSolving),
+                pa.problemSolving >= 3 ? "Ready" : "Needs Work",
+              ],
+              accentColor: C.green,
+            },
+            {
+              cells: [
+                "Overall Readiness",
+                `${pa.overallScore}/5`,
+                getSubScoreLabel(pa.overallScore),
+                pa.overallScore >= 3 ? "Sufficient" : "Needs Preparation",
+              ],
+              shade: true,
+              highlight: pa.overallScore < 3,
+            },
+          ],
+        );
+        advance(ctx, 8);
+
+        // warnings
+        if (pa.warnings && pa.warnings.length > 0) {
+          drawLine(ctx, "Areas Flagged for Improvement:", {
+            size: 10,
+            font: ctx.bold,
+            color: C.red,
+            lineHeight: LINE_SM,
+          });
+          for (const warning of pa.warnings) {
+            drawWrapped(ctx, `[!]  ${warning}`, {
+              x: MARGIN + 8,
+              size: 9,
+              font: ctx.reg,
+              color: C.red,
+              lineHeight: LINE_SM,
+              maxWidth: CONTENT_W - 8,
+            });
+          }
+          advance(ctx, 4);
+        }
+
+        // recommendations
+        if (pa.recommendations && pa.recommendations.length > 0) {
+          drawLine(ctx, "Recommended Actions:", {
+            size: 10,
+            font: ctx.bold,
+            color: C.green,
+            lineHeight: LINE_SM,
+          });
+          for (const rec of pa.recommendations) {
+            drawWrapped(ctx, `-  ${rec}`, {
+              x: MARGIN + 8,
+              size: 9,
+              font: ctx.reg,
+              color: C.bodyText,
+              lineHeight: LINE_SM,
+              maxWidth: CONTENT_W - 8,
+            });
+          }
+          advance(ctx, 4);
+        }
+      }
+
+      // AI exam analysis
+      if (result.examAnalysis) {
+        drawLine(ctx, "AI Evaluation of Foundational Exam:", {
+          size: 10,
+          font: ctx.bold,
+          color: C.darkBlue,
+          lineHeight: LINE_SM,
+        });
+        drawWrapped(ctx, result.examAnalysis, {
+          size: 9,
+          font: ctx.italic,
+          color: C.bodyText,
+          lineHeight: LINE_SM,
+        });
+        advance(ctx, 6);
+      }
+
+      // REMOVED: wrong answers breakdown section
+      // The "Questions to Review" section has been removed
+
+      advance(ctx, 4);
+    }
+
+    // ── preparation needed ────────────────────────────────────────────────────
     if (result.preparationNeeded && result.preparationNeeded.length > 0) {
       sectionHeading(ctx, "PREPARATION RECOMMENDATIONS");
       for (const item of result.preparationNeeded) {
-        drawWrapped(ctx, `\u2022  ${item}`, {
+        drawWrapped(ctx, `-  ${item}`, {
           x: MARGIN + 6,
           size: 10,
           lineHeight: LINE_SM,
@@ -467,6 +819,7 @@ export const generateResultsDocument = async (
       advance(ctx, 10);
     }
 
+    // ── success roadmap ───────────────────────────────────────────────────────
     if (result.successRoadmap) {
       sectionHeading(ctx, "YOUR SUCCESS ROADMAP");
       drawWrapped(ctx, result.successRoadmap, {
@@ -476,6 +829,7 @@ export const generateResultsDocument = async (
       advance(ctx, 10);
     }
 
+    // ── footer on every page ──────────────────────────────────────────────────
     const totalPages = ctx.pages.length;
     ctx.pages.forEach((pg, idx) => {
       pg.drawRectangle({
@@ -511,7 +865,6 @@ export const generateResultsDocument = async (
     });
   } catch (error) {
     console.error("Error generating PDF:", error);
-
     toast.error("Failed to generate PDF. Please try again.", {
       position: "top-right",
       autoClose: 3000,
@@ -527,10 +880,11 @@ export const generateResultsDocument = async (
       },
       transition: Bounce,
     });
-
     throw error;
   }
 };
+
+// ── save helper ───────────────────────────────────────────────────────────────
 
 export const saveResultsAsPDF = async (
   result: AssessmentResult,
@@ -538,7 +892,6 @@ export const saveResultsAsPDF = async (
 ): Promise<void> => {
   try {
     const blob = await generateResultsDocument(result, user);
-
     const safeName = (user.name || user.fullName || "Student").replace(
       /[^a-zA-Z0-9]/g,
       "_",

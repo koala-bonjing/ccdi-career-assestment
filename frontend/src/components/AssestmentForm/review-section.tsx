@@ -551,7 +551,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                               className="fw-bold mb-3 text-center"
                               style={{ color: "#2B3176" }}
                             >
-                              Selected Technical Skills (
+                              Selected Technical Interests (
                               {answeredQuestions.length})
                             </h6>
 
@@ -646,7 +646,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                   No technical skills selected
                                 </p>
                                 <small className="text-muted">
-                                  Technical skills are selected via checkboxes
+                                  Technical interests are selected via checkboxes
                                 </small>
                               </div>
                             )}

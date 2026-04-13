@@ -133,7 +133,7 @@ const SECTIONS = [
   },
   {
     key: "technical",
-    label: "Technical Skills",
+    label: "Technical Interests",
     questions: 40,
     icon: Code2,
     color: "#d97706",

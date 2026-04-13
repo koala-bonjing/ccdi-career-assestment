@@ -1,7 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth, type User } from "../../context/AuthContext";
-import { Modal, Button, Spinner } from "react-bootstrap";
-import { Eye, Printer, Download } from "lucide-react";
 
 import NoResultsView from "../ui/views/result-view";
 
@@ -43,9 +41,7 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
   const { result: storeResult } = useEvaluationStore();
   const { questions: dbQuestion } = useAssessmentQuestions();
 
-  const [showPreview, setShowPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const result = propResult || storeResult || assessmentResult;
   const activeUser = (authUser as User) || result?.user;
@@ -59,17 +55,10 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
       const blob = await generateResultsDocument(result, activeUser);
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
-      setShowPreview(true);
     } catch (error) {
       console.error("Error generating document preview:", error);
     } finally {
       setSavingDocument(false);
-    }
-  };
-
-  const handlePrint = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.print();
     }
   };
 
@@ -111,6 +100,11 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                   <ActionButtons
                     onSave={handlePreviewDocument}
                     saving={savingDocument}
+                    pdfUrl={pdfUrl}
+                    onDownload={() => {
+                      if (result && activeUser)
+                        saveResultsAsPDF(result, activeUser);
+                    }}
                   />
                   <StudentInfoCard
                     fullName={activeUser?.fullName || activeUser?.name}
@@ -174,82 +168,82 @@ const ResultsPage = ({ result: propResult }: ResultsPageProps) => {
                       questions={dbQuestion?.foundationalAssessment}
                     />
                   )}
+
+                  {/* Thesis Research Survey Section */}
+                  <div className="mt-5 pt-4 border-top">
+                    <div
+                      className="text-center p-4"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #f8f9ff 0%, #e8f0fe 100%)",
+                        borderRadius: "16px",
+                        border: "2px solid #2B3176",
+                      }}
+                    >
+                      <h4 className="mb-3 fw-bold" style={{ color: "#2B3176" }}>
+                        📋 Thesis Research Survey
+                      </h4>
+                      <p
+                        className="mb-4"
+                        style={{
+                          color: "#4a5568",
+                          fontSize: "1.1rem",
+                          maxWidth: "600px",
+                          margin: "0 auto",
+                        }}
+                      >
+                        This assessment is part of an undergraduate thesis
+                        project. Your feedback is essential to our research and
+                        would greatly contribute to the study's success.
+                      </p>
+                      <a
+                        href="https://docs.google.com/forms/d/e/1FAIpQLSdAHz1wrTS3XI88OqVTgbS7nVBicm2w0oUl0PDYJyw9GmCXMg/viewform?usp=publish-editor"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-lg"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "12px",
+                          padding: "12px 32px",
+                          fontSize: "1.1rem",
+                          fontWeight: "bold",
+                          transition: "all 0.3s ease",
+                          boxShadow: "0 4px 15px rgba(43, 49, 118, 0.3)",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "translateY(-2px)";
+                          e.currentTarget.style.boxShadow =
+                            "0 6px 20px rgba(43, 49, 118, 0.4)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow =
+                            "0 4px 15px rgba(43, 49, 118, 0.3)";
+                        }}
+                      >
+                        📝 Participate in Research Survey
+                      </a>
+                      <p
+                        className="mt-3 mb-0"
+                        style={{
+                          color: "#718096",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        Your response will help improve career guidance tools
+                        for future students
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Document Preview Modal */}
-      <Modal
-        show={showPreview}
-        onHide={() => setShowPreview(false)}
-        size="lg"
-        centered
-        dialogClassName="modal-90w"
-      >
-        <Modal.Header
-          closeButton
-          style={{ background: "#f8f9ff", borderBottom: "2px solid #2B3176" }}
-        >
-          <Modal.Title style={{ color: "#2B3176", fontWeight: "bold" }}>
-            <Eye size={24} className="me-2 mb-1" />
-            Document Preview
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-0" style={{ background: "#e9ecef" }}>
-          {pdfUrl ? (
-            <iframe
-              ref={iframeRef}
-              src={pdfUrl || undefined}
-              style={{ width: "100%", height: "70vh", border: "none" }}
-              title="PDF Preview"
-            />
-          ) : (
-            <div
-              className="d-flex justify-content-center align-items-center"
-              style={{ height: "70vh", color: "#6c757d" }}
-            >
-              <Spinner animation="border" className="me-2" />
-              Loading Preview...
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer
-          style={{ background: "#f8f9ff", borderTop: "1px solid #dee2e6" }}
-        >
-          <Button
-            variant="outline-secondary"
-            onClick={() => setShowPreview(false)}
-          >
-            Close
-          </Button>
-          <Button
-            variant="outline-primary"
-            onClick={handlePrint}
-            className="d-flex align-items-center"
-            style={{ borderColor: "#2B3176", color: "#2B3176" }}
-          >
-            <Printer size={18} className="me-2" />
-            Print Form
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              if (result && activeUser) saveResultsAsPDF(result, activeUser);
-            }}
-            className="d-flex align-items-center"
-            style={{
-              background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
-              border: "none",
-            }}
-          >
-            <Download size={18} className="me-2" />
-            Download PDF
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </>
   );
 };

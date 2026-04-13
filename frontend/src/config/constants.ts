@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 const categoryTitles: Record<string, string> = {
   foundationalAssessment: "Foundational Assessment",
   academicAptitude: "Academic Aptitude",
-  technicalSkills: "Technical Skills & Interests",
+  technicalSkills: "Technical Interests",
   careerInterest: "Career Interest",
   learningWorkStyle: "Learning & Work Style",
 };

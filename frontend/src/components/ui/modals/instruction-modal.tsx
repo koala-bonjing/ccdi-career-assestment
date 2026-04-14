@@ -139,7 +139,7 @@ const SECTIONS = [
     color: "#d97706",
     bg: "rgba(217,119,6,0.06)",
     border: "rgba(217,119,6,0.25)",
-    title: "Section 3 — Technical Skills & Interests",
+    title: "Section 3 — Technical Interests",
     desc: "Select ALL skills you have experience with — whether you're an expert or just starting to learn. You can select as many as apply. Don't worry if you're still learning; we want to know what you're familiar with.",
     subsections: [
       {
@@ -275,7 +275,7 @@ const SECTIONS = [
   },
   {
     key: "learning",
-    label: "Learning Style",
+    label: "Learning Style & Logistics",
     questions: 40,
     icon: Layers,
     color: "#7c3aed",

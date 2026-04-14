@@ -158,7 +158,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       <SectionHeader
         icon={<BrainCircuit size={40} aria-hidden="true" />}
         sectionType="learningWorkStyle"
-        title="Learning Style & Work Interest"
+        title="Learning Style & Logistics"
         variant="warning"
       />
 

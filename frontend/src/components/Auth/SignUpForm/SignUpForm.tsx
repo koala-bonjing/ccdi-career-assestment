@@ -47,6 +47,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [emailError, setEmailError] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
+  const [isResumingVerification, setIsResumingVerification] = useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<string>("");
   
   const [showPassword, setShowPassword] = useState(false);
@@ -178,6 +179,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         `${BASE_URL}/api/auth/signup`,
         formData,
       );
+
+      // Backend found an existing unverified account and re-sent a code
+      if (response.data.pendingVerification) {
+        setIsResumingVerification(true);
+      } else {
+        setIsResumingVerification(false);
+      }
+
       setMessage({ type: "success", text: response.data.message });
       setStep("verify");
     } catch (error: unknown) {
@@ -309,6 +318,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               We sent a 6-digit verification code to{" "}
               <strong style={{ color: "#A41D31" }}>{formData.email}</strong>
             </p>
+            {isResumingVerification && (
+              <p className="auth-subtitle" style={{ fontSize: "0.82rem", color: "#856404", backgroundColor: "#fff3cd", padding: "0.5rem 0.75rem", borderRadius: "6px", marginTop: "0.5rem" }}>
+                ⚠️ This email was previously registered but not verified. A fresh code has been sent — please check your inbox.
+              </p>
+            )}
           </div>
 
           {message.text && (

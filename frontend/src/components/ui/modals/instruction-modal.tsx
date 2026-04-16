@@ -82,7 +82,7 @@ const SECTIONS = [
     bg: "rgba(26,122,60,0.06)",
     border: "rgba(26,122,60,0.25)",
     title: "Section 2 — Academic Aptitude",
-    desc: "All 40 questions use a 5-point agreement scale (Strongly Disagree → Strongly Agree). You rate how accurately each statement describes your thinking and learning abilities.",
+    desc: "All 40 items use a 5-point agreement scale (Strongly Disagree → Strongly Agree). You rate how accurately each statement describes your thinking and learning abilities.",
     subsections: [
       {
         name: "Logic & Reasoning",
@@ -202,7 +202,7 @@ const SECTIONS = [
     bg: "rgba(14,116,144,0.06)",
     border: "rgba(14,116,144,0.25)",
     title: "Section 4 — Career Interest",
-    desc: "All 40 questions use the 5-point scale. Each statement describes a specific job role or career path. Rate how much each direction appeals to you.",
+    desc: "All 40 items use the 5-point scale. Each statement describes a specific job role or career path. Rate how much each direction appeals to you.",
     subsections: [
       {
         name: "Software & Research",

@@ -70,13 +70,7 @@ export const AssessmentCompletedModal: React.FC<
             : "—"}
         </p>
 
-        {/* Warning Note */}
-        <div className="bg-light-warning rounded p-3 mb-4">
-          <p className="mb-0 small text-dark">
-            <strong>Note:</strong> If you retake the assessment, your previous
-            results will be replaced with the new ones.
-          </p>
-        </div>
+       
       </Modal.Body>
 
       <Modal.Footer className="border-0 justify-content-center pb-4">

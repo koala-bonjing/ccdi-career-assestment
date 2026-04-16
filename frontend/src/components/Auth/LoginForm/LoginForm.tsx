@@ -512,7 +512,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                           onClick={onSwitchToSignup}
                           className="inline-flex items-center gap-1 text-[#1C6CB3] font-semibold text-sm hover:text-[#2B3176] transition-colors group"
                         >
-                          <span>Start Your Journey Here</span>
+                          <span>Sign Up Here!</span>
                           <ArrowRight
                             size={14}
                             className="group-hover:translate-x-1 transition-transform"

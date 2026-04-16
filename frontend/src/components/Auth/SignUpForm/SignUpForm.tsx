@@ -24,7 +24,6 @@ import "./SignUpForm.css";
 import { useAuth } from "../../../context/AuthContext";
 import { useUserStore } from "../../../../store/useUserStore";
 
-
 const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
   const navigate = useNavigate();
@@ -47,38 +46,39 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [emailError, setEmailError] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
-  const [isResumingVerification, setIsResumingVerification] = useState<boolean>(false);
+  const [isResumingVerification, setIsResumingVerification] =
+    useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<string>("");
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
- const courses: Course[] = [
-  { value: "Undecided", label: "I'm not sure yet" },
-  { value: "BSCS", label: "Computer Science (BSCS)" },
-  { value: "BSIT", label: "Information Technology (BSIT)" },
-  { value: "BSIS", label: "Information Systems (BSIS)" },
-  {
-    value: "BSET Electronics Technology",
-    label: "Electronics Technology (BSET)",
-  },
-  {
-    value: "BSET Electrical Technology",
-    label: "Electrical Technology (BSET)",
-  },
-  {
-    value: "ACT - Multimedia & Animation",
-    label: "Multimedia & Animation (ACT)",
-  },
-  {
-    value: "ACT - Programming",
-    label: "Programming (ACT)",
-  },
-  {
-    value: "ACT - Networking",
-    label: "Networking (ACT)",
-  },
-];
+  const courses: Course[] = [
+    { value: "Undecided", label: "I'm not sure yet" },
+    { value: "BSCS", label: "Computer Science (BSCS)" },
+    { value: "BSIT", label: "Information Technology (BSIT)" },
+    { value: "BSIS", label: "Information Systems (BSIS)" },
+    {
+      value: "BSET Electronics Technology",
+      label: "Electronics Technology (BSET)",
+    },
+    {
+      value: "BSET Electrical Technology",
+      label: "Electrical Technology (BSET)",
+    },
+    {
+      value: "ACT - Multimedia & Animation",
+      label: "Multimedia & Animation (ACT)",
+    },
+    {
+      value: "ACT - Programming",
+      label: "Programming (ACT)",
+    },
+    {
+      value: "ACT - Networking",
+      label: "Networking (ACT)",
+    },
+  ];
   const checkEmailAvailability = async (email: string): Promise<void> => {
     if (!email || !email.includes("@")) {
       setEmailError("");
@@ -230,7 +230,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         code: verificationCode,
       });
       setMessage({ type: "success", text: response.data.message });
-      
+
       try {
         const loginResponse = await axios.post(`${BASE_URL}/api/auth/login`, {
           fullName: formData.fullName,
@@ -240,11 +240,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
         const userData = loginResponse.data.user;
         const token = loginResponse.data.token;
-        
+
         if (token) {
           localStorage.setItem("token", token);
         }
-        
+
         login(userData, token);
         setCurrentUser({
           _id: userData._id || userData.id,
@@ -254,7 +254,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         });
 
         console.log("✅ Auto-login successful, redirecting to /welcome");
-        
+
         setTimeout(() => {
           navigate("/welcome");
         }, 1500);
@@ -319,8 +319,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               <strong style={{ color: "#A41D31" }}>{formData.email}</strong>
             </p>
             {isResumingVerification && (
-              <p className="auth-subtitle" style={{ fontSize: "0.82rem", color: "#856404", backgroundColor: "#fff3cd", padding: "0.5rem 0.75rem", borderRadius: "6px", marginTop: "0.5rem" }}>
-                ⚠️ This email was previously registered but not verified. A fresh code has been sent — please check your inbox.
+              <p
+                className="auth-subtitle"
+                style={{
+                  fontSize: "0.82rem",
+                  color: "#856404",
+                  backgroundColor: "#fff3cd",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "6px",
+                  marginTop: "0.5rem",
+                }}
+              >
+                ⚠️ This email was previously registered but not verified. A
+                fresh code has been sent — please check your inbox.
               </p>
             )}
           </div>
@@ -380,13 +391,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                 className="link-button"
               >
                 Resend Code
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep("signup")}
-                className="link-button"
-              >
-                Back to Signup
               </button>
             </div>
           </form>
@@ -542,7 +546,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               )}
             </button>
           </div>
-          
+
           {/* Password match error */}
           {passwordError && (
             <div
@@ -680,8 +684,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
                 <h6>2. Eligibility</h6>
                 <p>
-                 Eligibility is limited to students and prospective students of CCDI Sorsogon. 
-                 Minors must obtain parental consent.
+                  Eligibility is limited to students and prospective students of
+                  CCDI Sorsogon. Minors must obtain parental consent.
                 </p>
 
                 <h6>3. Account Responsibility</h6>
@@ -786,7 +790,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                     </a>
                     .
                   </div>
-                  
                 </p>
 
                 <h6>5. Security</h6>

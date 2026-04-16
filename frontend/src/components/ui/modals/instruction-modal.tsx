@@ -481,7 +481,7 @@ export const AssessmentInstructionsModal: React.FC<
               Assessment Instructions
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 2 }}>
-              5 sections · 200 questions · 20–25 minutes
+              5 sections · 200 items · 20–25 minutes
             </div>
           </div>
         </Modal.Title>

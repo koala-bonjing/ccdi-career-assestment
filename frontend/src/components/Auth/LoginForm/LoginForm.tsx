@@ -156,7 +156,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                       </span>
                     </div>
                     <h1 className="text-2xl font-bold tracking-tight">
-                      CCDI Career Intelligence
+                      CCDI Career Assessment Assessment
                     </h1>
                   </div>
                 </div>
@@ -172,11 +172,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   {
                     icon: <GraduationCap size={18} />,
                     title: "Smart Program Matching",
-                    desc: "AI aligns your profile with CCDI's programs",
+                    desc: "Aligns your profile with CCDI's programs",
                   },
                   {
                     icon: <Brain size={18} />,
-                    title: "Gemini AI Insights",
+                    title: "AI Insights",
                     desc: "Advanced AI-driven career recommendations",
                   },
                   {
@@ -187,7 +187,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   {
                     icon: <Users size={18} />,
                     title: "Personalized Path",
-                    desc: "Tailored to your unique skills and interests",
+                    desc: "Tailored to your unique preferences and interests",
                   },
                 ].map((feature, idx) => (
                   <div

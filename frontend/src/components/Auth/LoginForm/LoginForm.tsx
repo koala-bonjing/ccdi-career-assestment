@@ -156,7 +156,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                       </span>
                     </div>
                     <h1 className="text-2xl font-bold tracking-tight">
-                      CCDI Career Assessment Assessment
+                      CCDI Career Assessment Test
                     </h1>
                   </div>
                 </div>

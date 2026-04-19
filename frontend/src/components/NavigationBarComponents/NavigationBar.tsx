@@ -2,7 +2,7 @@
   import { LogOut, Menu, X } from "lucide-react";
   import { useAuth } from "../../context/AuthContext";
   import { useNavigate } from "react-router-dom";
-  import LOGO from "../../assets/ccdi_banner1.png";
+  import LOGO from "../../assets/Group 1.png";
   import LOGO_Alt from "../../assets/logoCCDI.png";
   import "./NavigationBar.css";
   import { LogoutModal } from "../ui/modals/logout-modal";

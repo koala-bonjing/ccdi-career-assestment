@@ -491,7 +491,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                               </>
                             ) : (
                               <>
-                                <span>Continue Assessment</span>
+                                <span>Sign In</span>
                                 <ArrowRight
                                   size={16}
                                   className="group-hover:translate-x-1 transition-transform"

@@ -39,7 +39,7 @@ const SECTIONS = [
         count: "14 questions",
         types: ["10 multiple choice", "4 self-assessment"],
         detail:
-          "Covers percentages, algebra, English spelling, computer parts, file types, LED definitions, Wi-Fi, operating systems, and browser usage.",
+          "Covers percentages, algebra, English spelling, computer parts, file types, LED definition, Wi‑Fi, operating systems, and browser usage.",
         examples: [
           "What is 25% of 100?",
           "In electronics, what does LED stand for?",
@@ -82,14 +82,14 @@ const SECTIONS = [
     bg: "rgba(26,122,60,0.06)",
     border: "rgba(26,122,60,0.25)",
     title: "Section 2 — Academic Aptitude",
-    desc: "All 40 items use a 5-point agreement scale (Strongly Disagree → Strongly Agree). You rate how accurately each statement describes your thinking and learning abilities.",
+    desc: "All 40 items use a 5‑point agreement scale (Strongly Disagree → Strongly Agree). Rate how accurately each statement describes your current thinking and learning abilities.",
     subsections: [
       {
         name: "Logic & Reasoning",
         count: "BSCS track",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Covers abstract thinking, breaking problems into steps, pattern recognition, and evaluating solutions logically.",
+          "Abstract thinking, breaking problems into steps, pattern recognition, and evaluating solutions logically.",
         examples: [
           "I can break down complex problems into smaller, manageable parts.",
           "I enjoy discovering patterns and finding the best solutions to problems.",
@@ -100,7 +100,7 @@ const SECTIONS = [
         count: "BSIT / BSET track",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Covers understanding how systems interconnect, diagnosing faults, following technical procedures.",
+          "Understanding how systems interconnect, diagnosing faults, following technical procedures.",
         examples: [
           "I can identify what's wrong when systems or technology don't work as expected.",
           "I can follow detailed technical instructions step-by-step.",
@@ -111,7 +111,7 @@ const SECTIONS = [
         count: "BSIS track",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Covers interpreting data, understanding business processes, explaining technical ideas to non-technical people.",
+          "Interpreting data, understanding business processes, explaining technical ideas to non-technical people.",
         examples: [
           "I'm good at understanding how business processes work and finding ways to improve them.",
           "I can look at data and numbers to find trends.",
@@ -122,76 +122,76 @@ const SECTIONS = [
         count: "ACT Multimedia",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Covers aesthetic sense, translating ideas into visual form, taking creative feedback.",
+          "Aesthetic sense, translating ideas into visual form, taking creative feedback.",
         examples: [
           "I have a strong sense of visual aesthetics.",
           "I am good at translating ideas into visual representations.",
         ],
       },
     ],
-    tip: "Be honest rather than optimistic. You are rating your current confidence level — not your potential.",
+    tip: "Be honest rather than optimistic. Rate your current confidence — not your potential.",
   },
   {
     key: "technical",
-    label: "Technical Interests",
+    label: "Technical Interests", // ✅ changed from "Technical Skills"
     questions: 40,
     icon: Code2,
     color: "#d97706",
     bg: "rgba(217,119,6,0.06)",
     border: "rgba(217,119,6,0.25)",
-    title: "Section 3 — Technical Interests",
-    desc: "Select ALL skills you have experience with — whether you're an expert or just starting to learn. You can select as many as apply. Don't worry if you're still learning; we want to know what you're familiar with.",
+    title: "Section 3 — Technical Interests", // ✅ changed
+    desc: "No right or wrong answers. Check all the areas you're genuinely interested in learning — even if you have zero experience. Interest is what matters here.",
     subsections: [
       {
         name: "Programming & Development",
-        count: "Coding skills",
+        count: "Coding & software",
         types: ["Checkbox / Multiple select"],
         detail:
-          "Covers programming languages, web development, databases, and software development concepts.",
+          "Web development, programming languages, databases, app building — things you'd like to create.",
         examples: [
-          "I have experience with HTML, CSS, or JavaScript",
-          "I know how to work with databases",
-          "I understand basic programming concepts",
+          "I'm interested in learning HTML, CSS, or JavaScript",
+          "I want to understand how databases work",
+          "I'm curious about writing code and building apps",
         ],
       },
       {
         name: "Hardware & Electronics",
-        count: "Technical skills",
+        count: "Physical tech",
         types: ["Checkbox / Multiple select"],
         detail:
-          "Covers working with computer hardware, electronics, circuits, and troubleshooting physical devices.",
+          "Computer hardware, circuits, Arduino, Raspberry Pi, soldering — hands‑on electronics.",
         examples: [
-          "I can assemble or repair computer hardware",
-          "I have experience with Arduino or Raspberry Pi",
-          "I understand basic electronics and circuits",
+          "I'm interested in assembling or repairing computer hardware",
+          "I'd like to work with Arduino or Raspberry Pi",
+          "I'm curious about how electronic circuits work",
         ],
       },
       {
         name: "Creative & Design Tools",
-        count: "Design skills",
+        count: "Digital media",
         types: ["Checkbox / Multiple select"],
         detail:
-          "Covers graphic design, photo editing, video production, and creative software.",
+          "Graphic design, photo editing, video production, animation — creative software.",
         examples: [
-          "I can use Photoshop or similar image editing software",
-          "I have experience with video editing",
-          "I understand design principles and color theory",
+          "I'm interested in learning Photoshop or similar tools",
+          "I'd like to edit videos or create animations",
+          "I'm curious about design principles and color theory",
         ],
       },
       {
         name: "Networking & IT Support",
-        count: "IT skills",
+        count: "Networks & systems",
         types: ["Checkbox / Multiple select"],
         detail:
-          "Covers setting up networks, troubleshooting computers, and providing technical support.",
+          "Setting up networks, troubleshooting computers, cybersecurity basics — keeping tech running.",
         examples: [
-          "I can set up a home network or Wi-Fi",
-          "I know how to troubleshoot computer problems",
-          "I understand basic cybersecurity concepts",
+          "I'm interested in setting up home or office networks",
+          "I'd like to learn how to troubleshoot computer problems",
+          "I'm curious about cybersecurity and protecting systems",
         ],
       },
     ],
-    tip: "Select ANY skill you have experience with — even if you're still a beginner. There are no wrong answers, and selecting more skills helps us find the best program match for you.",
+    tip: "Select based on genuine interest, not what you already know. If a topic sounds exciting, that's enough — pick it.",
   },
   {
     key: "career",
@@ -202,14 +202,14 @@ const SECTIONS = [
     bg: "rgba(14,116,144,0.06)",
     border: "rgba(14,116,144,0.25)",
     title: "Section 4 — Career Interest",
-    desc: "All 40 items use the 5-point scale. Each statement describes a specific job role or career path. Rate how much each direction appeals to you.",
+    desc: "All 40 items use the 5‑point scale. Each statement describes a specific job role or career path. Rate how much each direction appeals to you.",
     subsections: [
       {
         name: "Software & Research",
         count: "BSCS",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Roles: software developer, data scientist, AI/ML engineer. Focus on building new software and cutting-edge technology.",
+          "Software developer, data scientist, AI/ML engineer. Building new software and cutting‑edge technology.",
         examples: [
           "I want to create new software applications and programs.",
           "I'm fascinated by artificial intelligence and machine learning.",
@@ -220,7 +220,7 @@ const SECTIONS = [
         count: "BSIT",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Roles: network admin, IT support, cybersecurity analyst. Focus on keeping systems running and secure.",
+          "Network admin, IT support, cybersecurity analyst. Keeping systems running and secure.",
         examples: [
           "I'm interested in network administration or cybersecurity roles.",
           "I want to help organizations run their technology smoothly.",
@@ -231,7 +231,7 @@ const SECTIONS = [
         count: "BSIS",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Roles: business analyst, IT consultant, data analyst. Focus on bridging business needs with technology.",
+          "Business analyst, IT consultant, data analyst. Bridging business needs with technology.",
         examples: [
           "I want to work at the intersection of business and technology.",
           "I'm interested in roles like business analyst or IT consultant.",
@@ -242,7 +242,7 @@ const SECTIONS = [
         count: "BSET Electrical",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Roles: electrical technician, PLC programmer. Focus on power systems, manufacturing, renewable energy.",
+          "Electrical technician, PLC programmer. Power systems, manufacturing, renewable energy.",
         examples: [
           "I want to work with power systems or electrical infrastructure.",
           "I'm interested in industrial automation.",
@@ -253,7 +253,7 @@ const SECTIONS = [
         count: "ACT Multimedia",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Roles: graphic designer, animator, video editor. Focus on digital media, branding, advertising.",
+          "Graphic designer, animator, video editor. Digital media, branding, advertising.",
         examples: [
           "I want to work as a graphic designer or animator.",
           "I am attracted to creative industries like film or gaming.",
@@ -264,7 +264,7 @@ const SECTIONS = [
         count: "ACT Networking",
         types: ["Agree / Disagree scale (1-5)"],
         detail:
-          "Roles: IT support, network technician. Focus on setup, maintenance, and troubleshooting.",
+          "IT support, network technician. Setup, maintenance, and troubleshooting.",
         examples: [
           "I want to work as a network technician or IT support specialist.",
           "I want a stable technical job where I can start within 2 years.",
@@ -275,37 +275,37 @@ const SECTIONS = [
   },
   {
     key: "learning",
-    label: "Learning Style & Logistics",
+    label: "Your Learning & Commitments",
     questions: 40,
     icon: Layers,
     color: "#7c3aed",
     bg: "rgba(124,58,237,0.06)",
     border: "rgba(124,58,237,0.25)",
-    title: "Section 5 — Learning Style & Logistics",
-    desc: "Select ALL options that apply to you across 4 categories. You must select at least one option from each category to complete this section. This helps us understand your real-life situation and what you can realistically commit to.",
+    title: "Section 5 — Your Learning & Commitments",
+    desc: "No right or wrong answers. Select at least one option from each category below. These are about your real situation — how you prefer to learn, what you can commit to time‑wise, your resources, and your career expectations.",
     subsections: [
       {
-        name: "Learning Preferences",
-        count: "How you study",
+        name: "Learning & Program Commitment",
+        count: "How you learn & what duration fits you",
         types: ["Checkbox / Multiple select", "Select at least 1"],
         detail:
-          "Covers preference for hands-on project-based learning vs. theory, 2-year vs. 4-year programs, self-study commitment, and comfort with lab-intensive work.",
+          "Your preference for hands‑on projects vs. theory, ability to commit to 2‑year or 4‑year programs, self‑study habits, and lab readiness.",
         examples: [
-          "I prefer learning by building actual projects",
-          "I can commit to a 4-year program with lab work",
-          "I can dedicate time outside class for coding",
+          "I prefer learning by building actual projects.",
+          "I can commit to a 4‑year program with lab work.",
+          "I can complete a 2‑year focused program with intensive lab work.",
         ],
       },
       {
         name: "Work Style Preferences",
-        count: "How you work",
+        count: "How you work best",
         types: ["Checkbox / Multiple select", "Select at least 1"],
         detail:
-          "Covers openness to unpaid OJT/internships, working part-time during studies, physical demands, and reliable transport.",
+          "Openness to unpaid internships, part‑time work during studies, physical demands, and transportation needs.",
         examples: [
-          "I'm open to internships that may be unpaid",
-          "I'm physically capable of hands-on work",
-          "I have reliable transportation",
+          "I'm open to internships that may be unpaid.",
+          "I'm physically capable of hands‑on work.",
+          "I have reliable transportation.",
         ],
       },
       {
@@ -313,27 +313,27 @@ const SECTIONS = [
         count: "What you can invest",
         types: ["Checkbox / Multiple select", "Select at least 1"],
         detail:
-          "Covers readiness to spend on tools, lab fees, safety equipment, certification exams, textbooks, and having a capable computer.",
+          "Readiness to spend on tools, lab fees, certifications, textbooks, and having a capable computer.",
         examples: [
-          "I'm willing to invest in tools and equipment",
-          "I'm willing to invest in certification exams",
-          "I have access to a capable computer",
+          "I'm willing to invest in tools and equipment.",
+          "I'm willing to invest in certification exams.",
+          "I have access to a capable computer.",
         ],
       },
       {
         name: "Career Goals & Logistics",
-        count: "Long-term plan",
+        count: "Your long‑term plan",
         types: ["Checkbox / Multiple select", "Select at least 1"],
         detail:
-          "Covers understanding program outcomes — management potential, licensure paths, creative careers, entry-level employment, or path to higher degree.",
+          "Understanding of program outcomes — management potential, licensure, creative careers, entry‑level work, or pathway to a higher degree.",
         examples: [
-          "I want a degree that can lead to management roles",
-          "I'm investing in a career with strong demand",
-          "I understand this 2-year program leads to entry-level roles",
+          "I want a degree that can lead to management roles.",
+          "I'm investing in a career with strong demand.",
+          "I understand this 2‑year program leads to entry‑level roles.",
         ],
       },
     ],
-    tip: "Select ALL options that apply to you in each category. You must select at least one option per category to proceed. If a 4-year program with heavy lab work isn't realistic, don't select it — the system will recommend a 2-year ACT track instead.",
+    tip: "Be honest about your current situation, not the student you hope to be. You must select at least one option from each category to continue.",
   },
 ];
 
@@ -390,7 +390,15 @@ const SubItem: React.FC<{
         >
           {count}
         </span>
-        <span style={{ fontSize: 13, color: "#18181b", flex: 1, lineHeight: 1.4, fontWeight: 500 }}>
+        <span
+          style={{
+            fontSize: 13,
+            color: "#18181b",
+            flex: 1,
+            lineHeight: 1.4,
+            fontWeight: 500,
+          }}
+        >
           {name}
         </span>
         <span style={{ color: "#52525b", flexShrink: 0, marginTop: 2 }}>
@@ -406,7 +414,14 @@ const SubItem: React.FC<{
             background: "#fafafa",
           }}
         >
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0 8px" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 6,
+              flexWrap: "wrap",
+              margin: "10px 0 8px",
+            }}
+          >
             {types.map((t) => (
               <span
                 key={t}
@@ -424,15 +439,40 @@ const SubItem: React.FC<{
               </span>
             ))}
           </div>
-          <p style={{ fontSize: 12.5, color: "#3f3f46", lineHeight: 1.5, margin: "0 0 10px" }}>
+          <p
+            style={{
+              fontSize: 12.5,
+              color: "#3f3f46",
+              lineHeight: 1.5,
+              margin: "0 0 10px",
+            }}
+          >
             {detail}
           </p>
-          <p style={{ fontSize: 11, fontWeight: 600, color: "#52525b", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 6px" }}>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#52525b",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              margin: "0 0 6px",
+            }}
+          >
             Example questions
           </p>
           <ul style={{ margin: 0, paddingLeft: 18 }}>
             {examples.map((ex) => (
-              <li key={ex} style={{ fontSize: 12, color: "#18181b", lineHeight: 1.5, marginBottom: 4, fontWeight: 450 }}>
+              <li
+                key={ex}
+                style={{
+                  fontSize: 12,
+                  color: "#18181b",
+                  lineHeight: 1.5,
+                  marginBottom: 4,
+                  fontWeight: 450,
+                }}
+              >
                 <em>"{ex}"</em>
               </li>
             ))}
@@ -453,13 +493,23 @@ export const AssessmentInstructionsModal: React.FC<
   const Icon = sec.icon;
 
   return (
-    <Modal show={show} onHide={onHide} centered size="lg" className="modern-modal">
+    <Modal
+      show={show}
+      onHide={onHide}
+      centered
+      size="lg"
+      className="modern-modal"
+    >
       {/* ── header ── */}
       <Modal.Header
         className="border-0 pb-0"
         closeButton
         closeVariant="white"
-        style={{ background: "#2B3176", borderRadius: "12px 12px 0 0", padding: "1.2rem 1.5rem" }}
+        style={{
+          background: "#2B3176",
+          borderRadius: "12px 12px 0 0",
+          padding: "1.2rem 1.5rem",
+        }}
       >
         <Modal.Title className="w-100 d-flex align-items-center gap-3">
           <div
@@ -480,15 +530,27 @@ export const AssessmentInstructionsModal: React.FC<
             <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>
               Assessment Instructions
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 2 }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: "rgba(255,255,255,0.75)",
+                marginTop: 2,
+              }}
+            >
               5 sections · 200 items · 20–25 minutes
             </div>
           </div>
         </Modal.Title>
       </Modal.Header>
 
-      <Modal.Body style={{ padding: "1.2rem 1.5rem", display: "flex", flexDirection: "column", gap: 14 }}>
-
+      <Modal.Body
+        style={{
+          padding: "1.2rem 1.5rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: 14,
+        }}
+      >
         {/* notice */}
         <div
           style={{
@@ -502,29 +564,83 @@ export const AssessmentInstructionsModal: React.FC<
             fontWeight: 450,
           }}
         >
-          This is a <strong style={{ color: "#0284c7" }}>program recommendation tool</strong>, not a test. There are no
-          passing or failing scores. Answer every question as honestly as you can —
-          your results are only as accurate as your answers.
+          This is a{" "}
+          <strong style={{ color: "#0284c7" }}>
+            program recommendation tool
+          </strong>
+          , not a test. There are no passing or failing scores. Answer every
+          question as honestly as you can — your results are only as accurate as
+          your answers.
         </div>
 
         {/* Quick Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 10 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0,1fr))",
+            gap: 10,
+          }}
+        >
           {[
-            { icon: Clock, label: "Duration", value: "20–25 mins", color: "#2B3176" },
-            { icon: CheckCircle, label: "Sections", value: "5 Parts", color: "#1a7a3c" },
-            { icon: EyeOff, label: "Privacy", value: "Confidential", color: "#0e7490" },
-            { icon: BarChart3, label: "Result", value: "AI-Powered", color: "#d97706" },
+            {
+              icon: Clock,
+              label: "Duration",
+              value: "20–25 mins",
+              color: "#2B3176",
+            },
+            {
+              icon: CheckCircle,
+              label: "Sections",
+              value: "5 Parts",
+              color: "#1a7a3c",
+            },
+            {
+              icon: EyeOff,
+              label: "Privacy",
+              value: "Confidential",
+              color: "#0e7490",
+            },
+            {
+              icon: BarChart3,
+              label: "Result",
+              value: "AI-Powered",
+              color: "#d97706",
+            },
           ].map((item, i) => (
-            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              <item.icon size={22} color={item.color} style={{ marginBottom: 4 }} />
-              <small style={{ color: "#52525b", fontSize: 11, fontWeight: 500 }}>{item.label}</small>
-              <strong style={{ fontSize: 13, color: "#18181b" }}>{item.value}</strong>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+              }}
+            >
+              <item.icon
+                size={22}
+                color={item.color}
+                style={{ marginBottom: 4 }}
+              />
+              <small
+                style={{ color: "#52525b", fontSize: 11, fontWeight: 500 }}
+              >
+                {item.label}
+              </small>
+              <strong style={{ fontSize: 13, color: "#18181b" }}>
+                {item.value}
+              </strong>
             </div>
           ))}
         </div>
 
         {/* section tabs */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0,1fr))", gap: 6 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(5, minmax(0,1fr))",
+            gap: 6,
+          }}
+        >
           {SECTIONS.map((s, i) => {
             const SIcon = s.icon;
             const active = activeTab === i;
@@ -547,16 +663,24 @@ export const AssessmentInstructionsModal: React.FC<
                 }}
               >
                 <SIcon size={16} color={active ? s.color : "#52525b"} />
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: active ? s.color : "#3f3f46",
-                  textAlign: "center",
-                  lineHeight: 1.2,
-                }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: active ? s.color : "#3f3f46",
+                    textAlign: "center",
+                    lineHeight: 1.2,
+                  }}
+                >
                   {s.label}
                 </span>
-                <span style={{ fontSize: 10, color: active ? s.color : "#71717a", fontWeight: 500 }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: active ? s.color : "#71717a",
+                    fontWeight: 500,
+                  }}
+                >
                   {s.questions} items
                 </span>
               </button>
@@ -591,8 +715,18 @@ export const AssessmentInstructionsModal: React.FC<
             <Icon size={18} color={sec.color} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#18181b" }}>{sec.title}</div>
-            <div style={{ fontSize: 12.5, color: "#3f3f46", marginTop: 4, lineHeight: 1.5, fontWeight: 450 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#18181b" }}>
+              {sec.title}
+            </div>
+            <div
+              style={{
+                fontSize: 12.5,
+                color: "#3f3f46",
+                marginTop: 4,
+                lineHeight: 1.5,
+                fontWeight: 450,
+              }}
+            >
               {sec.desc}
             </div>
           </div>
@@ -600,14 +734,16 @@ export const AssessmentInstructionsModal: React.FC<
 
         {/* sub-items */}
         <div>
-          <p style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#52525b",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            marginBottom: 8,
-          }}>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#52525b",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 8,
+            }}
+          >
             What's covered — tap each to expand
           </p>
           {sec.subsections.map((sub) => (
@@ -643,10 +779,23 @@ export const AssessmentInstructionsModal: React.FC<
             padding: "14px 16px",
           }}
         >
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#18181b", marginBottom: 8 }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#18181b",
+              marginBottom: 8,
+            }}
+          >
             📋 Programs We'll Recommend From:
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "4px 16px",
+            }}
+          >
             {[
               "BSCS - Software Dev, AI/ML",
               "BSIT - Networking, Cybersecurity",
@@ -657,8 +806,14 @@ export const AssessmentInstructionsModal: React.FC<
               "ACT Programming - Web/App Dev",
               "ACT Networking - SysAdmin, Hardware",
             ].map((item) => (
-              <span key={item} style={{ fontSize: 12, color: "#3f3f46", fontWeight: 450 }}>
-                <strong style={{ color: "#18181b" }}>{item.split(" - ")[0]}</strong> - {item.split(" - ")[1]}
+              <span
+                key={item}
+                style={{ fontSize: 12, color: "#3f3f46", fontWeight: 450 }}
+              >
+                <strong style={{ color: "#18181b" }}>
+                  {item.split(" - ")[0]}
+                </strong>{" "}
+                - {item.split(" - ")[1]}
               </span>
             ))}
           </div>
@@ -673,10 +828,23 @@ export const AssessmentInstructionsModal: React.FC<
             padding: "14px 16px",
           }}
         >
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#18181b", marginBottom: 8 }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#18181b",
+              marginBottom: 8,
+            }}
+          >
             📊 After you finish all 5 sections you'll instantly receive:
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "4px 16px",
+            }}
+          >
             {[
               "AI-generated program recommendation",
               "Foundational readiness score & breakdown",
@@ -685,8 +853,22 @@ export const AssessmentInstructionsModal: React.FC<
               "Preparation topics to study before enrolling",
               "Visual charts showing your strengths",
             ].map((item) => (
-              <div key={item} style={{ fontSize: 12, color: "#3f3f46", display: "flex", gap: 6, alignItems: "flex-start", fontWeight: 450 }}>
-                <span style={{ color: "#2B3176", flexShrink: 0, fontWeight: 700 }}>•</span>
+              <div
+                key={item}
+                style={{
+                  fontSize: 12,
+                  color: "#3f3f46",
+                  display: "flex",
+                  gap: 6,
+                  alignItems: "flex-start",
+                  fontWeight: 450,
+                }}
+              >
+                <span
+                  style={{ color: "#2B3176", flexShrink: 0, fontWeight: 700 }}
+                >
+                  •
+                </span>
                 {item}
               </div>
             ))}
@@ -702,21 +884,65 @@ export const AssessmentInstructionsModal: React.FC<
             padding: "14px 16px",
           }}
         >
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#92400e", marginBottom: 8 }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#92400e",
+              marginBottom: 8,
+            }}
+          >
             💡 Tips for Best Results
           </p>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
-            <li style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5, marginBottom: 4, fontWeight: 450 }}>
-              <strong style={{ color: "#92400e" }}>Be honest</strong> — Answer truthfully for accurate recommendations.
+            <li
+              style={{
+                fontSize: 12,
+                color: "#78350f",
+                lineHeight: 1.5,
+                marginBottom: 4,
+                fontWeight: 450,
+              }}
+            >
+              <strong style={{ color: "#92400e" }}>Be honest</strong> — Answer
+              truthfully for accurate recommendations.
             </li>
-            <li style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5, marginBottom: 4, fontWeight: 450 }}>
-              <strong style={{ color: "#92400e" }}>Don't stress about "wrong" answers</strong> — The goal is to find the right program for YOU.
+            <li
+              style={{
+                fontSize: 12,
+                color: "#78350f",
+                lineHeight: 1.5,
+                marginBottom: 4,
+                fontWeight: 450,
+              }}
+            >
+              <strong style={{ color: "#92400e" }}>
+                Don't stress about "wrong" answers
+              </strong>{" "}
+              — The goal is to find the right program for YOU.
             </li>
-            <li style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5, marginBottom: 4, fontWeight: 450 }}>
-              For the <strong>Foundational Assessment</strong>, don't guess wildly. If you don't know, select the closest option.
+            <li
+              style={{
+                fontSize: 12,
+                color: "#78350f",
+                lineHeight: 1.5,
+                marginBottom: 4,
+                fontWeight: 450,
+              }}
+            >
+              For the <strong>Foundational Assessment</strong>, don't guess
+              wildly. If you don't know, select the closest option.
             </li>
-            <li style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5, fontWeight: 450 }}>
-              You can navigate between questions and edit answers before final submission.
+            <li
+              style={{
+                fontSize: 12,
+                color: "#78350f",
+                lineHeight: 1.5,
+                fontWeight: 450,
+              }}
+            >
+              You can navigate between questions and edit answers before final
+              submission.
             </li>
           </ul>
         </div>
@@ -737,10 +963,10 @@ export const AssessmentInstructionsModal: React.FC<
         >
           <EyeOff size={14} color="#52525b" />
           <small style={{ color: "#3f3f46", fontSize: 11.5, fontWeight: 450 }}>
-            Your responses are private and used only to generate your personalized program recommendation.
+            Your responses are private and used only to generate your
+            personalized program recommendation.
           </small>
         </div>
-
       </Modal.Body>
 
       <Modal.Footer className="border-0 justify-content-center pb-4">

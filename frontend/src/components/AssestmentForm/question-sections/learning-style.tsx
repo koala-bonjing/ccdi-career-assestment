@@ -8,6 +8,7 @@ import {
   Briefcase,
   Wallet,
   Target,
+  Calendar,
   type LucideIcon,
 } from "lucide-react";
 import SectionHeader from "../section-header";
@@ -24,6 +25,43 @@ interface QuestionGroup {
   questions: Question[];
 }
 
+// Central mapping of known subCategory values to display properties
+const CATEGORY_MAP: Record<
+  string,
+  { icon: LucideIcon; color: string; description: string }
+> = {
+  "Learning Preferences": {
+    icon: BookOpen,
+    color: "#2B3176",
+    description:
+      "How you like to learn (hands-on, projects, self-study) and the program length you can commit to.",
+  },
+  "Work Style Preferences": {
+    icon: Briefcase,
+    color: "#EC2326",
+    description:
+      "Your preferred work environment: internships, part-time work, physical demands, transportation.",
+  },
+  "Financial & Time Resources": {
+    icon: Wallet,
+    color: "#1C6CB3",
+    description:
+      "What you can invest: tools, lab fees, certifications, computer access, study time.",
+  },
+  "Career Goals & Logistics": {
+    icon: Target,
+    color: "#28a745",
+    description:
+      "Your long‑term plans: management roles, licensure, entry‑level work, or further education.",
+  },
+  // Optional fallback for any new categories
+  "Program Commitment": {
+    icon: Calendar,
+    color: "#6c757d",
+    description: "Your ability to commit to program duration and intensity.",
+  },
+};
+
 const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   questions,
   formData,
@@ -36,7 +74,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
 }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -46,69 +83,60 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Build groups dynamically from actual subCategory values in the data
+  const questionGroups: QuestionGroup[] = useMemo(() => {
+    const groupsMap = new Map<string, Question[]>();
+
+    // Group questions by subCategory (default to "Uncategorized" if missing)
+    questions.forEach((question) => {
+      const subCat = question.subCategory || "Uncategorized";
+      if (!groupsMap.has(subCat)) groupsMap.set(subCat, []);
+      groupsMap.get(subCat)!.push(question as Question);
+    });
+
+    // Convert to array of QuestionGroup, using mapping or generic fallback
+    const groups: QuestionGroup[] = [];
+    for (const [category, questionsList] of groupsMap.entries()) {
+      const config = CATEGORY_MAP[category] || {
+        icon: BookOpen,
+        color: "#6c757d",
+        description: `Questions about ${category.toLowerCase()}`,
+      };
+      groups.push({
+        category,
+        icon: config.icon,
+        color: config.color,
+        description: config.description,
+        questions: questionsList,
+      });
+    }
+    return groups;
+  }, [questions]);
+
+  // Validation uses the same dynamic groups
   const { validateSection } = useAssessmentValidation({
     formData,
     section: "learningWorkStyle",
     currentQuestions: questions as Question[],
     setCurrentQuestionIndex: (index) => {
-      const categoryIndex = getCategoryIndexForQuestion(index);
-      if (categoryIndex !== -1) setActiveGroup(categoryIndex);
+      // Find which group contains the question at this index
+      let cumulative = 0;
+      for (let i = 0; i < questionGroups.length; i++) {
+        const group = questionGroups[i];
+        if (
+          index >= cumulative &&
+          index < cumulative + group.questions.length
+        ) {
+          setActiveGroup(i);
+          break;
+        }
+        cumulative += group.questions.length;
+      }
     },
     categoryTitles: { learningWorkStyle: "Learning & Work Style" },
   });
 
-  const getCategoryIndexForQuestion = (questionIndex: number) => {
-    if (questionIndex < 0 || questionIndex >= questions.length) return -1;
-    const question = questions[questionIndex];
-    const categoryOrder = [
-      "Learning Preferences",
-      "Work Style Preferences",
-      "Financial & Time Resources",
-      "Career Goals & Logistics",
-    ];
-    return categoryOrder.findIndex((cat) => cat === question.subCategory);
-  };
-
-  const questionGroups: QuestionGroup[] = useMemo(() => {
-    const groups: Record<string, Question[]> = {};
-    questions.forEach((question) => {
-      const subCategory = question.subCategory || "Uncategorized";
-      if (!groups[subCategory]) groups[subCategory] = [];
-      groups[subCategory].push(question as Question);
-    });
-
-    const categoryConfig: Record<string, { icon: LucideIcon; color: string; description: string }> = {
-      "Learning Preferences": {
-        icon: BookOpen,
-        color: "#2B3176",
-        description: "How do you prefer to learn and study?",
-      },
-      "Work Style Preferences": {
-        icon: Briefcase,
-        color: "#EC2326",
-        description: "What type of work environment suits you?",
-      },
-      "Financial & Time Resources": {
-        icon: Wallet,
-        color: "#1C6CB3",
-        description: "What resources do you have available?",
-      },
-      "Career Goals & Logistics": {
-        icon: Target,
-        color: "#28a745",
-        description: "What are your career priorities?",
-      },
-    };
-
-    return Object.entries(categoryConfig).map(([category, config]) => ({
-      category,
-      ...config,
-      questions: groups[category] || [],
-    }));
-  }, [questions]);
-
-  const isGroupComplete = (groupIndex: number) => {
-    const group = questionGroups[groupIndex];
+  const isGroupComplete = (group: QuestionGroup) => {
     return group.questions.some(
       (q) => !!formData.learningWorkStyle[q.questionText],
     );
@@ -116,9 +144,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
 
   const getCompletionStatus = () => {
     const totalGroups = questionGroups.length;
-    const completedGroups = questionGroups.filter((_, idx) =>
-      isGroupComplete(idx),
-    ).length;
+    const completedGroups = questionGroups.filter(isGroupComplete).length;
     return { completedGroups, totalGroups };
   };
 
@@ -144,6 +170,14 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   const headerIconSize = isMobile ? 32 : 48;
   const checkboxIconSize = 22;
 
+  if (questionGroups.length === 0) {
+    return (
+      <Card className="border-0 shadow-lg w-100 p-5 text-center">
+        <p>No questions available for this section.</p>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className="border-0 shadow-lg w-100"
@@ -158,12 +192,12 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       <SectionHeader
         icon={<BrainCircuit size={40} aria-hidden="true" />}
         sectionType="learningWorkStyle"
-        title="Learning Style & Logistics"
+        title="Learning & Commitments"
         variant="warning"
       />
 
       <Card.Body className="p-3 p-md-5">
-        {/* Progress Section - Stacked on Mobile */}
+        {/* Progress Section */}
         <div className="mb-4">
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-2">
             <div>
@@ -188,7 +222,11 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           {validationErrors.length > 0 && (
             <Alert variant="warning" className="mt-3 p-2">
               <div className="d-flex align-items-start">
-                <Circle size={18} className="me-2 mt-1 flex-shrink-0" aria-hidden="true" />
+                <Circle
+                  size={18}
+                  className="me-2 mt-1 flex-shrink-0"
+                  aria-hidden="true"
+                />
                 <div style={{ fontSize: "0.9rem" }}>
                   <strong>Required Categories:</strong>{" "}
                   {validationErrors.join(", ")}
@@ -202,12 +240,12 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
         <Row className="mb-4 g-2">
           {questionGroups.map((group, idx) => {
             const IconComponent = group.icon;
-            const isComplete = isGroupComplete(idx);
+            const isComplete = isGroupComplete(group);
             const isActive = activeGroup === idx;
             const isIncomplete = validationErrors.includes(group.category);
 
             return (
-              <Col key={idx} xs={6} lg={3}>
+              <Col key={idx} xs={6} lg={Math.floor(12 / questionGroups.length)}>
                 <button
                   onClick={() => {
                     setActiveGroup(idx);
@@ -216,7 +254,15 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   style={{
                     width: "100%",
                     padding: isMobile ? "10px 5px" : "16px",
-                    border: `2px solid ${isIncomplete ? "#dc3545" : isActive ? group.color : isComplete ? `${group.color}80` : "#e0e0e0"}`,
+                    border: `2px solid ${
+                      isIncomplete
+                        ? "#dc3545"
+                        : isActive
+                          ? group.color
+                          : isComplete
+                            ? `${group.color}80`
+                            : "#e0e0e0"
+                    }`,
                     borderRadius: "12px",
                     background: isActive ? `${group.color}10` : "white",
                     cursor: "pointer",
@@ -234,8 +280,8 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                       justifyContent: "center",
                     }}
                   >
-                    <IconComponent 
-                      size={tabIconSize} 
+                    <IconComponent
+                      size={tabIconSize}
                       strokeWidth={2}
                       aria-hidden="true"
                     />
@@ -290,8 +336,8 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                 justifyContent: "center",
               }}
             >
-              <currentGroup.icon 
-                size={headerIconSize} 
+              <currentGroup.icon
+                size={headerIconSize}
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -341,7 +387,13 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                       style={{ display: "none" }}
                     />
 
-                    <div style={{ flexShrink: 0, marginTop: "2px", color: isChecked ? currentGroup.color : "#ccc" }}>
+                    <div
+                      style={{
+                        flexShrink: 0,
+                        marginTop: "2px",
+                        color: isChecked ? currentGroup.color : "#ccc",
+                      }}
+                    >
                       {isChecked ? (
                         <CheckCircle2
                           size={checkboxIconSize}
@@ -361,19 +413,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                       }}
                     >
                       {question.questionText}
-                      {currentGroup.category === "Career Goals & Logistics" &&
-                        question.program && (
-                          <small
-                            style={{
-                              color: "#888",
-                              display: "block",
-                              marginTop: "2px",
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            {question.program}
-                          </small>
-                        )}
                     </span>
                   </label>
                 </Col>

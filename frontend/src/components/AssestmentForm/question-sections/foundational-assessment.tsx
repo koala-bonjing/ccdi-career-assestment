@@ -6,7 +6,6 @@ import {
   GraduationCap,
   ClipboardList,
   BrainCircuit,
-  Info,
   type LucideIcon,
 } from "lucide-react";
 import SectionHeader from "../section-header";
@@ -260,12 +259,6 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                     {q.questionText}
                   </div>
 
-                  {q.helperText && (
-                    <div className="small text-muted mb-3 ps-4">
-                      <Info size={14} className="me-1" aria-hidden="true" />
-                      <i>{q.helperText}</i>
-                    </div>
-                  )}
 
                   <Row className="g-2 g-md-3">
                     {randomizedOptions.map((option, optIdx) => {

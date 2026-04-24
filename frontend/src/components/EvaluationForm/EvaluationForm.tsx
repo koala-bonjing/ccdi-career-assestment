@@ -109,7 +109,7 @@ const EvaluationForm = () => {
     });
 
     Object.entries(nested.learningWorkStyle).forEach(([question, value]) => {
-      flat[`learningStyle.${question}`] = value;
+      flat[`learningWorkStyle.${question}`] = value;
     });
 
     return flat;

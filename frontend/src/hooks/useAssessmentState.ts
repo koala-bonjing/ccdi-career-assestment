@@ -179,6 +179,8 @@ export const useAssessmentState = () => {
               name: user.fullName || user.name || "Student",
               email: user.email || "",
               preferredCourse: user.preferredCourse || "Undecided",
+              address: user.address || latest.address || "",
+              school: user.school || latest.school || "",
             },
             percent: latest.percent || {},
             programScores: latest.programScores || {},

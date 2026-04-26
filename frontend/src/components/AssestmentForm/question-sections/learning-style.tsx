@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Card, Row, Col, Form, Alert, Badge } from "react-bootstrap";
+import { Card, Row, Col } from "react-bootstrap";
 import {
   CheckCircle2,
-  Circle,
+  XCircle,
   BrainCircuit,
   BookOpen,
   Briefcase,
@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import SectionHeader from "../section-header";
 import AssessmentActionFooter from "../assessment-action-footer";
-import { useAssessmentValidation } from "../../../hooks/useAssessmentValidation";
 import type { AssessmentSectionProps } from "../types";
 import type { Question } from "../../../types";
 
@@ -25,7 +24,6 @@ interface QuestionGroup {
   questions: Question[];
 }
 
-// Central mapping of known subCategory values to display properties
 const CATEGORY_MAP: Record<
   string,
   { icon: LucideIcon; color: string; description: string }
@@ -50,11 +48,10 @@ const CATEGORY_MAP: Record<
   },
   "Career Goals & Logistics": {
     icon: Target,
-    color: "#28a745",
+    color: "#A41D31",
     description:
       "Your long‑term plans: management roles, licensure, entry‑level work, or further education.",
   },
-  // Optional fallback for any new categories
   "Program Commitment": {
     icon: Calendar,
     color: "#6c757d",
@@ -73,8 +70,10 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   totalSections,
 }) => {
   const [activeGroup, setActiveGroup] = useState(0);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [quizIndex, setQuizIndex] = useState(0); // Question index within current group
   const [isMobile, setIsMobile] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState<"left" | "right" | null>(null);
+  const [showCategoryIntro, setShowCategoryIntro] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -83,18 +82,25 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Build groups dynamically from actual subCategory values in the data
+  // Show category intro when switching groups
+  useEffect(() => {
+    setShowCategoryIntro(true);
+    setQuizIndex(0);
+    const timer = setTimeout(() => {
+      setShowCategoryIntro(false);
+    }, 2000); // Show intro for 2 seconds
+    return () => clearTimeout(timer);
+  }, [activeGroup]);
+
   const questionGroups: QuestionGroup[] = useMemo(() => {
     const groupsMap = new Map<string, Question[]>();
 
-    // Group questions by subCategory (default to "Uncategorized" if missing)
     questions.forEach((question) => {
       const subCat = question.subCategory || "Uncategorized";
       if (!groupsMap.has(subCat)) groupsMap.set(subCat, []);
       groupsMap.get(subCat)!.push(question as Question);
     });
 
-    // Convert to array of QuestionGroup, using mapping or generic fallback
     const groups: QuestionGroup[] = [];
     for (const [category, questionsList] of groupsMap.entries()) {
       const config = CATEGORY_MAP[category] || {
@@ -113,62 +119,62 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     return groups;
   }, [questions]);
 
-  // Validation uses the same dynamic groups
-  const { validateSection } = useAssessmentValidation({
-    formData,
-    section: "learningWorkStyle",
-    currentQuestions: questions as Question[],
-    setCurrentQuestionIndex: (index) => {
-      // Find which group contains the question at this index
-      let cumulative = 0;
-      for (let i = 0; i < questionGroups.length; i++) {
-        const group = questionGroups[i];
-        if (
-          index >= cumulative &&
-          index < cumulative + group.questions.length
-        ) {
-          setActiveGroup(i);
-          break;
-        }
-        cumulative += group.questions.length;
-      }
-    },
-    categoryTitles: { learningWorkStyle: "Learning & Work Style" },
-  });
+  const currentGroup = questionGroups[activeGroup];
+  const currentQuestion = currentGroup?.questions[quizIndex];
+  const totalQuestionsInGroup = currentGroup?.questions.length || 0;
+  const totalGroups = questionGroups.length;
 
+  // Calculate progress
+  const calculateProgress = () => {
+    const answered = questions.filter(
+      (q) => typeof formData.learningWorkStyle[q.questionText] === "boolean",
+    ).length;
+    return Math.round((answered / questions.length) * 100);
+  };
+
+  // Count Yes in current group
+  const yesCountInGroup = currentGroup?.questions.filter(
+    (q) => formData.learningWorkStyle[q.questionText] === true,
+  ).length || 0;
+
+  // Check if current group is complete
   const isGroupComplete = (group: QuestionGroup) => {
     return group.questions.some(
-      (q) => !!formData.learningWorkStyle[q.questionText],
+      (q) => formData.learningWorkStyle[q.questionText] === true,
     );
   };
 
-  const getCompletionStatus = () => {
-    const totalGroups = questionGroups.length;
-    const completedGroups = questionGroups.filter(isGroupComplete).length;
-    return { completedGroups, totalGroups };
-  };
+  const isSectionComplete = questionGroups.every(isGroupComplete);
 
-  const handleCheckboxChange = (question: Question, checked: boolean) => {
+  const handleAnswer = (value: boolean) => {
+    if (!currentQuestion) return;
+
     onChange(
       "learningWorkStyle",
-      question.questionText,
-      checked,
-      question.program,
+      currentQuestion.questionText,
+      value,
+      currentQuestion.program,
     );
-    if (checked) {
-      setValidationErrors((prev) =>
-        prev.filter((cat) => cat !== question.subCategory),
-      );
-    }
+
+    // Auto-advance to next question
+    setTimeout(() => {
+      if (quizIndex < totalQuestionsInGroup - 1) {
+        setTransitionDirection("right");
+        setQuizIndex((i) => i + 1);
+      } else if (activeGroup < totalGroups - 1) {
+        // Move to next group
+        setActiveGroup((g) => g + 1);
+      }
+    }, 300);
   };
 
-  const { completedGroups, totalGroups } = getCompletionStatus();
-  const currentGroup = questionGroups[activeGroup];
-  const isSectionComplete = completedGroups === totalGroups;
 
-  const tabIconSize = isMobile ? 24 : 32;
-  const headerIconSize = isMobile ? 32 : 48;
-  const checkboxIconSize = 22;
+
+ 
+
+  const currentAnswer = currentQuestion
+    ? formData.learningWorkStyle[currentQuestion.questionText]
+    : undefined;
 
   if (questionGroups.length === 0) {
     return (
@@ -197,43 +203,90 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       />
 
       <Card.Body className="p-3 p-md-5">
-        {/* Progress Section */}
-        <div className="mb-4">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-2">
-            <div>
-              <h5
-                className="mb-1"
-                style={{ fontSize: isMobile ? "1.1rem" : "1.25rem" }}
-              >
-                Progress: {completedGroups} of {totalGroups}
-              </h5>
-              <p className="text-muted mb-0" style={{ fontSize: "0.85rem" }}>
-                Select at least one option from each category
-              </p>
-            </div>
-            <Badge
-              bg={isSectionComplete ? "success" : "warning"}
-              className="fs-6 px-3 py-2"
+        {/* Category Intro Animation */}
+        {showCategoryIntro && (
+          <div
+            className="text-center mb-4"
+            style={{
+              animation: "fadeInScale 0.6s ease-out",
+            }}
+          >
+            <div
+              className="d-inline-flex align-items-center gap-3 px-4 py-3 rounded-4"
+              style={{
+                background: `linear-gradient(135deg, ${currentGroup.color}15, ${currentGroup.color}08)`,
+                border: `2px solid ${currentGroup.color}30`,
+                boxShadow: `0 4px 16px ${currentGroup.color}20`,
+              }}
             >
-              {completedGroups}/{totalGroups} Categories
-            </Badge>
-          </div>
-
-          {validationErrors.length > 0 && (
-            <Alert variant="warning" className="mt-3 p-2">
-              <div className="d-flex align-items-start">
-                <Circle
-                  size={18}
-                  className="me-2 mt-1 flex-shrink-0"
-                  aria-hidden="true"
-                />
-                <div style={{ fontSize: "0.9rem" }}>
-                  <strong>Required Categories:</strong>{" "}
-                  {validationErrors.join(", ")}
+              <div
+                className="d-inline-flex align-items-center justify-content-center rounded-circle"
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  background: `linear-gradient(135deg, ${currentGroup.color}, ${currentGroup.color}dd)`,
+                  boxShadow: `0 4px 12px ${currentGroup.color}40`,
+                  animation: "pulse 2s infinite",
+                }}
+              >
+                <currentGroup.icon size={24} color="white" />
+              </div>
+              <div className="text-start">
+                <div
+                  style={{
+                    color: currentGroup.color,
+                    fontWeight: "800",
+                    fontSize: "1.1rem",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {currentGroup.category}
+                </div>
+                <div style={{ color: "#6b7280", fontSize: "0.8rem" }}>
+                  {currentGroup.description.substring(0, 60)}...
                 </div>
               </div>
-            </Alert>
-          )}
+            </div>
+          </div>
+        )}
+
+        {/* Progress bar */}
+        <div className="mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="text-muted small">
+              Question{" "}
+              <strong>
+                {activeGroup * totalQuestionsInGroup + quizIndex + 1}
+              </strong>{" "}
+              of {questions.length}
+            </span>
+            <div className="d-flex gap-3">
+              <span className="small fw-bold" style={{ color: "#EC2326" }}>
+                {yesCountInGroup} Yes in this category
+              </span>
+              <span className="small fw-bold" style={{ color: "#1C6CB3" }}>
+                {activeGroup + 1}/{totalGroups} Categories
+              </span>
+            </div>
+          </div>
+          <div
+            className="w-100 rounded-pill overflow-hidden"
+            style={{ height: "8px", background: "#e5e7eb" }}
+          >
+            <div
+              className="h-100 rounded-pill"
+              style={{
+                width: `${calculateProgress()}%`,
+                background: isSectionComplete
+                  ? "#1C6CB3"
+                  : "linear-gradient(135deg, #2B3176, #1C6CB3)",
+                transition: "width 0.4s ease",
+                boxShadow: isSectionComplete
+                  ? "0 0 8px rgba(28, 108, 179, 0.3)"
+                  : "none",
+              }}
+            />
+          </div>
         </div>
 
         {/* Category Navigation Tabs */}
@@ -242,74 +295,59 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
             const IconComponent = group.icon;
             const isComplete = isGroupComplete(group);
             const isActive = activeGroup === idx;
-            const isIncomplete = validationErrors.includes(group.category);
 
             return (
               <Col key={idx} xs={6} lg={Math.floor(12 / questionGroups.length)}>
                 <button
-                  onClick={() => {
-                    setActiveGroup(idx);
-                    setValidationErrors([]);
-                  }}
+                  onClick={() => setActiveGroup(idx)}
                   style={{
                     width: "100%",
-                    padding: isMobile ? "10px 5px" : "16px",
+                    padding: isMobile ? "8px 4px" : "12px 8px",
                     border: `2px solid ${
-                      isIncomplete
-                        ? "#dc3545"
-                        : isActive
-                          ? group.color
-                          : isComplete
-                            ? `${group.color}80`
-                            : "#e0e0e0"
+                      isActive
+                        ? group.color
+                        : isComplete
+                          ? `${group.color}60`
+                          : "#e0e0e0"
                     }`,
                     borderRadius: "12px",
                     background: isActive ? `${group.color}10` : "white",
                     cursor: "pointer",
                     transition: "all 0.3s ease",
                     position: "relative",
-                    minHeight: isMobile ? "90px" : "auto",
                   }}
                   aria-pressed={isActive}
                 >
                   <div
                     style={{
-                      marginBottom: "4px",
+                      marginBottom: "2px",
                       color: isActive ? group.color : "#666",
                       display: "flex",
                       justifyContent: "center",
                     }}
                   >
-                    <IconComponent
-                      size={tabIconSize}
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
+                    <IconComponent size={isMobile ? 20 : 28} strokeWidth={2} />
                   </div>
                   <div
                     style={{
-                      fontSize: isMobile ? "0.65rem" : "0.85rem",
+                      fontSize: isMobile ? "0.6rem" : "0.75rem",
                       fontWeight: "700",
                       color: isActive ? group.color : "#666",
                       textTransform: "uppercase",
-                      display: "-webkit-box",
-                      WebkitLineClamp: "2",
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
+                      lineHeight: "1.2",
                     }}
                   >
-                    {group.category}
+                    {group.category.split(" & ")[0]}
                   </div>
                   {isComplete && (
                     <CheckCircle2
-                      size={16}
+                      size={14}
                       style={{
                         position: "absolute",
-                        top: "5px",
-                        right: "5px",
-                        color: group.color,
+                        top: "4px",
+                        right: "4px",
+                        color: "#22c55e",
                       }}
-                      aria-hidden="true"
                     />
                   )}
                 </button>
@@ -318,128 +356,165 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           })}
         </Row>
 
-        {/* Current Category Card */}
+        {/* Question Card */}
         <div
-          style={{
-            background: `linear-gradient(135deg, ${currentGroup.color}08 0%, #ffffff 100%)`,
-            borderRadius: "16px",
-            padding: isMobile ? "20px 15px" : "32px",
-            border: `2px solid ${currentGroup.color}20`,
-          }}
+          className="text-center mx-auto"
+          style={{ maxWidth: "650px", minHeight: "300px" }}
         >
-          <div className="text-center mb-4">
+          {/* Question bubble */}
+          <div
+            className="mb-4 p-4 rounded-4"
+            style={{
+              background: `linear-gradient(135deg, ${currentGroup.color}08, #ffffff)`,
+              border: `1.5px solid ${currentGroup.color}30`,
+              animation: transitionDirection
+                ? `slide${transitionDirection === "right" ? "InRight" : "InLeft"} 0.3s ease-out`
+                : "none",
+            }}
+            onAnimationEnd={() => setTransitionDirection(null)}
+          >
             <div
+              className="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
               style={{
-                marginBottom: "8px",
-                color: currentGroup.color,
-                display: "flex",
-                justifyContent: "center",
+                width: "56px",
+                height: "56px",
+                background: `linear-gradient(135deg, ${currentGroup.color}, ${currentGroup.color}dd)`,
+                boxShadow: `0 4px 12px ${currentGroup.color}40`,
               }}
             >
-              <currentGroup.icon
-                size={headerIconSize}
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+              <currentGroup.icon size={24} color="white" />
             </div>
-            <h4
+            <h5
+              className="fw-bold mb-0"
               style={{
-                color: currentGroup.color,
-                fontWeight: "800",
-                textTransform: "uppercase",
-                fontSize: isMobile ? "1.2rem" : "1.5rem",
+                fontSize: "1.15rem",
+                lineHeight: "1.6",
+                color: "#2B3176",
               }}
             >
-              {currentGroup.category}
-            </h4>
-            <p className="text-muted small px-2">{currentGroup.description}</p>
+              {currentQuestion?.questionText}
+            </h5>
           </div>
 
-          <Row className="g-2 g-md-3">
-            {currentGroup.questions.map((question, idx) => {
-              const isChecked =
-                !!formData.learningWorkStyle[question.questionText];
-              return (
-                <Col key={idx} xs={12} md={6}>
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "12px",
-                      padding: isMobile ? "12px" : "16px 20px",
-                      border: `2px solid ${isChecked ? currentGroup.color : "#e0e0e0"}`,
-                      borderRadius: "12px",
-                      background: isChecked
-                        ? `${currentGroup.color}08`
-                        : "white",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      minHeight: "60px",
-                      width: "100%",
-                    }}
-                  >
-                    <Form.Check
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={(e) =>
-                        handleCheckboxChange(question, e.target.checked)
-                      }
-                      style={{ display: "none" }}
-                    />
+          <p className="text-muted small mb-3">
+            <span style={{ color: currentGroup.color, fontWeight: "600" }}>
+              {currentGroup.category}
+            </span>{" "}
+            — Does this apply to you?
+          </p>
 
-                    <div
-                      style={{
-                        flexShrink: 0,
-                        marginTop: "2px",
-                        color: isChecked ? currentGroup.color : "#ccc",
-                      }}
-                    >
-                      {isChecked ? (
-                        <CheckCircle2
-                          size={checkboxIconSize}
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Circle size={checkboxIconSize} aria-hidden="true" />
-                      )}
-                    </div>
+          {/* Yes / No buttons */}
+          <div className="d-flex gap-3 justify-content-center flex-wrap mb-4">
+            <button
+              onClick={() => handleAnswer(false)}
+              style={{
+                minWidth: "140px",
+                borderRadius: "50px",
+                fontWeight: "600",
+                fontSize: "0.95rem",
+                padding: "12px 28px",
+                background: currentAnswer === false ? "#1C6CB3" : "white",
+                color: currentAnswer === false ? "white" : "#374151",
+                border:
+                  currentAnswer === false
+                    ? "2px solid #1C6CB3"
+                    : "2px solid #D1D5DB",
+                transition: "all 0.2s ease",
+                boxShadow:
+                  currentAnswer === false
+                    ? "0 4px 16px rgba(28, 108, 179, 0.35)"
+                    : "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
+              <XCircle size={18} />
+              No
+            </button>
 
-                    <span
-                      style={{
-                        fontSize: isMobile ? "0.85rem" : "0.95rem",
-                        color: isChecked ? "#000" : "#555",
-                        fontWeight: isChecked ? "600" : "400",
-                        lineHeight: "1.3",
-                      }}
-                    >
-                      {question.questionText}
-                    </span>
-                  </label>
-                </Col>
-              );
-            })}
-          </Row>
+            <button
+              onClick={() => handleAnswer(true)}
+              style={{
+                minWidth: "140px",
+                borderRadius: "50px",
+                fontWeight: "600",
+                fontSize: "0.95rem",
+                padding: "12px 28px",
+                background: currentAnswer === true ? currentGroup.color : "white",
+                color: currentAnswer === true ? "white" : "#374151",
+                border:
+                  currentAnswer === true
+                    ? `2px solid ${currentGroup.color}`
+                    : "2px solid #D1D5DB",
+                transition: "all 0.2s ease",
+                boxShadow:
+                  currentAnswer === true
+                    ? `0 4px 16px ${currentGroup.color}40`
+                    : "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
+              <CheckCircle2 size={18} />
+              Yes
+            </button>
+          </div>
+
+         
         </div>
       </Card.Body>
 
-      <AssessmentActionFooter
-        currentSection={currentSection}
-        totalSections={totalSections}
-        onPrevious={onPrevious}
-        onNext={() => (validateSection() ? onNext() : null)}
-        onReset={onReset}
-        isLastSection={currentSection === totalSections - 1}
-        isComplete={isSectionComplete}
-        nextLabel={
-          isSectionComplete
-            ? currentSection === totalSections - 1
-              ? "Finish"
+
+      {/* Assessment Action Footer - only shows when complete */}
+      {isSectionComplete && (
+        <AssessmentActionFooter
+          currentSection={currentSection}
+          totalSections={totalSections}
+          onPrevious={onPrevious}
+          onNext={onNext}
+          onReset={onReset}
+          isLastSection={currentSection === totalSections - 1}
+          isComplete={isSectionComplete}
+          nextLabel={
+            currentSection === totalSections - 1
+              ? "Finish Assessment →"
               : "Next Section →"
-            : "Select Options First"
-        }
-      />
+          }
+        />
+      )}
     </Card>
   );
 };
+
+// Add these keyframe animations to your CSS
+const style = document.createElement("style");
+style.textContent = `
+  @keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+`;
+document.head.appendChild(style);
 
 export default LearningStyleSection;

@@ -13,52 +13,138 @@ const DetailedExplanationSection: React.FC<DetailedExplanationSectionProps> = ({
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return (
-    <div className={`row g-4 animate-fadeIn ${isMobile ? "mb-4" : "mb-5"}`}>
+    <div className={`row g-4 ${isMobile ? "mb-4" : "mb-5"}`}>
       {/* Evaluation */}
       <div className="col-lg-6">
-        <div className="card border-0 h-100 shadow-sm">
+        <div
+          className="h-100 rounded-4 overflow-hidden"
+          style={{
+            border: "2px solid rgba(43, 49, 118, 0.15)",
+            boxShadow: "0 2px 12px rgba(43, 49, 118, 0.06)",
+          }}
+        >
+          {/* Header */}
           <div
-            className="card-header py-3 text-white fw-bold"
+            className="d-flex align-items-center gap-2 py-3 px-4 text-white fw-bold"
             style={{
               background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
-              borderBottom: "3px solid #A41D31",
+              fontSize: isMobile ? "0.95rem" : "1.05rem",
             }}
           >
-            <BarChart3 size={20} className="me-2" />
+            <div
+              className="d-inline-flex align-items-center justify-content-center rounded-circle"
+              style={{
+                width: "32px",
+                height: "32px",
+                background: "rgba(255, 255, 255, 0.15)",
+              }}
+            >
+              <BarChart3 size={16} />
+            </div>
             Detailed Evaluation
           </div>
-          <div className={`card-body ${isMobile ? "p-3" : "p-4"}`}>
-            <p className="text-dark mb-0" style={{ lineHeight: "1.6" }}>
-              {evaluation}
-            </p>
+
+          {/* Body */}
+          <div
+            style={{
+              padding: isMobile ? "16px" : "24px",
+              background: "linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%)",
+            }}
+          >
+            <div className="d-flex gap-3">
+              {/* Decorative line */}
+              <div
+                className="d-none d-md-block flex-shrink-0"
+                style={{
+                  width: "3px",
+                  minHeight: "60px",
+                  background: "linear-gradient(180deg, #2B3176, #1C6CB3)",
+                  borderRadius: "2px",
+                  alignSelf: "stretch",
+                }}
+              />
+              <p
+                className="mb-0"
+                style={{
+                  color: "#374151",
+                  fontSize: isMobile ? "0.9rem" : "0.95rem",
+                  lineHeight: "1.8",
+                }}
+              >
+                {evaluation || "No detailed evaluation available."}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Recommendations */}
       <div className="col-lg-6">
-        <div className="card border-0 h-100 shadow-sm">
+        <div
+          className="h-100 rounded-4 overflow-hidden"
+          style={{
+            border: "2px solid rgba(236, 35, 38, 0.15)",
+            boxShadow: "0 2px 12px rgba(236, 35, 38, 0.06)",
+          }}
+        >
+          {/* Header */}
           <div
-            className="card-header py-3 text-white fw-bold"
+            className="d-flex align-items-center gap-2 py-3 px-4 text-white fw-bold"
             style={{
               background: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
-              borderBottom: "3px solid #2B3176",
+              fontSize: isMobile ? "0.95rem" : "1.05rem",
             }}
           >
-            <Target size={20} className="me-2" />
-            Recomendation
+            <div
+              className="d-inline-flex align-items-center justify-content-center rounded-circle"
+              style={{
+                width: "32px",
+                height: "32px",
+                background: "rgba(255, 255, 255, 0.15)",
+              }}
+            >
+              <Target size={16} />
+            </div>
+            Recommendations
           </div>
-          <div className={`card-body ${isMobile ? "p-3" : "p-4"}`}>
-            <p className="text-dark mb-0" style={{ lineHeight: "1.6" }}>
-              {recommendations}
-            </p>
+
+          {/* Body */}
+          <div
+            style={{
+              padding: isMobile ? "16px" : "24px",
+              background: "linear-gradient(180deg, #ffffff 0%, #fef8f8 100%)",
+            }}
+          >
+            <div className="d-flex gap-3">
+              {/* Decorative line */}
+              <div
+                className="d-none d-md-block flex-shrink-0"
+                style={{
+                  width: "3px",
+                  minHeight: "60px",
+                  background: "linear-gradient(180deg, #A41D31, #EC2326)",
+                  borderRadius: "2px",
+                  alignSelf: "stretch",
+                }}
+              />
+              <p
+                className="mb-0"
+                style={{
+                  color: "#374151",
+                  fontSize: isMobile ? "0.9rem" : "0.95rem",
+                  lineHeight: "1.8",
+                }}
+              >
+                {recommendations || "No recommendations available."}
+              </p>
+            </div>
           </div>
         </div>
       </div>

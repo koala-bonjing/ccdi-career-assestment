@@ -76,7 +76,7 @@ const SECTIONS = [
   {
     key: "academic",
     label: "Academic Aptitude",
-    questions: 40,
+    questions: 24,
     icon: BookOpen,
     color: "#1a7a3c",
     bg: "rgba(26,122,60,0.06)",
@@ -134,7 +134,7 @@ const SECTIONS = [
   {
     key: "technical",
     label: "Technical Interests", // ✅ changed from "Technical Skills"
-    questions: 40,
+    questions: 24,
     icon: Code2,
     color: "#d97706",
     bg: "rgba(217,119,6,0.06)",
@@ -196,7 +196,7 @@ const SECTIONS = [
   {
     key: "career",
     label: "Career Interest",
-    questions: 40,
+    questions: 24,
     icon: Briefcase,
     color: "#0e7490",
     bg: "rgba(14,116,144,0.06)",
@@ -276,7 +276,7 @@ const SECTIONS = [
   {
     key: "learning",
     label: "Your Learning & Commitments",
-    questions: 40,
+    questions: 36,
     icon: Layers,
     color: "#7c3aed",
     bg: "rgba(124,58,237,0.06)",
@@ -537,7 +537,7 @@ export const AssessmentInstructionsModal: React.FC<
                 marginTop: 2,
               }}
             >
-              5 sections · 200 items · 20–25 minutes
+              5 sections · 148 items · 20–25 minutes
             </div>
           </div>
         </Modal.Title>

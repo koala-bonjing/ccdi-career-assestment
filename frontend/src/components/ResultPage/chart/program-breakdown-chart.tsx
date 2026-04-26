@@ -16,6 +16,7 @@ import {
   CheckCircle,
   ChevronRight,
   Info,
+  TrendingUp,
 } from "lucide-react";
 import { OverlayTrigger, Tooltip as ReactTooltip } from "react-bootstrap";
 
@@ -49,7 +50,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 992);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -66,8 +67,9 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
       "The program is accessible and feasible based on your current situation and resources.",
   };
 
-  const categories = useMemo(
-    () => [
+  // Sort categories from highest to lowest
+  const categories = useMemo(() => {
+    const rawCategories = [
       {
         label: "Academic Fitness",
         value: academic,
@@ -98,15 +100,15 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
       {
         label: "Logistics Feasibility",
         value: logistics,
-        color: "#28a745",
+        color: "#A41D31",
         icon: CheckCircle,
         reason:
           categoryExplanations?.logisticsReason ||
           defaultExplanations.logisticsReason,
       },
-    ],
-    [academic, technical, career, logistics, categoryExplanations],
-  );
+    ];
+    return rawCategories.sort((a, b) => b.value - a.value);
+  }, [academic, technical, career, logistics, categoryExplanations]);
 
   const getFullProgramName = (name: string) => {
     const upperName = name.toUpperCase();
@@ -114,6 +116,12 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
       return "Bachelor of Science in Information Technology";
     if (upperName.includes("BSCS"))
       return "Bachelor of Science in Computer Science";
+    if (upperName.includes("BSIS"))
+      return "Bachelor of Science in Information Systems";
+    if (upperName.includes("BSET"))
+      return `Bachelor of Science in Engineering Technology`;
+    if (upperName.includes("ACT"))
+      return `Associate in Computer Technology`;
     return name;
   };
 
@@ -121,32 +129,18 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
 
   const data = useMemo(
     () => ({
-      labels: isMobile
-        ? ["Academic", "Technical", "Career", "Logistics"]
-        : [
-            "Academic Fitness",
-            "Technical Match",
-            "Career Alignment",
-            "Logistics Feasibility",
-          ],
+      labels: categories.map((c) =>
+        isMobile ? c.label.split(" ")[0] : c.label
+      ),
       datasets: [
         {
           label: `${programName} Fit`,
-          data: [academic, technical, career, logistics],
-          backgroundColor: [
-            activeCategory !== null && activeCategory !== 0
-              ? "#2B317640"
-              : "#2B3176",
-            activeCategory !== null && activeCategory !== 1
-              ? "#EC232640"
-              : "#EC2326",
-            activeCategory !== null && activeCategory !== 2
-              ? "#1C6CB340"
-              : "#1C6CB3",
-            activeCategory !== null && activeCategory !== 3
-              ? "#28a74540"
-              : "#28a745",
-          ],
+          data: categories.map((c) => c.value),
+          backgroundColor: categories.map((c, i) =>
+            activeCategory !== null && activeCategory !== i
+              ? `${c.color}40`
+              : c.color
+          ),
           borderRadius: isMobile ? 4 : 8,
           borderSkipped: false,
           barPercentage: isMobile ? 0.7 : 0.8,
@@ -154,15 +148,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         },
       ],
     }),
-    [
-      academic,
-      technical,
-      career,
-      logistics,
-      programName,
-      isMobile,
-      activeCategory,
-    ],
+    [categories, programName, isMobile, activeCategory]
   );
 
   const options: ChartOptions<"bar"> = useMemo(
@@ -183,12 +169,12 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
               size: isMobile ? 10 : 12,
               weight: "bold",
             },
-            color: "#666",
+            color: "#6b7280",
             stepSize: 25,
             maxTicksLimit: 5,
           },
           grid: {
-            color: "rgba(43, 49, 118, 0.08)",
+            color: "rgba(43, 49, 118, 0.06)",
             drawBorder: false,
           },
           border: { display: false },
@@ -196,12 +182,12 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         x: {
           grid: { display: false },
           ticks: {
-            color: "#333",
+            color: "#2B3176",
             font: {
-              size: isMobile ? 6 : 8,
+              size: isMobile ? 9 : 11,
               weight: "bold",
             },
-            maxRotation: isMobile ? 0 : 0,
+            maxRotation: 0,
             minRotation: 0,
             autoSkip: false,
           },
@@ -213,7 +199,7 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         title: { display: false },
         tooltip: {
           enabled: !isMobile,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          backgroundColor: "rgba(43, 49, 118, 0.95)",
           padding: 12,
           titleFont: {
             size: 13,
@@ -239,126 +225,130 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         }
       },
     }),
-    [isMobile],
+    [isMobile]
   );
 
   return (
-    <div className={`p-3 p-lg-4 ${isMobile ? "mx-1" : "mx-lg-4"}`}>
+    <div className="mt-5">
       {/* Title Section */}
-      <div className="text-center mb-4 mb-lg-5">
-        <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
-          <h3
-            className={`fw-bold mb-0 ${isMobile ? "h5" : "h3"}`}
+      <div className="text-center mb-4">
+        <div className="d-inline-flex align-items-center gap-2 mb-2">
+          <div
+            className="d-inline-flex align-items-center justify-content-center rounded-circle"
             style={{
-              color: "#2B3176",
-              letterSpacing: isMobile ? "0.3px" : "1px",
+              width: "44px",
+              height: "44px",
+              background: "linear-gradient(135deg, #2B3176, #1C6CB3)",
+              boxShadow: "0 4px 12px rgba(43, 49, 118, 0.25)",
             }}
           >
-            Why {fullProgramName} Fits You
-          </h3>
+            <TrendingUp size={22} color="white" />
+          </div>
+        </div>
+        <h3
+          className="fw-bold mb-1"
+          style={{
+            color: "#2B3176",
+            fontSize: isMobile ? "1.2rem" : "1.4rem",
+          }}
+        >
+          Why {fullProgramName} Fits You
+        </h3>
+        <div
+          style={{
+            width: "50px",
+            height: "3px",
+            background: "linear-gradient(135deg, #A41D31, #EC2326)",
+            borderRadius: "2px",
+            margin: "6px auto 0",
+          }}
+        />
+        <div className="d-flex justify-content-center mt-2">
           <OverlayTrigger
             placement="auto"
             overlay={
               <ReactTooltip>
                 This chart breaks down how well the recommended program matches
-                your profile across key categories. Each bar represents a
-                different aspect of fit, with higher scores indicating a
-                stronger match. Hover over each bar for detailed explanations of
-                your strengths and areas for growth in relation to the program.
+                your profile across key categories. Higher scores indicate a
+                stronger match. Hover over each bar for detailed explanations.
               </ReactTooltip>
             }
           >
             <Info
-              size={isMobile ? 18 : 24}
+              size={16}
               className="text-muted"
               style={{ cursor: "pointer" }}
             />
           </OverlayTrigger>
         </div>
-        <div
-          style={{
-            height: isMobile ? "3px" : "4px",
-            width: isMobile ? "60px" : "80px",
-            background: "linear-gradient(90deg, #2B3176 0%, #EC2326 100%)",
-            margin: "0 auto",
-            borderRadius: "4px",
-          }}
-        ></div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div
-        className={`
-        ${isMobile ? "flex-column gap-3" : "flex-lg-row gap-5"} 
-        d-flex align-items-stretch
-      `}
+        className={`d-flex ${isMobile ? "flex-column gap-3" : "flex-row gap-4"}`}
       >
         {/* Explanations Cards */}
         <div
-          className={isMobile ? "order-2 w-100" : "order-1"}
           style={{
             flex: isMobile ? "none" : "0 0 45%",
             maxWidth: isMobile ? "100%" : "45%",
           }}
         >
-          <div className="d-flex flex-column gap-3">
+          <div className="d-flex flex-column gap-2">
             {categories.map((cat, i) => {
               const isActive = activeCategory === i;
-              const IconComponent = cat.icon;
-
+            
               return (
                 <div
                   key={i}
-                  className={`${isMobile ? "p-3" : "p-4"} rounded-${isMobile ? "3" : "4"} border-2`}
+                  className="rounded-4"
                   style={{
+                    padding: isMobile ? "14px" : "18px 20px",
                     background: isActive
-                      ? `linear-gradient(135deg, ${cat.color}15 0%, ${cat.color}08 100%)`
-                      : "linear-gradient(135deg, rgba(43, 49, 118, 0.04) 0%, rgba(236, 35, 38, 0.04) 100%)",
+                      ? `linear-gradient(135deg, ${cat.color}10 0%, ${cat.color}05 100%)`
+                      : "white",
                     border: isActive
-                      ? `2px solid ${cat.color}`
-                      : "2px solid rgba(43, 49, 118, 0.1)",
+                      ? `2px solid ${cat.color}40`
+                      : "1px solid rgba(43, 49, 118, 0.08)",
                     transition: "all 0.3s ease",
                     cursor: "pointer",
-                    transform:
-                      isActive && !isMobile
-                        ? "translateX(-8px)"
-                        : "translateX(0)",
-                    boxShadow:
-                      isActive && !isMobile
-                        ? `0 8px 24px ${cat.color}30`
-                        : "none",
+                    transform: isActive && !isMobile ? "translateX(-6px)" : "translateX(0)",
+                    boxShadow: isActive
+                      ? `0 4px 16px ${cat.color}15`
+                      : "none",
                   }}
                   onMouseEnter={() => !isMobile && setActiveCategory(i)}
                   onMouseLeave={() => !isMobile && setActiveCategory(null)}
                   onClick={() =>
-                    isMobile &&
-                    setActiveCategory(activeCategory === i ? null : i)
+                    isMobile && setActiveCategory(activeCategory === i ? null : i)
                   }
                 >
                   <div className="d-flex align-items-start gap-3">
+                    {/* Rank number */}
                     <div
-                      className="d-flex align-items-center justify-content-center rounded-circle p-2"
+                      className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
                       style={{
-                        width: isMobile ? "36px" : "48px",
-                        height: isMobile ? "36px" : "48px",
-                        backgroundColor: `${cat.color}15`,
-                        border: `1px solid ${cat.color}30`,
-                        flexShrink: 0,
+                        width: "32px",
+                        height: "32px",
+                        background:
+                          i === 0
+                            ? "linear-gradient(135deg, #A41D31, #EC2326)"
+                            : `${cat.color}15`,
+                        color: i === 0 ? "white" : cat.color,
+                        fontWeight: "700",
+                        fontSize: "0.8rem",
                       }}
                     >
-                      <IconComponent
-                        size={isMobile ? 20 : 24}
-                        color={cat.color}
-                        strokeWidth={2.5}
-                      />
+                      {i + 1}
                     </div>
+
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="d-flex justify-content-between align-items-center mb-2">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
                         <span
                           style={{
                             color: cat.color,
                             fontWeight: "700",
-                            fontSize: isMobile ? "0.8rem" : "0.9rem",
+                            fontSize: isMobile ? "0.8rem" : "0.85rem",
                             textTransform: "uppercase",
                             letterSpacing: "0.5px",
                           }}
@@ -370,85 +360,54 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
                             style={{
                               fontWeight: "900",
                               color: cat.color,
-                              fontSize: isMobile ? "1.3rem" : "1.5rem",
-                              fontFamily: "monospace",
+                              fontSize: isMobile ? "1.2rem" : "1.3rem",
                             }}
                           >
-                            {cat.value}
+                            {cat.value}%
                           </span>
-                          {isMobile && !isActive && (
-                            <ChevronRight size={16} className="text-muted" />
-                          )}
                         </div>
                       </div>
 
-                      {/* Reason text - hidden on mobile unless active */}
-                      {(!isMobile || isActive) && (
-                        <>
-                          <p
-                            style={{
-                              fontSize: isMobile ? "0.8rem" : "0.875rem",
-                              color: "#555",
-                              margin: 0,
-                              lineHeight: "1.5",
-                              marginBottom: "12px",
-                            }}
-                          >
-                            {cat.reason}
-                          </p>
-                          <div
-                            style={{
-                              width: "100%",
-                              height: isMobile ? "5px" : "6px",
-                              background: "rgba(43, 49, 118, 0.08)",
-                              borderRadius: "6px",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: `${cat.value}%`,
-                                height: "100%",
-                                background: cat.color,
-                                borderRadius: "6px",
-                                transition: "width 0.8s ease",
-                                boxShadow: isActive
-                                  ? `0 0 10px ${cat.color}60`
-                                  : "none",
-                              }}
-                            ></div>
-                          </div>
-                        </>
-                      )}
+                      {/* Progress bar */}
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "6px",
+                          background: "rgba(43, 49, 118, 0.06)",
+                          borderRadius: "3px",
+                          overflow: "hidden",
+                          marginBottom: isActive || !isMobile ? "8px" : "0",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${cat.value}%`,
+                            height: "100%",
+                            background: cat.color,
+                            borderRadius: "3px",
+                            transition: "width 0.8s ease",
+                          }}
+                        />
+                      </div>
 
-                      {/* Mobile collapsed view */}
-                      {isMobile && !isActive && (
-                        <div className="mt-2">
-                          <div
-                            style={{
-                              width: "100%",
-                              height: "5px",
-                              background: "rgba(43, 49, 118, 0.08)",
-                              borderRadius: "6px",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: `${cat.value}%`,
-                                height: "100%",
-                                background: cat.color,
-                                borderRadius: "6px",
-                              }}
-                            ></div>
-                          </div>
-                          <div className="d-flex justify-content-between mt-1 small text-muted">
-                            <span>Tap for details</span>
-                            <span>{cat.value}%</span>
-                          </div>
-                        </div>
+                      {/* Reason text */}
+                      {(!isMobile || isActive) && (
+                        <p
+                          style={{
+                            fontSize: isMobile ? "0.78rem" : "0.82rem",
+                            color: "#6b7280",
+                            margin: 0,
+                            lineHeight: "1.5",
+                          }}
+                        >
+                          {cat.reason}
+                        </p>
                       )}
                     </div>
+
+                    {isMobile && !isActive && (
+                      <ChevronRight size={14} className="text-muted mt-1 flex-shrink-0" />
+                    )}
                   </div>
                 </div>
               );
@@ -456,23 +415,21 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
           </div>
         </div>
 
-        {/* Chart Container */}
+        {/* Chart */}
         <div
-          className={isMobile ? "order-1 w-100" : "order-2"}
           style={{
             flex: isMobile ? "none" : "1 1 auto",
-            height: isMobile ? "280px" : "480px",
-            minHeight: isMobile ? "250px" : "450px",
+            height: isMobile ? "280px" : "450px",
+            minHeight: isMobile ? "250px" : "400px",
           }}
         >
           <div
             className="h-100 rounded-4"
             style={{
               background:
-                "linear-gradient(135deg, rgba(43, 49, 118, 0.03) 0%, rgba(236, 35, 38, 0.03) 100%)",
-              padding: isMobile ? "16px" : "30px",
+                "linear-gradient(135deg, rgba(43, 49, 118, 0.02) 0%, rgba(236, 35, 38, 0.02) 100%)",
+              padding: isMobile ? "16px" : "24px",
               border: "2px solid rgba(43, 49, 118, 0.1)",
-              boxShadow: "0 8px 32px rgba(43, 49, 118, 0.08)",
             }}
           >
             <Bar data={data} options={options} />
@@ -480,13 +437,13 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
         </div>
       </div>
 
-      {/* Legend - NOW SHOWN ON BOTH MOBILE AND DESKTOP */}
+      {/* Legend */}
       <div
-        className="mt-4"
+        className="mt-3 rounded-4"
         style={{
           padding: isMobile ? "12px" : "16px",
-          background: "rgba(43, 49, 118, 0.05)",
-          borderRadius: "12px",
+          background: "rgba(43, 49, 118, 0.03)",
+          border: "1px solid rgba(43, 49, 118, 0.06)",
         }}
       >
         <div className="row g-2">
@@ -496,25 +453,20 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
               <div key={i} className="col-6 col-md-3">
                 <div className="d-flex align-items-center gap-2">
                   <div
-                    className="d-flex align-items-center justify-content-center rounded-circle p-1"
+                    className="d-flex align-items-center justify-content-center rounded-circle"
                     style={{
-                      width: "24px",
-                      height: "24px",
+                      width: "22px",
+                      height: "22px",
                       backgroundColor: `${cat.color}15`,
-                      border: `1px solid ${cat.color}30`,
                       flexShrink: 0,
                     }}
                   >
-                    <IconComponent
-                      size={12}
-                      color={cat.color}
-                      strokeWidth={2.5}
-                    />
+                    <IconComponent size={11} color={cat.color} strokeWidth={2.5} />
                   </div>
                   <small
                     style={{
-                      fontSize: isMobile ? "0.7rem" : "0.75rem",
-                      color: "#666",
+                      fontSize: isMobile ? "0.65rem" : "0.7rem",
+                      color: "#6b7280",
                       fontWeight: "600",
                       lineHeight: "1.2",
                     }}
@@ -526,17 +478,17 @@ const ProgramBreakdownChart: React.FC<ProgramBreakdownChartProps> = ({
             );
           })}
         </div>
-        <div className="text-center mt-3">
+        <div className="text-center mt-2">
           <small
             style={{
-              fontSize: isMobile ? "0.65rem" : "0.7rem",
-              color: "#888",
+              fontSize: "0.65rem",
+              color: "#9ca3af",
               textTransform: "uppercase",
               letterSpacing: "1px",
               fontWeight: "600",
             }}
           >
-            Score Scale: 0 - 100 | Higher scores indicate better fit
+            Score Scale: 0–100 | Higher = Better Fit
           </small>
         </div>
       </div>

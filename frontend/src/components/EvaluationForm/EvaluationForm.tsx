@@ -283,6 +283,8 @@ const EvaluationForm = () => {
     name: authUser?.fullName || "Student",
     email: authUser?.email || "",
     preferredCourse: authUser?.preferredCourse || "Undecided",
+    address: authUser?.address || "",
+    school: authUser?.school || "",
   };
 
   return (

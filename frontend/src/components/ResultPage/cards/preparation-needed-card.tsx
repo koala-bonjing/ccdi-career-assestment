@@ -1,4 +1,5 @@
 import React from "react";
+import { CheckCircle2, Map, BookOpen, ChevronRight } from "lucide-react";
 
 interface PreparationAndRoadmapCardProps {
   preparationNeeded?: string[];
@@ -24,52 +25,106 @@ const PreparationAndRoadmapCard: React.FC<PreparationAndRoadmapCardProps> = ({
   }
 
   return (
-    <div className="mt-4 mb-9">
+    <div className="mt-4 mb-4">
       <div
-        className="card border-0 shadow-sm"
+        className="rounded-4 overflow-hidden"
         style={{
-          borderRadius: "15px",
-          background: "linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)",
+          border: "2px solid rgba(43, 49, 118, 0.15)",
+          boxShadow: "0 2px 12px rgba(43, 49, 118, 0.06)",
         }}
       >
-        <div className="card-body p-4">
-          {/* Header */}
-          <h4
-            className="fw-bold mb-3 d-flex align-items-center"
-            style={{ color: "#2B3176" }}
+        {/* Header */}
+        <div
+          className="d-flex align-items-center gap-2 py-3 px-4 text-white fw-bold"
+          style={{
+            background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
+            fontSize: "1.05rem",
+          }}
+        >
+          <div
+            className="d-inline-flex align-items-center justify-content-center rounded-circle"
+            style={{
+              width: "32px",
+              height: "32px",
+              background: "rgba(255, 255, 255, 0.15)",
+            }}
           >
-            <i className="bi bi-signpost me-2" style={{ fontSize: "1.5rem" }}></i>
-            Your Path to Success
-          </h4>
+            <Map size={16} />
+          </div>
+          Your Path to Success
+        </div>
 
+        {/* Body */}
+        <div
+          className="p-4"
+          style={{
+            background: "linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%)",
+          }}
+        >
           {/* Preparation Needed Section */}
           {preparationNeeded && preparationNeeded.length > 0 && (
             <div className="mb-4">
               <h5
-                className="fw-semibold mb-3 d-flex align-items-center"
-                style={{ color: "#388E3C" }}
+                className="fw-bold mb-3 d-flex align-items-center gap-2"
+                style={{ color: "#2B3176", fontSize: "1rem" }}
               >
-                <i className="bi bi-list-check me-2"></i>
+                <div
+                  className="d-inline-flex align-items-center justify-content-center rounded-circle"
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    background: "linear-gradient(135deg, #2B3176, #1C6CB3)",
+                  }}
+                >
+                  <BookOpen size={14} color="white" />
+                </div>
                 Preparation Needed
               </h5>
-              <p className="text-muted mb-3" style={{ fontSize: "0.95rem" }}>
+              <p className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
                 Build these foundational skills to excel in your program:
               </p>
-              <ul className="list-unstyled ps-3 font-bold">
+              <div className="d-flex flex-column gap-2">
                 {preparationNeeded.map((item, index) => (
-                  <li
+                  <div
                     key={index}
-                    className="mb-2 d-flex align-items-start"
-                    style={{ fontSize: "1rem" }}
+                    className="d-flex align-items-start p-3 rounded-3"
+                    style={{
+                      background: "rgba(43, 49, 118, 0.03)",
+                      border: "1px solid rgba(43, 49, 118, 0.1)",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(43, 49, 118, 0.06)";
+                      e.currentTarget.style.borderColor =
+                        "rgba(43, 49, 118, 0.2)";
+                      e.currentTarget.style.transform = "translateX(4px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(43, 49, 118, 0.03)";
+                      e.currentTarget.style.borderColor =
+                        "rgba(43, 49, 118, 0.1)";
+                      e.currentTarget.style.transform = "translateX(0)";
+                    }}
                   >
-                    <i
-                      className="bi bi-check-circle-fill me-2 mt-1 flex-shrink-0 "
-                      style={{ color: "#66BB6A", fontSize: "1.1rem" }}
-                    ></i>
-                    <span style={{ color: "#333" }}>{item}</span>
-                  </li>
+                    <CheckCircle2
+                      size={18}
+                      className="me-2 mt-1 flex-shrink-0"
+                      style={{ color: "#EC2326" }}
+                    />
+                    <span
+                      style={{
+                        color: "#374151",
+                        fontSize: "0.95rem",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      {item}
+                    </span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
@@ -77,76 +132,115 @@ const PreparationAndRoadmapCard: React.FC<PreparationAndRoadmapCardProps> = ({
           {roadmapSteps.length > 0 && (
             <div>
               <h5
-                className="fw-semibold mb-3 d-flex align-items-center"
-                style={{ color: "#388E3C" }}
+                className="fw-bold mb-3 d-flex align-items-center gap-2"
+                style={{ color: "#A41D31", fontSize: "1rem" }}
               >
-                <i className="bi bi-map me-2"></i>
+                <div
+                  className="d-inline-flex align-items-center justify-content-center rounded-circle"
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    background: "linear-gradient(135deg, #A41D31, #EC2326)",
+                  }}
+                >
+                  <Map size={14} color="white" />
+                </div>
                 Your Success Roadmap
               </h5>
-              <p className="text-muted mb-3" style={{ fontSize: "0.95rem" }}>
+              <p className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
                 Follow these steps to build momentum and achieve your goals:
               </p>
               <div className="position-relative">
                 {roadmapSteps.map((step, index) => (
                   <div
                     key={index}
-                    className="d-flex align-items-start mb-3 position-relative"
+                    className="d-flex align-items-start mb-0 position-relative"
                   >
                     {/* Step Number Circle */}
                     <div
-                      className="flex-shrink-0 me-3"
+                      className="flex-shrink-0 me-3 d-flex align-items-center justify-content-center rounded-circle"
                       style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "50%",
+                        width: "38px",
+                        height: "38px",
                         background:
-                          "linear-gradient(135deg, #4CAF50 0%, #45A049 100%)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                          index === 0
+                            ? "linear-gradient(135deg, #A41D31, #EC2326)"
+                            : "linear-gradient(135deg, #2B3176, #1C6CB3)",
                         fontWeight: "bold",
                         color: "white",
-                        fontSize: "1rem",
-                        boxShadow: "0 2px 6px rgba(76, 175, 80, 0.3)",
+                        fontSize: "0.9rem",
+                        boxShadow:
+                          index === 0
+                            ? "0 3px 10px rgba(236, 35, 38, 0.3)"
+                            : "0 3px 10px rgba(43, 49, 118, 0.2)",
                         zIndex: 2,
                       }}
                     >
                       {index + 1}
                     </div>
 
-                    {/* Connecting Line (except for last item) */}
+                    {/* Connecting Line */}
                     {index < roadmapSteps.length - 1 && (
                       <div
                         style={{
                           position: "absolute",
-                          left: "17px",
-                          top: "36px",
+                          left: "18px",
+                          top: "38px",
                           width: "2px",
-                          height: "calc(100% + 12px)",
+                          height: "calc(100% - 8px)",
                           background:
-                            "linear-gradient(180deg, #4CAF50 0%, #C8E6C9 100%)",
+                            "linear-gradient(180deg, #1C6CB3 0%, rgba(28, 108, 179, 0.1) 100%)",
                           zIndex: 1,
                         }}
-                      ></div>
+                      />
                     )}
 
                     {/* Step Content */}
                     <div
-                      className="flex-grow-1"
-                      style={{
-                        paddingTop: "6px",
-                      }}
+                      className="flex-grow-1 pb-4"
+                      style={{ paddingTop: "6px" }}
                     >
-                      <p
-                        className="mb-0"
+                      <div
+                        className="p-3 rounded-3"
                         style={{
-                          color: "#333",
-                          fontSize: "1rem",
-                          lineHeight: "1.6",
+                          background: "rgba(43, 49, 118, 0.02)",
+                          border: "1px solid rgba(43, 49, 118, 0.08)",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(43, 49, 118, 0.05)";
+                          e.currentTarget.style.borderColor =
+                            "rgba(43, 49, 118, 0.15)";
+                          e.currentTarget.style.boxShadow =
+                            "0 2px 8px rgba(43, 49, 118, 0.08)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background =
+                            "rgba(43, 49, 118, 0.02)";
+                          e.currentTarget.style.borderColor =
+                            "rgba(43, 49, 118, 0.08)";
+                          e.currentTarget.style.boxShadow = "none";
                         }}
                       >
-                        {step}
-                      </p>
+                        <div className="d-flex align-items-start gap-2">
+                          <ChevronRight
+                            size={14}
+                            className="mt-1 flex-shrink-0"
+                            style={{ color: "#1C6CB3" }}
+                          />
+                          <p
+                            className="mb-0"
+                            style={{
+                              color: "#374151",
+                              fontSize: "0.9rem",
+                              lineHeight: "1.6",
+                            }}
+                          >
+                            {step}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

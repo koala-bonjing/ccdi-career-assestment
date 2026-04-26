@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Row,
   Col,
-  Badge,
   Button,
   Spinner,
   Collapse,
@@ -18,7 +17,6 @@ import {
   CircleCheck,
   ChevronDown,
   ChevronUp,
-  Printer,
 } from "lucide-react";
 import type { AssessmentAnswers, User } from "../../types";
 import { categoryTitles, sections } from "../../config/constants";
@@ -68,12 +66,10 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const handlePreviewDocument = async () => {
     try {
       setIsGeneratingPdf(true);
-      console.log("🔵 Generating PDF...");
       const blob = await generateAssessmentDocument({
         formData,
         programScores,
@@ -82,11 +78,6 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
         currentUser: currentUser as User,
         questions,
       });
-
-      console.log("✅ PDF Blob generated:", blob);
-      console.log("📦 Blob size:", blob.size, "bytes");
-      console.log("📦 Blob type:", blob.type);
-
       setPdfBlob(blob);
       setShowPreview(true);
     } catch (error) {
@@ -97,26 +88,16 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     }
   };
 
-  const handlePrint = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.print();
-    }
-  };
-
-  // Create URL from blob when pdfBlob changes
   useEffect(() => {
     if (pdfBlob) {
       const url = URL.createObjectURL(pdfBlob);
-      console.log("🔗 Created URL:", url);  
       setPdfUrl(url);
-
       return () => {
         URL.revokeObjectURL(url);
       };
     }
   }, [pdfBlob]);
 
-  // Clean up on unmount
   useEffect(() => {
     return () => {
       if (pdfUrl) {
@@ -222,7 +203,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
       sectionKey === "technicalSkills" ||
       sectionKey === "learningWorkStyle"
     ) {
-      return value === true ? "Selected ✓" : "Not Selected";
+      return value === true ? "Yes" : "No";
     }
 
     return "Not Answered";
@@ -233,93 +214,29 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
     value: string | number | boolean | undefined,
   ): string => {
     if (sectionKey === "foundationalAssessment") {
-      if (typeof value === "string" && value.trim() !== "") {
-        return "#28a745";
-      }
-      return "#6c757d";
+      return typeof value === "string" && value.trim() !== "" ? "#1C6CB3" : "#6c757d";
     }
 
-    if (
-      sectionKey === "technicalSkills" ||
-      sectionKey === "learningWorkStyle"
-    ) {
-      return value === true ? "#28a745" : "#6c757d";
+    if (sectionKey === "technicalSkills" || sectionKey === "learningWorkStyle") {
+      return value === true ? "#EC2326" : "#6c757d";
     }
 
     if (typeof value === "number") {
-      const colors = ["#28a745", "#20c997", "#6c757d", "#fd7e14", "#dc3545"];
+      const colors = ["#2B3176", "#1C6CB3", "#6c757d", "#EC2326", "#A41D31"];
       return colors[value - 1] || "#6c757d";
     }
 
     return "#6c757d";
   };
 
-  const sectionColors = sections.map((sectionKey, index) => {
-    return index % 2 === 0
-      ? {
-          bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
-          text: "white",
-          accent: "#1C6CB3",
-        }
-      : {
-          bg: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
-          text: "white",
-          accent: "#EC2326",
-        };
-  });
+  const sectionColors = [
+    { bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)", text: "white", accent: "#1C6CB3" },
+    { bg: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)", text: "white", accent: "#EC2326" },
+    { bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)", text: "white", accent: "#1C6CB3" },
+    { bg: "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)", text: "white", accent: "#EC2326" },
+    { bg: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)", text: "white", accent: "#1C6CB3" },
+  ];
 
-  const getSectionCompletion = (sectionKey: string) => {
-    const sectionQuestions = getQuestionsBySection(sectionKey);
-    const answeredCount = sectionQuestions.filter((q) => {
-      let answer;
-
-      if (sectionKey === "foundationalAssessment") {
-        answer =
-          formData.foundationalAssessment?.[q._id] ||
-          formData.foundationalAssessment?.[q.questionText];
-        return typeof answer === "string" && answer.trim() !== "";
-      }
-
-      if (sectionKey === "academicAptitude") {
-        answer =
-          formData.academicAptitude?.[q._id] ||
-          formData.academicAptitude?.[q.questionText];
-        return typeof answer === "number" && answer >= 1 && answer <= 5;
-      }
-
-      if (sectionKey === "careerInterest") {
-        answer =
-          formData.careerInterest?.[q._id] ||
-          formData.careerInterest?.[q.questionText];
-        return typeof answer === "number" && answer >= 1 && answer <= 5;
-      }
-
-      if (sectionKey === "technicalSkills") {
-        answer =
-          formData.technicalSkills?.[q._id] ||
-          formData.technicalSkills?.[q.questionText];
-        return answer === true;
-      }
-
-      if (sectionKey === "learningWorkStyle") {
-        answer =
-          formData.learningWorkStyle?.[q._id] ||
-          formData.learningWorkStyle?.[q.questionText];
-        return answer === true;
-      }
-
-      return false;
-    }).length;
-
-    const totalCount = sectionQuestions.length;
-
-    return {
-      answeredCount,
-      totalCount,
-      percentage:
-        totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0,
-    };
-  };
 
   const groupLearningStyleQuestions = () => {
     const questions = getQuestionsBySection("learningWorkStyle");
@@ -396,7 +313,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
   };
 
   return (
-    <Card className="border-0 shadow-lg review-card">
+    <Card className="border-0 shadow-lg review-card" style={{ borderRadius: "16px" }}>
       <Card.Header
         className="text-white text-center py-4"
         style={{
@@ -421,61 +338,17 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               className="border-0 shadow-sm"
               style={{
                 background: "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
-                border: "2px solid #2B3176",
+                border: "2px solid rgba(43, 49, 118, 0.2)",
+                borderRadius: "16px",
               }}
             >
               <Card.Body className="p-4">
                 <h5
-                  className="fw-bold mb-3 text-center"
-                  style={{ color: "#2B3176" }}
+                  className="fw-bold mb-4 text-center"
+                  style={{ color: "#2B3176", fontSize: "1.9rem" }}
                 >
                   Assessment Progress Summary
                 </h5>
-                <Row className="g-3">
-                  {sections.map((sectionKey) => {
-                    const completion = getSectionCompletion(sectionKey);
-                    const isComplete = completion.answeredCount > 0;
-
-                    return (
-                      <Col md={3} key={sectionKey}>
-                        <div
-                          className="d-flex flex-column p-3 rounded text-center"
-                          style={{
-                            background: "white",
-                            border: `2px solid ${isComplete ? "#2B3176" : "#e9ecef"}`,
-                            height: "100%",
-                          }}
-                        >
-                          <div className="mb-2">
-                            <span
-                              className="fw-bold d-block"
-                              style={{
-                                color: "#2B3176",
-                                fontSize: "0.9rem",
-                              }}
-                            >
-                              {categoryTitles[sectionKey]}
-                            </span>
-                          </div>
-                          <div className="mt-auto">
-                            <Badge
-                              style={{
-                                background: isComplete
-                                  ? "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)"
-                                  : "linear-gradient(135deg, #6c757d 0%, #495057 100%)",
-                                color: "white",
-                                border: "none",
-                              }}
-                              className="fs-6 p-2 w-100 "
-                            >
-                              {completion.answeredCount}/{completion.totalCount}
-                            </Badge>
-                          </div>
-                        </div>
-                      </Col>
-                    );
-                  })}
-                </Row>
               </Card.Body>
             </Card>
           </Col>
@@ -491,13 +364,14 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
 
             return (
               <Col xl={6} lg={12} key={sectionKey}>
-                <Card className="h-100 shadow-sm review-section-card border-0">
+                <Card className="h-100 shadow-sm review-section-card border-0" style={{ borderRadius: "16px" }}>
                   <Card.Header
                     className="d-flex justify-content-between align-items-center py-3 cursor-pointer"
                     style={{
                       background: sectionColors[sectionIndex].bg,
                       color: sectionColors[sectionIndex].text,
                       borderBottom: `3px solid ${sectionColors[sectionIndex].accent}`,
+                      borderRadius: "16px 16px 0 0",
                     }}
                     onClick={() => toggleSection(sectionKey)}
                   >
@@ -505,23 +379,22 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                       <Button
                         variant="link"
                         className="p-0 me-2"
+                        style={{ color: "white", minWidth: "24px" }}
+                      >
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </Button>
+                      <h5 className="mb-0 fw-bold">{categoryTitles[sectionKey]}</h5>
+                      <span
+                        className="ms-2 px-2 py-1 rounded-pill"
                         style={{
+                          background: "rgba(255,255,255,0.2)",
                           color: "white",
-                          minWidth: "24px",
+                          fontSize: "0.8rem",
+                          fontWeight: "600",
                         }}
                       >
-                        {isExpanded ? (
-                          <ChevronUp size={20} />
-                        ) : (
-                          <ChevronDown size={20} />
-                        )}
-                      </Button>
-                      <h5 className="mb-0 fw-bold ">
-                        {categoryTitles[sectionKey]}
-                      </h5>
-                      <Badge className="ms-1 me-1" bg="light" text="dark">
                         {answeredQuestions.length}
-                      </Badge>
+                      </span>
                     </div>
                     <Button
                       variant="light"
@@ -530,7 +403,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                         e.stopPropagation();
                         onEditSection(sectionIndex);
                       }}
-                      className="fw-bold"
+                      className="fw-bold rounded-pill"
                       style={{
                         background: "rgba(255, 255, 255, 0.9)",
                         color: sectionColors[sectionIndex].accent,
@@ -547,12 +420,8 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                       <Card.Body className="p-3 p-md-4 review-section-body">
                         {sectionKey === "technicalSkills" ? (
                           <div className="technical-skills-review h-100">
-                            <h6
-                              className="fw-bold mb-3 text-center"
-                              style={{ color: "#2B3176" }}
-                            >
-                              Selected Technical Interests (
-                              {answeredQuestions.length})
+                            <h6 className="fw-bold mb-3 text-center" style={{ color: "#2B3176" }}>
+                              Selected Technical Interests ({answeredQuestions.length})
                             </h6>
 
                             {answeredQuestions.length > 0 ? (
@@ -561,31 +430,23 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                   <div
                                     className="d-flex align-items-center mb-2 p-2 rounded"
                                     style={{
-                                      background: "rgba(40, 167, 69, 0.1)",
-                                      borderLeft: "4px solid #28a745",
+                                      background: "rgba(28, 108, 179, 0.08)",
+                                      borderLeft: "4px solid #1C6CB3",
                                     }}
                                   >
-                                    <Badge
-                                      className="me-2"
+                                    <span
+                                      className="me-2 px-2 py-1 rounded-pill"
                                       style={{
-                                        background:
-                                          sectionColors[sectionIndex].bg,
+                                        background: sectionColors[sectionIndex].bg,
                                         color: "white",
+                                        fontSize: "0.8rem",
+                                        fontWeight: "600",
                                       }}
                                     >
-                                      1
-                                    </Badge>
-                                    <h6
-                                      className="mb-0"
-                                      style={{
-                                        color: "#2B3176",
-                                        fontSize: "0.95rem",
-                                      }}
-                                    >
+                                      {answeredQuestions.length}
+                                    </span>
+                                    <h6 className="mb-0" style={{ color: "#2B3176", fontSize: "0.95rem" }}>
                                       Technical Competencies
-                                      <small className="ms-2 text-muted">
-                                        ({answeredQuestions.length} selected)
-                                      </small>
                                     </h6>
                                   </div>
 
@@ -595,36 +456,26 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                         key={question._id}
                                         className="d-flex align-items-start p-2 mb-2 rounded"
                                         style={{
-                                          background:
-                                            "rgba(248, 249, 255, 0.5)",
+                                          background: "rgba(248, 249, 255, 0.5)",
                                           border: "1px solid #dee2e6",
                                         }}
                                       >
-                                        <Badge className="me-2 mt-1 flex-shrink-0">
-                                          <CircleCheck size={15} />
-                                        </Badge>
+                                        <CircleCheck size={16} className="me-2 mt-1 flex-shrink-0" style={{ color: "#EC2326" }} />
                                         <div className="flex-grow-1">
-                                          <div
-                                            className="text-dark mb-1"
-                                            style={{
-                                              lineHeight: 1.3,
-                                              fontSize: "0.9rem",
-                                            }}
-                                          >
+                                          <div className="text-dark mb-1" style={{ lineHeight: 1.3, fontSize: "0.9rem" }}>
                                             {question.questionText}
                                           </div>
-                                          <Badge
-                                            className="px-2 py-1"
+                                          <span
+                                            className="px-2 py-1 rounded-pill"
                                             style={{
-                                              background: "#28a745",
+                                              background: "#EC2326",
                                               color: "white",
-                                              fontSize: "0.75rem",
+                                              fontSize: "0.7rem",
                                               fontWeight: 600,
-                                              borderRadius: "4px",
                                             }}
                                           >
-                                            ✓ Selected
-                                          </Badge>
+                                            ✓ Yes
+                                          </span>
                                         </div>
                                       </div>
                                     ))}
@@ -633,30 +484,14 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                               </div>
                             ) : (
                               <div className="text-center py-4">
-                                <div className="mb-3">
-                                  <AlertCircle
-                                    size={48}
-                                    style={{ color: "#6c757d" }}
-                                  />
-                                </div>
-                                <p
-                                  className="mb-1"
-                                  style={{ color: "#6c757d" }}
-                                >
-                                  No technical skills selected
-                                </p>
-                                <small className="text-muted">
-                                  Technical interests are selected via checkboxes
-                                </small>
+                                <AlertCircle size={48} style={{ color: "#6c757d" }} className="mb-3" />
+                                <p className="mb-1" style={{ color: "#6c757d" }}>No technical skills selected</p>
                               </div>
                             )}
                           </div>
                         ) : sectionKey === "learningWorkStyle" ? (
                           <div className="learning-style-review">
-                            <h6
-                              className="fw-bold mb-3 text-center"
-                              style={{ color: "#2B3176" }}
-                            >
+                            <h6 className="fw-bold mb-3 text-center" style={{ color: "#2B3176" }}>
                               Selected Preferences ({answeredQuestions.length})
                             </h6>
 
@@ -664,93 +499,69 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                               <div className="preferences-container">
                                 {Object.entries(learningStyleGroups).map(
                                   ([category, catQuestions], catIndex) => {
-                                    const answeredCatQuestions =
-                                      catQuestions.filter(
-                                        (q) =>
-                                          formData.learningWorkStyle?.[
-                                            q.questionText
-                                          ] === true,
-                                      );
+                                    const answeredCatQuestions = catQuestions.filter(
+                                      (q) => formData.learningWorkStyle?.[q.questionText] === true,
+                                    );
 
-                                    if (answeredCatQuestions.length === 0)
-                                      return null;
+                                    if (answeredCatQuestions.length === 0) return null;
 
                                     return (
                                       <div key={category} className="mb-4">
                                         <div
                                           className="d-flex align-items-center mb-2 p-2 rounded"
                                           style={{
-                                            background:
-                                              "rgba(40, 167, 69, 0.1)",
-                                            borderLeft: "4px solid #28a745",
+                                            background: "rgba(28, 108, 179, 0.08)",
+                                            borderLeft: "4px solid #1C6CB3",
                                           }}
                                         >
-                                          <Badge
-                                            className="me-2"
+                                          <span
+                                            className="me-2 px-2 py-1 rounded-pill"
                                             style={{
-                                              background:
-                                                sectionColors[sectionIndex].bg,
+                                              background: sectionColors[sectionIndex].bg,
                                               color: "white",
+                                              fontSize: "0.8rem",
+                                              fontWeight: "600",
                                             }}
                                           >
                                             {catIndex + 1}
-                                          </Badge>
-                                          <h6
-                                            className="mb-0"
-                                            style={{
-                                              color: "#2B3176",
-                                              fontSize: "0.95rem",
-                                            }}
-                                          >
+                                          </span>
+                                          <h6 className="mb-0" style={{ color: "#2B3176", fontSize: "0.95rem" }}>
                                             {category}
                                             <small className="ms-2 text-muted">
-                                              ({answeredCatQuestions.length} of{" "}
-                                              {catQuestions.length} selected)
+                                              ({answeredCatQuestions.length} of {catQuestions.length})
                                             </small>
                                           </h6>
                                         </div>
 
                                         <div className="ms-3">
-                                          {answeredCatQuestions.map(
-                                            (question) => (
-                                              <div
-                                                key={question._id}
-                                                className="d-flex align-items-start p-2 mb-2 rounded"
-                                                style={{
-                                                  background:
-                                                    "rgba(248, 249, 255, 0.5)",
-                                                  border: "1px solid #dee2e6",
-                                                }}
-                                              >
-                                                <Badge className="me-2 mt-1 flex-shrink-0">
-                                                  <CircleCheck size={15} />
-                                                </Badge>
-                                                <div className="flex-grow-1">
-                                                  <div
-                                                    className="text-dark mb-1"
-                                                    style={{
-                                                      lineHeight: 1.3,
-                                                      fontSize: "0.9rem",
-                                                    }}
-                                                  >
-                                                    {question.questionText}
-                                                  </div>
-                                                  <Badge
-                                                    className="px-2 py-1"
-                                                    style={{
-                                                      background: "#28a745",
-                                                      color: "white",
-                                                      fontSize: "0.75rem",
-                                                      fontWeight: 600,
-                                                      borderRadius: "4px",
-                                                    }}
-                                                  >
-                                                    ✓ Selected
-                                                  </Badge>
+                                          {answeredCatQuestions.map((question) => (
+                                            <div
+                                              key={question._id}
+                                              className="d-flex align-items-start p-2 mb-2 rounded"
+                                              style={{
+                                                background: "rgba(248, 249, 255, 0.5)",
+                                                border: "1px solid #dee2e6",
+                                              }}
+                                            >
+                                              <CircleCheck size={16} className="me-2 mt-1 flex-shrink-0" style={{ color: "#EC2326" }} />
+                                              <div className="flex-grow-1">
+                                                <div className="text-dark mb-1" style={{ lineHeight: 1.3, fontSize: "0.9rem" }}>
+                                                  {question.questionText}
                                                 </div>
+                                                <span
+                                                  className="px-2 py-1 rounded-pill"
+                                                  style={{
+                                                    background: "#EC2326",
+                                                    color: "white",
+                                                    fontSize: "0.7rem",
+                                                    fontWeight: 600,
+                                                  }}
+                                                >
+                                                  ✓ Yes
+                                                </span>
                                               </div>
-                                            ),
-                                          )}
+                                            </div>
+                                          ))}
                                         </div>
                                       </div>
                                     );
@@ -759,179 +570,107 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                               </div>
                             ) : (
                               <div className="text-center py-4">
-                                <div className="mb-3">
-                                  <AlertCircle
-                                    size={48}
-                                    style={{ color: "#6c757d" }}
-                                  />
-                                </div>
-                                <p
-                                  className="mb-1"
-                                  style={{ color: "#6c757d" }}
-                                >
-                                  No preferences selected
-                                </p>
-                                <small className="text-muted">
-                                  Learning & Work Style uses checkbox selections
-                                  (not ratings)
-                                </small>
+                                <AlertCircle size={48} style={{ color: "#6c757d" }} className="mb-3" />
+                                <p className="mb-1" style={{ color: "#6c757d" }}>No preferences selected</p>
                               </div>
                             )}
                           </div>
                         ) : sectionKey === "foundationalAssessment" ? (
                           <div className="foundational-assessment-review">
-                            <h6
-                              className="fw-bold mb-3 text-center"
-                              style={{ color: "#2B3176" }}
-                            >
-                              Foundational Readiness Assessment (
-                              {answeredQuestions.length})
+                            <h6 className="fw-bold mb-3 text-center" style={{ color: "#2B3176" }}>
+                              Foundational Assessment ({answeredQuestions.length})
                             </h6>
                             {answeredQuestions.length > 0 ? (
                               Object.entries(foundationalGroups).map(
                                 ([category, catQuestions], catIndex) => {
-                                  const answeredCatQuestions =
-                                    catQuestions.filter((q) => {
-                                      const answer =
-                                        formData.foundationalAssessment?.[
-                                          q._id
-                                        ] ||
-                                        formData.foundationalAssessment?.[
-                                          q.questionText
-                                        ];
-                                      return (
-                                        typeof answer === "string" &&
-                                        answer.trim() !== ""
-                                      );
-                                    });
-                                  if (answeredCatQuestions.length === 0)
-                                    return null;
+                                  const answeredCatQuestions = catQuestions.filter((q) => {
+                                    const answer =
+                                      formData.foundationalAssessment?.[q._id] ||
+                                      formData.foundationalAssessment?.[q.questionText];
+                                    return typeof answer === "string" && answer.trim() !== "";
+                                  });
+                                  if (answeredCatQuestions.length === 0) return null;
                                   return (
                                     <div key={category} className="mb-4">
                                       <div
                                         className="d-flex align-items-center mb-2 p-2 rounded"
                                         style={{
-                                          background: "rgba(40, 167, 69, 0.1)",
-                                          borderLeft: "4px solid #28a745",
+                                          background: "rgba(28, 108, 179, 0.08)",
+                                          borderLeft: "4px solid #1C6CB3",
                                         }}
                                       >
-                                        <Badge
-                                          className="me-2"
+                                        <span
+                                          className="me-2 px-2 py-1 rounded-pill"
                                           style={{
-                                            background:
-                                              sectionColors[sectionIndex].bg,
+                                            background: sectionColors[sectionIndex].bg,
                                             color: "white",
+                                            fontSize: "0.8rem",
+                                            fontWeight: "600",
                                           }}
                                         >
                                           {catIndex + 1}
-                                        </Badge>
-                                        <h6
-                                          className="mb-0"
-                                          style={{
-                                            color: "#2B3176",
-                                            fontSize: "0.95rem",
-                                            textTransform: "capitalize",
-                                          }}
-                                        >
+                                        </span>
+                                        <h6 className="mb-0" style={{ color: "#2B3176", fontSize: "0.95rem", textTransform: "capitalize" }}>
                                           {category}
                                           <small className="ms-2 text-muted">
-                                            ({answeredCatQuestions.length} of{" "}
-                                            {catQuestions.length} answered)
+                                            ({answeredCatQuestions.length} of {catQuestions.length})
                                           </small>
                                         </h6>
                                       </div>
                                       <div className="ms-3">
-                                        {answeredCatQuestions.map(
-                                          (question, qIndex) => {
-                                            const answer =
-                                              formData.foundationalAssessment?.[
-                                                question._id
-                                              ] ||
-                                              formData.foundationalAssessment?.[
-                                                question.questionText
-                                              ];
+                                        {answeredCatQuestions.map((question, qIndex) => {
+                                          const answer =
+                                            formData.foundationalAssessment?.[question._id] ||
+                                            formData.foundationalAssessment?.[question.questionText];
 
-                                            const answerLabel = getAnswerLabel(
-                                              "foundationalAssessment",
-                                              question.questionText,
-                                              answer,
-                                            );
-                                            const answerColor = getAnswerColor(
-                                              "foundationalAssessment",
-                                              answer,
-                                            );
+                                          const answerLabel = getAnswerLabel(
+                                            "foundationalAssessment",
+                                            question.questionText,
+                                            answer,
+                                          );
+                                          const answerColor = getAnswerColor(
+                                            "foundationalAssessment",
+                                            answer,
+                                          );
 
-                                            return (
-                                              <div
-                                                key={
-                                                  question._id ||
-                                                  question.questionText
-                                                }
-                                                className="d-flex align-items-start p-3 mb-3 rounded"
+                                          return (
+                                            <div
+                                              key={question._id || question.questionText}
+                                              className="d-flex align-items-start p-3 mb-3 rounded"
+                                              style={{ background: "rgba(248, 249, 255, 0.5)", border: "1px solid #dee2e6" }}
+                                            >
+                                              <span
+                                                className="me-3 mt-1 flex-shrink-0 rounded-pill d-flex align-items-center justify-content-center"
                                                 style={{
-                                                  background:
-                                                    "rgba(248, 249, 255, 0.5)",
-                                                  border: "1px solid #dee2e6",
+                                                  background: sectionColors[sectionIndex].bg,
+                                                  color: "white",
+                                                  fontSize: "0.8rem",
+                                                  fontWeight: "600",
+                                                  minWidth: "28px",
+                                                  height: "28px",
                                                 }}
                                               >
-                                                <Badge
-                                                  className="me-3 mt-1 flex-shrink-0"
+                                                {qIndex + 1}
+                                              </span>
+                                              <div className="flex-grow-1">
+                                                <div className="text-dark mb-2" style={{ lineHeight: 1.4, fontSize: "0.95rem" }}>
+                                                  {question.questionText}
+                                                </div>
+                                                <span
+                                                  className="px-3 py-1 rounded-pill"
                                                   style={{
-                                                    background:
-                                                      sectionColors[
-                                                        sectionIndex
-                                                      ].bg,
+                                                    background: answerColor,
                                                     color: "white",
-                                                    fontSize: "0.85rem",
-                                                    minWidth: "32px",
-                                                    height: "32px",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    borderRadius: "6px",
+                                                    fontSize: "0.75rem",
+                                                    fontWeight: 600,
                                                   }}
                                                 >
-                                                  {qIndex + 1}
-                                                </Badge>
-                                                <div className="flex-grow-1">
-                                                  <div
-                                                    className="text-dark mb-2"
-                                                    style={{
-                                                      lineHeight: 1.4,
-                                                      fontSize: "0.95rem",
-                                                    }}
-                                                  >
-                                                    {question.questionText}
-                                                  </div>
-                                                  <div className="d-flex align-items-center flex-wrap">
-                                                    <Badge
-                                                      className="px-3 py-2 me-2 mb-1"
-                                                      style={{
-                                                        background: answerColor,
-                                                        color: "white",
-                                                        fontSize: "0.8rem",
-                                                        fontWeight: 600,
-                                                        borderRadius: "4px",
-                                                        whiteSpace: "normal",
-                                                        textAlign: "left",
-                                                        maxWidth: "100%",
-                                                      }}
-                                                    >
-                                                      {answerLabel}
-                                                    </Badge>
-                                                    {question.helperText && (
-                                                      <small className="text-muted ms-2">
-                                                        <em>
-                                                          {question.helperText}
-                                                        </em>
-                                                      </small>
-                                                    )}
-                                                  </div>
-                                                </div>
+                                                  {answerLabel}
+                                                </span>
                                               </div>
-                                            );
-                                          },
-                                        )}
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     </div>
                                   );
@@ -939,26 +678,14 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                               )
                             ) : (
                               <div className="text-center py-4">
-                                <AlertCircle
-                                  size={32}
-                                  className="mb-2"
-                                  style={{ color: "#6c757d" }}
-                                />
-                                <p
-                                  className="mb-0"
-                                  style={{ color: "#6c757d" }}
-                                >
-                                  No foundational assessment answers provided
-                                </p>
+                                <AlertCircle size={32} className="mb-2" style={{ color: "#6c757d" }} />
+                                <p className="mb-0" style={{ color: "#6c757d" }}>No answers provided</p>
                               </div>
                             )}
                           </div>
                         ) : (
                           <div className="review-questions-container">
-                            <h6
-                              className="fw-bold mb-3 text-center"
-                              style={{ color: "#2B3176" }}
-                            >
+                            <h6 className="fw-bold mb-3 text-center" style={{ color: "#2B3176" }}>
                               Questions & Answers ({answeredQuestions.length})
                             </h6>
                             {answeredQuestions.length > 0 ? (
@@ -966,19 +693,11 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                 {answeredQuestions.map((question, qIndex) => {
                                   const answer =
                                     sectionKey === "academicAptitude"
-                                      ? formData.academicAptitude[
-                                          question._id
-                                        ] ||
-                                        formData.academicAptitude[
-                                          question.questionText
-                                        ]
+                                      ? formData.academicAptitude[question._id] ||
+                                        formData.academicAptitude[question.questionText]
                                       : sectionKey === "careerInterest"
-                                        ? formData.careerInterest[
-                                            question._id
-                                          ] ||
-                                          formData.careerInterest[
-                                            question.questionText
-                                          ]
+                                        ? formData.careerInterest[question._id] ||
+                                          formData.careerInterest[question.questionText]
                                         : undefined;
 
                                   const answerColor = getAnswerColor(
@@ -995,52 +714,36 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                                     <div
                                       key={question._id}
                                       className="d-flex align-items-start p-3 mb-3 rounded"
-                                      style={{
-                                        background: "rgba(248, 249, 255, 0.5)",
-                                        border: "1px solid #dee2e6",
-                                      }}
+                                      style={{ background: "rgba(248, 249, 255, 0.5)", border: "1px solid #dee2e6" }}
                                     >
-                                      <Badge
-                                        className="me-3 mt-1 flex-shrink-0"
+                                      <span
+                                        className="me-3 mt-1 flex-shrink-0 rounded-pill d-flex align-items-center justify-content-center"
                                         style={{
-                                          background:
-                                            sectionColors[sectionIndex].bg,
+                                          background: sectionColors[sectionIndex].bg,
                                           color: "white",
-                                          fontSize: "0.85rem",
-                                          minWidth: "32px",
-                                          height: "32px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          borderRadius: "6px",
+                                          fontSize: "0.8rem",
+                                          fontWeight: "600",
+                                          minWidth: "28px",
+                                          height: "28px",
                                         }}
                                       >
                                         {qIndex + 1}
-                                      </Badge>
+                                      </span>
                                       <div className="flex-grow-1">
-                                        <div
-                                          className="text-dark mb-2"
-                                          style={{
-                                            lineHeight: 1.4,
-                                            fontSize: "0.95rem",
-                                          }}
-                                        >
+                                        <div className="text-dark mb-2" style={{ lineHeight: 1.4, fontSize: "0.95rem" }}>
                                           {question.questionText}
                                         </div>
-                                        <div className="d-flex align-items-center">
-                                          <Badge
-                                            className="px-3 py-1"
-                                            style={{
-                                              background: answerColor,
-                                              color: "white",
-                                              fontSize: "0.8rem",
-                                              fontWeight: 600,
-                                              borderRadius: "20px",
-                                            }}
-                                          >
-                                            {answerLabel}
-                                          </Badge>
-                                        </div>
+                                        <span
+                                          className="px-3 py-1 rounded-pill"
+                                          style={{
+                                            background: answerColor,
+                                            color: "white",
+                                            fontSize: "0.75rem",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          {answerLabel}
+                                        </span>
                                       </div>
                                     </div>
                                   );
@@ -1048,17 +751,8 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                               </div>
                             ) : (
                               <div className="text-center py-4">
-                                <AlertCircle
-                                  size={32}
-                                  className="mb-2"
-                                  style={{ color: "#6c757d" }}
-                                />
-                                <p
-                                  className="mb-0"
-                                  style={{ color: "#6c757d" }}
-                                >
-                                  No answers provided
-                                </p>
+                                <AlertCircle size={32} className="mb-2" style={{ color: "#6c757d" }} />
+                                <p className="mb-0" style={{ color: "#6c757d" }}>No answers provided</p>
                               </div>
                             )}
                           </div>
@@ -1074,18 +768,17 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
 
         {/* Action Area */}
         <div
-          className="text-center mt-5 p-4 rounded action-section"
+          className="text-center mt-5 p-4 rounded-4 action-section"
           style={{
             background: "linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)",
-            border: "2px solid #2B3176",
+            border: "2px solid rgba(43, 49, 118, 0.2)",
           }}
         >
           <h4 className="mb-3" style={{ color: "#2B3176" }}>
             Ready to Submit Your Assessment?
           </h4>
           <p className="mb-4" style={{ color: "#6c757d" }}>
-            Please ensure all answers are correct before submitting. You can
-            edit any section by clicking the "Edit" button.
+            Please ensure all answers are correct before submitting. You can edit any section by clicking the "Edit" button.
           </p>
 
           <div className="d-flex gap-3 justify-content-center flex-wrap action-buttons">
@@ -1093,7 +786,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               variant="outline-secondary"
               size="lg"
               onClick={() => onEditSection(0)}
-              className="px-4 py-2 action-btn"
+              className="px-4 py-2 rounded-pill"
               style={{
                 border: "2px solid #6c757d",
                 color: "#6c757d",
@@ -1107,26 +800,20 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               size="lg"
               onClick={onSubmit}
               disabled={loading}
-              className="px-4 py-2 action-btn"
+              className="px-4 py-2 rounded-pill"
               style={{
                 background: loading
                   ? "linear-gradient(135deg, #6c757d 0%, #495057 100%)"
-                  : "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+                  : "linear-gradient(135deg, #A41D31 0%, #EC2326 100%)",
                 color: "white",
                 border: "none",
                 opacity: loading ? 0.7 : 1,
+                boxShadow: loading ? "none" : "0 4px 16px rgba(236, 35, 38, 0.35)",
               }}
             >
               {loading ? (
                 <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="me-2"
-                  />
+                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
                   Submitting...
                 </>
               ) : (
@@ -1142,7 +829,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               size="lg"
               onClick={handlePreviewDocument}
               disabled={isGeneratingPdf}
-              className="px-4 py-2 action-btn"
+              className="px-4 py-2 rounded-pill"
               style={{
                 background: "white",
                 color: "#2B3176",
@@ -1151,14 +838,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
             >
               {isGeneratingPdf ? (
                 <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                    className="me-2"
-                  />
+                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
                   Generating...
                 </>
               ) : (
@@ -1182,7 +862,6 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
         }}
         size="lg"
         centered
-        dialogClassName="modal-90w"
       >
         <Modal.Header
           closeButton
@@ -1206,9 +885,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer
-          style={{ background: "#f8f9ff", borderTop: "1px solid #dee2e6" }}
-        >
+        <Modal.Footer style={{ background: "#f8f9ff", borderTop: "1px solid #dee2e6" }}>
           <Button
             variant="outline-secondary"
             onClick={() => {
@@ -1216,20 +893,11 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
               setPdfBlob(null);
               setPdfUrl(null);
             }}
+            className="rounded-pill"
           >
             Close
           </Button>
           <Button
-            variant="outline-primary"
-            onClick={handlePrint}
-            className="d-flex align-items-center"
-            style={{ borderColor: "#2B3176", color: "#2B3176" }}
-          >
-            <Printer size={18} className="me-2" />
-            Print Form
-          </Button>
-          <Button
-            variant="primary"
             onClick={() => {
               saveAnswersAsDocument({
                 formData,
@@ -1240,10 +908,11 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({
                 questions,
               });
             }}
-            className="d-flex align-items-center"
+            className="d-flex align-items-center rounded-pill"
             style={{
-              background: "linear-gradient(135deg, #28a745 0%, #20c997 100%)",
+              background: "linear-gradient(135deg, #2B3176 0%, #1C6CB3 100%)",
               border: "none",
+              boxShadow: "0 4px 16px rgba(43, 49, 118, 0.35)",
             }}
           >
             <Download size={18} className="me-2" />

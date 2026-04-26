@@ -34,39 +34,130 @@ import LOGO_Alt from "../../../assets/logoCCDI.png";
 // ── Bicol Region complete municipality/city data ──────────────────────────────
 const BICOL_DATA: Record<string, string[]> = {
   Sorsogon: [
-    "Barcelona", "Bulan", "Bulusan", "Casiguran", "Castilla",
-    "Donsol", "Gubat", "Irosin", "Juban", "Magallanes",
-    "Matnog", "Pilar", "Prieto Diaz", "Sta. Magdalena", "Sorsogon City",
+    "Barcelona",
+    "Bulan",
+    "Bulusan",
+    "Casiguran",
+    "Castilla",
+    "Donsol",
+    "Gubat",
+    "Irosin",
+    "Juban",
+    "Magallanes",
+    "Matnog",
+    "Pilar",
+    "Prieto Diaz",
+    "Sta. Magdalena",
+    "Sorsogon City",
   ],
   Albay: [
-    "Bacacay", "Camalig", "Daraga", "Guinobatan", "Jovellar",
-    "Legazpi City", "Libon", "Ligao City", "Malilipot", "Malinao",
-    "Manito", "Oas", "Pio Duran", "Polangui", "Rapu-Rapu",
-    "Santo Domingo", "Tabaco City", "Tiwi",
+    "Bacacay",
+    "Camalig",
+    "Daraga",
+    "Guinobatan",
+    "Jovellar",
+    "Legazpi City",
+    "Libon",
+    "Ligao City",
+    "Malilipot",
+    "Malinao",
+    "Manito",
+    "Oas",
+    "Pio Duran",
+    "Polangui",
+    "Rapu-Rapu",
+    "Santo Domingo",
+    "Tabaco City",
+    "Tiwi",
   ],
   "Camarines Norte": [
-    "Basud", "Capalonga", "Daet", "Jose Panganiban", "Labo",
-    "Mercedes", "Paracale", "San Lorenzo Ruiz", "San Vicente",
-    "Santa Elena", "Talisay", "Vinzons",
+    "Basud",
+    "Capalonga",
+    "Daet",
+    "Jose Panganiban",
+    "Labo",
+    "Mercedes",
+    "Paracale",
+    "San Lorenzo Ruiz",
+    "San Vicente",
+    "Santa Elena",
+    "Talisay",
+    "Vinzons",
   ],
   "Camarines Sur": [
-    "Baao", "Balatan", "Bato", "Bombon", "Buhi", "Bula",
-    "Cabusao", "Calabanga", "Camaligan", "Canaman", "Caramoan",
-    "Del Gallego", "Gainza", "Garchitorena", "Goa", "Iriga City",
-    "Lagonoy", "Libmanan", "Lupi", "Magarao", "Milaor",
-    "Minalabac", "Nabua", "Naga City", "Ocampo", "Pamplona",
-    "Pasacao", "Pili", "Presentacion", "Ragay", "Sagñay",
-    "San Fernando", "San Jose", "Sipocot", "Siruma", "Tigaon", "Tinambac",
+    "Baao",
+    "Balatan",
+    "Bato",
+    "Bombon",
+    "Buhi",
+    "Bula",
+    "Cabusao",
+    "Calabanga",
+    "Camaligan",
+    "Canaman",
+    "Caramoan",
+    "Del Gallego",
+    "Gainza",
+    "Garchitorena",
+    "Goa",
+    "Iriga City",
+    "Lagonoy",
+    "Libmanan",
+    "Lupi",
+    "Magarao",
+    "Milaor",
+    "Minalabac",
+    "Nabua",
+    "Naga City",
+    "Ocampo",
+    "Pamplona",
+    "Pasacao",
+    "Pili",
+    "Presentacion",
+    "Ragay",
+    "Sagñay",
+    "San Fernando",
+    "San Jose",
+    "Sipocot",
+    "Siruma",
+    "Tigaon",
+    "Tinambac",
   ],
   Catanduanes: [
-    "Bagamanoc", "Baras", "Bato", "Caramoran", "Gigmoto",
-    "Pandan", "Panganiban", "San Andres", "San Miguel", "Viga", "Virac",
+    "Bagamanoc",
+    "Baras",
+    "Bato",
+    "Caramoran",
+    "Gigmoto",
+    "Pandan",
+    "Panganiban",
+    "San Andres",
+    "San Miguel",
+    "Viga",
+    "Virac",
   ],
   Masbate: [
-    "Aroroy", "Baleno", "Balud", "Batuan", "Cataingan", "Cawayan",
-    "Claveria", "Dimasalang", "Esperanza", "Mandaon", "Masbate City",
-    "Milagros", "Mobo", "Monreal", "Palanas", "Pio V. Corpuz",
-    "Placer", "San Fernando", "San Jacinto", "San Pascual", "Uson",
+    "Aroroy",
+    "Baleno",
+    "Balud",
+    "Batuan",
+    "Cataingan",
+    "Cawayan",
+    "Claveria",
+    "Dimasalang",
+    "Esperanza",
+    "Mandaon",
+    "Masbate City",
+    "Milagros",
+    "Mobo",
+    "Monreal",
+    "Palanas",
+    "Pio V. Corpuz",
+    "Placer",
+    "San Fernando",
+    "San Jacinto",
+    "San Pascual",
+    "Uson",
   ],
 };
 
@@ -97,7 +188,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [emailError, setEmailError] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
-  const [isResumingVerification, setIsResumingVerification] = useState<boolean>(false);
+  const [isResumingVerification, setIsResumingVerification] =
+    useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -134,9 +226,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
     { value: "BSCS", label: "Computer Science (BSCS)" },
     { value: "BSIT", label: "Information Technology (BSIT)" },
     { value: "BSIS", label: "Information Systems (BSIS)" },
-    { value: "BSET Electronics Technology", label: "Electronics Technology (BSET)" },
-    { value: "BSET Electrical Technology", label: "Electrical Technology (BSET)" },
-    { value: "ACT - Multimedia & Animation", label: "Multimedia & Animation (ACT)" },
+    {
+      value: "BSET Electronics Technology",
+      label: "Electronics Technology (BSET)",
+    },
+    {
+      value: "BSET Electrical Technology",
+      label: "Electrical Technology (BSET)",
+    },
+    {
+      value: "ACT - Multimedia & Animation",
+      label: "Multimedia & Animation (ACT)",
+    },
     { value: "ACT - Programming", label: "Programming (ACT)" },
     { value: "ACT - Networking", label: "Networking (ACT)" },
   ];
@@ -147,9 +248,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       return;
     }
     try {
-      const response = await axios.post(`${BASE_URL}/api/auth/check-email`, { email });
+      const response = await axios.post(`${BASE_URL}/api/auth/check-email`, {
+        email,
+      });
       if (response.data.exists) {
-        setEmailError("This email is already registered. Please use a different email or sign in.");
+        setEmailError(
+          "This email is already registered. Please use a different email or sign in.",
+        );
       } else {
         setEmailError("");
       }
@@ -168,7 +273,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
         fullName: fullName.trim(),
       });
       if (response.data.exists) {
-        setNameError("This name is already registered. Please use your full legal name or a variation.");
+        setNameError(
+          "This name is already registered. Please use your full legal name or a variation.",
+        );
       } else {
         setNameError("");
       }
@@ -204,32 +311,50 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       return;
     }
     if (emailError) {
-      setMessage({ type: "error", text: "Please fix the email error before proceeding." });
+      setMessage({
+        type: "error",
+        text: "Please fix the email error before proceeding.",
+      });
       setLoading(false);
       return;
     }
     if (nameError) {
-      setMessage({ type: "error", text: "Please fix the name error before proceeding." });
+      setMessage({
+        type: "error",
+        text: "Please fix the name error before proceeding.",
+      });
       setLoading(false);
       return;
     }
     if (!formData.agreeToTerms) {
-      setMessage({ type: "error", text: "Please agree to the Terms and Conditions and Privacy Policy." });
+      setMessage({
+        type: "error",
+        text: "Please agree to the Terms and Conditions and Privacy Policy.",
+      });
       setLoading(false);
       return;
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/api/auth/signup`, formData);
+      const response = await axios.post(
+        `${BASE_URL}/api/auth/signup`,
+        formData,
+      );
       setIsResumingVerification(!!response.data.pendingVerification);
       setMessage({ type: "success", text: response.data.message });
       setStep("verify");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || "Signup failed";
-        if (errorMessage.toLowerCase().includes("email") && errorMessage.toLowerCase().includes("already")) {
+        if (
+          errorMessage.toLowerCase().includes("email") &&
+          errorMessage.toLowerCase().includes("already")
+        ) {
           setEmailError(errorMessage);
-        } else if (errorMessage.toLowerCase().includes("name") && errorMessage.toLowerCase().includes("already")) {
+        } else if (
+          errorMessage.toLowerCase().includes("name") &&
+          errorMessage.toLowerCase().includes("already")
+        ) {
           setNameError(errorMessage);
         }
         setMessage({ type: "error", text: errorMessage });
@@ -274,7 +399,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        setMessage({ type: "error", text: error.response?.data?.message || "Verification failed" });
+        setMessage({
+          type: "error",
+          text: error.response?.data?.message || "Verification failed",
+        });
       } else {
         setMessage({ type: "error", text: "Verification failed" });
       }
@@ -286,11 +414,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
   const handleResendCode = async (): Promise<void> => {
     setLoading(true);
     try {
-      const response = await axios.post(`${BASE_URL}/api/auth/resend-code`, { email: formData.email });
+      const response = await axios.post(`${BASE_URL}/api/auth/resend-code`, {
+        email: formData.email,
+      });
       setMessage({ type: "success", text: response.data.message });
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        setMessage({ type: "error", text: error.response?.data?.message || "Failed to resend code" });
+        setMessage({
+          type: "error",
+          text: error.response?.data?.message || "Failed to resend code",
+        });
       } else {
         setMessage({ type: "error", text: "Failed to resend code" });
       }
@@ -313,26 +446,36 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               <div className="flex justify-center mb-4">
                 <img src={LOGO_Alt} alt="CCDI Logo" className="h-16 w-auto" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Verify Your Email</h2>
+              <h2 className="text-xl font-bold text-white mb-2">
+                Verify Your Email
+              </h2>
               <p className="text-white/80 text-sm">
-                We sent a 6-digit code to <strong className="text-white">{formData.email}</strong>
+                We sent a 6-digit code to{" "}
+                <strong className="text-white">{formData.email}</strong>
               </p>
               {isResumingVerification && (
                 <div className="mt-3 p-3 bg-yellow-50/10 border border-yellow-200/20 rounded-lg">
                   <p className="text-xs text-yellow-200">
-                    ⚠️ This email was previously registered but not verified. A fresh code has been sent.
+                    ⚠️ This email was previously registered but not verified. A
+                    fresh code has been sent.
                   </p>
                 </div>
               )}
             </div>
             <div className="p-8">
               {message.text && (
-                <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
-                  message.type === "success"
-                    ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                    : "bg-red-50 border border-red-200 text-red-700"
-                }`}>
-                  {message.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                <div
+                  className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
+                    message.type === "success"
+                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                      : "bg-red-50 border border-red-200 text-red-700"
+                  }`}
+                >
+                  {message.type === "success" ? (
+                    <CheckCircle size={16} />
+                  ) : (
+                    <AlertCircle size={16} />
+                  )}
                   <span className="font-medium">{message.text}</span>
                 </div>
               )}
@@ -346,7 +489,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                     type="text"
                     placeholder="Enter 6-digit code"
                     value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) =>
+                      setVerificationCode(
+                        e.target.value.replace(/\D/g, "").slice(0, 6),
+                      )
+                    }
                     maxLength={6}
                     required
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1C6CB3] text-center text-2xl tracking-widest font-bold text-gray-900"
@@ -395,28 +542,53 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#EC2326] to-[#A41D31] rounded-xl blur-md opacity-60"></div>
-                    <img src={LOGO_Alt} alt="CCDI Logo" className="relative h-12 w-auto" />
+                    <img
+                      src={LOGO_Alt}
+                      alt="CCDI Logo"
+                      className="relative h-12 w-auto"
+                    />
                   </div>
                   <div>
                     <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full mb-2">
                       <Sparkles size={12} />
-                      <span className="text-xs font-semibold">AI-POWERED PLATFORM</span>
+                      <span className="text-xs font-semibold">
+                        AI-POWERED PLATFORM
+                      </span>
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight">CCDI Career Assessment Test</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">
+                      CCDI Career Assessment Test
+                    </h1>
                   </div>
                 </div>
                 <p className="text-sm text-white/80 leading-relaxed">
-                  Start your journey with CCDI Sorsogon's intelligent career guidance system powered by AI.
+                  Start your journey with CCDI Sorsogon's intelligent career
+                  guidance system powered by AI.
                 </p>
               </div>
 
               {/* Feature highlights */}
               <div className="grid grid-cols-1 gap-3 mb-8">
                 {[
-                  { icon: <GraduationCap size={18} />, title: "Smart Program Matching", desc: "Aligns your profile with CCDI's academic programs" },
-                  { icon: <Brain size={18} />, title: "AI-Powered Insights", desc: "Advanced career recommendations tailored for you" },
-                  { icon: <Target size={18} />, title: "Career Readiness", desc: "Data-backed guidance for your future career" },
-                  { icon: <Star size={18} />, title: "Personalized Path", desc: "Tailored to your unique interests and strengths" },
+                  {
+                    icon: <GraduationCap size={18} />,
+                    title: "Smart Program Matching",
+                    desc: "Aligns your profile with CCDI's academic programs",
+                  },
+                  {
+                    icon: <Brain size={18} />,
+                    title: "AI-Powered Insights",
+                    desc: "Advanced career recommendations tailored for you",
+                  },
+                  {
+                    icon: <Target size={18} />,
+                    title: "Career Readiness",
+                    desc: "Data-backed guidance for your future career",
+                  },
+                  {
+                    icon: <Star size={18} />,
+                    title: "Personalized Path",
+                    desc: "Tailored to your unique interests and strengths",
+                  },
                 ].map((feature, idx) => (
                   <div
                     key={idx}
@@ -445,7 +617,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                     <h4 className="font-bold text-sm">Your Privacy Matters</h4>
                   </div>
                   <p className="text-white/70 text-xs leading-relaxed">
-                    Your data is protected with enterprise-grade security and used exclusively for academic guidance at CCDI Sorsogon.
+                    Your data is protected with enterprise-grade security and
+                    used exclusively for academic guidance at CCDI Sorsogon.
                   </p>
                 </div>
               </div>
@@ -461,17 +634,27 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
                 {/* Form header */}
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-[#2B3176] mb-2">Create Your Account</h2>
-                  <p className="text-gray-500 text-sm">Begin your career assessment journey</p>
+                  <h2 className="text-2xl font-bold text-[#2B3176] mb-2">
+                    Create Your Account
+                  </h2>
+                  <p className="text-gray-500 text-sm">
+                    Begin your career assessment journey
+                  </p>
                 </div>
 
                 {message.text && (
-                  <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
-                    message.type === "success"
-                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                      : "bg-red-50 border border-red-200 text-red-700"
-                  }`}>
-                    {message.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                  <div
+                    className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
+                      message.type === "success"
+                        ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                        : "bg-red-50 border border-red-200 text-red-700"
+                    }`}
+                  >
+                    {message.type === "success" ? (
+                      <CheckCircle size={16} />
+                    ) : (
+                      <AlertCircle size={16} />
+                    )}
                     <span className="font-medium">{message.text}</span>
                   </div>
                 )}
@@ -483,7 +666,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       <User size={14} className="text-[#2B3176]" />
                       Full Name
                     </label>
-                    <div className={`relative rounded-lg transition-all duration-200 ${isFocused.fullName ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}>
+                    <div
+                      className={`relative rounded-lg transition-all duration-200 ${isFocused.fullName ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}
+                    >
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <User size={16} className="text-gray-400" />
                       </div>
@@ -492,7 +677,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                         placeholder="Enter your full name"
                         value={formData.fullName}
                         onChange={(e) => {
-                          setFormData({ ...formData, fullName: e.target.value });
+                          setFormData({
+                            ...formData,
+                            fullName: e.target.value,
+                          });
                           setNameError("");
                         }}
                         onBlur={(e) => {
@@ -517,7 +705,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       <Mail size={14} className="text-[#2B3176]" />
                       Email Address
                     </label>
-                    <div className={`relative rounded-lg transition-all duration-200 ${isFocused.email ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}>
+                    <div
+                      className={`relative rounded-lg transition-all duration-200 ${isFocused.email ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}
+                    >
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Mail size={16} className="text-gray-400" />
                       </div>
@@ -551,7 +741,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       <Lock size={14} className="text-[#2B3176]" />
                       Password
                     </label>
-                    <div className={`relative rounded-lg transition-all duration-200 ${isFocused.password ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}>
+                    <div
+                      className={`relative rounded-lg transition-all duration-200 ${isFocused.password ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}
+                    >
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Lock size={16} className="text-gray-400" />
                       </div>
@@ -560,8 +752,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                         placeholder="Password (min. 6 characters)"
                         value={formData.password}
                         onChange={(e) => {
-                          setFormData({ ...formData, password: e.target.value });
-                          validatePasswordMatch(e.target.value, confirmPassword);
+                          setFormData({
+                            ...formData,
+                            password: e.target.value,
+                          });
+                          validatePasswordMatch(
+                            e.target.value,
+                            confirmPassword,
+                          );
                         }}
                         onFocus={() => handleFocus("password")}
                         onBlur={() => handleBlur("password")}
@@ -575,9 +773,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       >
                         {showPassword ? (
-                          <EyeOff size={16} className="text-gray-400 hover:text-gray-600" />
+                          <EyeOff
+                            size={16}
+                            className="text-gray-400 hover:text-gray-600"
+                          />
                         ) : (
-                          <Eye size={16} className="text-gray-400 hover:text-gray-600" />
+                          <Eye
+                            size={16}
+                            className="text-gray-400 hover:text-gray-600"
+                          />
                         )}
                       </button>
                     </div>
@@ -589,7 +793,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       <Lock size={14} className="text-[#2B3176]" />
                       Confirm Password
                     </label>
-                    <div className={`relative rounded-lg transition-all duration-200 ${isFocused.confirmPassword ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}>
+                    <div
+                      className={`relative rounded-lg transition-all duration-200 ${isFocused.confirmPassword ? "ring-2 ring-[#1C6CB3] ring-offset-2" : ""}`}
+                    >
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Lock size={16} className="text-gray-400" />
                       </div>
@@ -599,7 +805,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                         value={confirmPassword}
                         onChange={(e) => {
                           setConfirmPassword(e.target.value);
-                          validatePasswordMatch(formData.password, e.target.value);
+                          validatePasswordMatch(
+                            formData.password,
+                            e.target.value,
+                          );
                         }}
                         onFocus={() => handleFocus("confirmPassword")}
                         onBlur={() => handleBlur("confirmPassword")}
@@ -608,13 +817,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       >
                         {showConfirmPassword ? (
-                          <EyeOff size={16} className="text-gray-400 hover:text-gray-600" />
+                          <EyeOff
+                            size={16}
+                            className="text-gray-400 hover:text-gray-600"
+                          />
                         ) : (
-                          <Eye size={16} className="text-gray-400 hover:text-gray-600" />
+                          <Eye
+                            size={16}
+                            className="text-gray-400 hover:text-gray-600"
+                          />
                         )}
                       </button>
                     </div>
@@ -637,9 +854,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       </div>
                       <select
                         value={formData.preferredCourse}
-                        onChange={(e) => setFormData({ ...formData, preferredCourse: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            preferredCourse: e.target.value,
+                          })
+                        }
                         className="w-full pl-9 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1C6CB3] focus:bg-white text-gray-900 text-sm transition-all duration-200 appearance-none bg-no-repeat bg-[length:12px] bg-[position:right_16px_center]"
-                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E")` }}
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E")`,
+                        }}
                       >
                         {courses.map((course) => (
                           <option key={course.value} value={course.value}>
@@ -668,16 +892,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                           setFormData({ ...formData, address: "" });
                         }}
                         className="w-full pl-9 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1C6CB3] focus:bg-white text-gray-900 text-sm transition-all duration-200 appearance-none bg-no-repeat bg-[length:12px] bg-[position:right_16px_center]"
-                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E")` }}
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E")`,
+                        }}
                       >
                         <option value="">Select Province</option>
                         {PROVINCES.map((p) => (
-                          <option key={p} value={p}>{p}</option>
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
                         ))}
                       </select>
                     </div>
                   </div>
 
+                  {/* Address - Municipality */}
                   {/* Address - Municipality */}
                   {selectedProvince && (
                     <div className="space-y-1" ref={muniRef}>
@@ -695,31 +924,46 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                           value={muniQuery}
                           onChange={(e) => {
                             setMuniQuery(e.target.value);
-                            setFormData({ ...formData, address: e.target.value });
+                            setFormData({
+                              ...formData,
+                              address: e.target.value,
+                            });
                             setShowMuniDropdown(true);
                           }}
                           onFocus={() => setShowMuniDropdown(true)}
                           className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1C6CB3] focus:bg-white text-gray-900 text-sm transition-all duration-200"
                           autoComplete="off"
                         />
+                        {showMuniDropdown && filteredMunis.length > 0 && (
+                          <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                            {filteredMunis.map((m) => (
+                              <div
+                                key={m}
+                                onMouseDown={() => {
+                                  setMuniQuery(m);
+                                  setFormData({
+                                    ...formData,
+                                    address: `${m}, ${selectedProvince}`,
+                                  });
+                                  setShowMuniDropdown(false);
+                                }}
+                                className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer first:rounded-t-lg last:rounded-b-lg transition-colors duration-150"
+                              >
+                                {m}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {showMuniDropdown &&
+                          muniQuery &&
+                          filteredMunis.length === 0 && (
+                            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                              <p className="text-xs text-gray-400 text-center">
+                                No municipalities found
+                              </p>
+                            </div>
+                          )}
                       </div>
-                      {showMuniDropdown && filteredMunis.length > 0 && (
-                        <ul className="absolute z-50 left-6 right-6 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                          {filteredMunis.map((m) => (
-                            <li
-                              key={m}
-                              onMouseDown={() => {
-                                setMuniQuery(m);
-                                setFormData({ ...formData, address: `${m}, ${selectedProvince}` });
-                                setShowMuniDropdown(false);
-                              }}
-                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
-                            >
-                              {m}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
                     </div>
                   )}
 
@@ -737,7 +981,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                         type="text"
                         placeholder="Last / Current School Attended"
                         value={formData.school}
-                        onChange={(e) => setFormData({ ...formData, school: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, school: e.target.value })
+                        }
                         className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1C6CB3] focus:bg-white text-gray-900 text-sm transition-all duration-200"
                       />
                     </div>
@@ -749,15 +995,26 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       type="checkbox"
                       id="agreeToTerms"
                       checked={formData.agreeToTerms}
-                      onChange={(e) => setFormData({ ...formData, agreeToTerms: e.target.checked })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          agreeToTerms: e.target.checked,
+                        })
+                      }
                       className="mt-1 h-4 w-4 rounded border-gray-300 text-[#A41D31] focus:ring-[#A41D31]"
                       required
                     />
-                    <label htmlFor="agreeToTerms" className="text-xs text-gray-600 leading-relaxed">
+                    <label
+                      htmlFor="agreeToTerms"
+                      className="text-xs text-gray-600 leading-relaxed"
+                    >
                       I agree to the{" "}
                       <button
                         type="button"
-                        onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowTerms(true);
+                        }}
                         className="text-[#1C6CB3] hover:underline font-medium"
                       >
                         Terms and Conditions
@@ -765,7 +1022,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       {" and "}
                       <button
                         type="button"
-                        onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowPrivacy(true);
+                        }}
                         className="text-[#1C6CB3] hover:underline font-medium"
                       >
                         Privacy Policy
@@ -776,7 +1036,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={loading || !!emailError || !!nameError || !!passwordError}
+                    disabled={
+                      loading || !!emailError || !!nameError || !!passwordError
+                    }
                     className="w-full group relative overflow-hidden rounded-lg bg-gradient-to-r from-[#A41D31] to-[#EC2326] py-3 px-4 text-white font-semibold text-sm transition-all duration-300 hover:shadow-lg hover:shadow-[#EC2326]/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="relative flex items-center justify-center gap-2">
@@ -788,7 +1050,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                       ) : (
                         <>
                           <span>Create Account</span>
-                          <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight
+                            size={16}
+                            className="group-hover:translate-x-1 transition-transform"
+                          />
                         </>
                       )}
                     </div>
@@ -796,14 +1061,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
                   {/* Sign In Link */}
                   <div className="text-center pt-4 border-t border-gray-100">
-                    <p className="text-sm text-gray-600 mb-2">Already have an account?</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Already have an account?
+                    </p>
                     <button
                       type="button"
                       onClick={onSwitchToLogin}
                       className="inline-flex items-center gap-1 text-[#1C6CB3] font-semibold text-sm hover:text-[#2B3176] transition-colors group"
                     >
                       <span>Sign In Here!</span>
-                      <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight
+                        size={14}
+                        className="group-hover:translate-x-1 transition-transform"
+                      />
                     </button>
                   </div>
                 </form>
@@ -812,10 +1082,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                 <div className="lg:hidden mt-4 p-3 bg-gradient-to-r from-[#A41D31]/5 to-[#EC2326]/5 rounded-lg border border-[#EC2326]/10">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield size={14} className="text-[#A41D31]" />
-                    <span className="text-xs font-semibold text-gray-800">Protected & Private</span>
+                    <span className="text-xs font-semibold text-gray-800">
+                      Protected & Private
+                    </span>
                   </div>
                   <p className="text-[11px] text-gray-600">
-                    Your data is encrypted and used exclusively for academic guidance at CCDI Sorsogon.
+                    Your data is encrypted and used exclusively for academic
+                    guidance at CCDI Sorsogon.
                   </p>
                 </div>
               </div>
@@ -836,7 +1109,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
           >
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <h5 className="text-lg font-bold text-[#2B3176]">Terms and Conditions</h5>
+                <h5 className="text-lg font-bold text-[#2B3176]">
+                  Terms and Conditions
+                </h5>
                 <button
                   type="button"
                   onClick={() => setShowTerms(false)}
@@ -847,19 +1122,45 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               </div>
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <p className="text-sm text-gray-600 mb-4"><strong>Last Updated:</strong> January 2026</p>
-              <h6 className="font-semibold text-gray-800 mb-2">1. Acceptance of Terms</h6>
-              <p className="text-sm text-gray-600 mb-4">By signing up, you agree to these Terms and our Privacy Policy.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">2. Eligibility</h6>
-              <p className="text-sm text-gray-600 mb-4">Limited to students and prospective students of CCDI Sorsogon.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">3. Account Responsibility</h6>
-              <p className="text-sm text-gray-600 mb-4">You are responsible for your account security.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">4. Service Use</h6>
-              <p className="text-sm text-gray-600 mb-4">Our career assessments are guidance tools — not binding advice.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">5. Limitation of Liability</h6>
-              <p className="text-sm text-gray-600 mb-4">We are not liable for indirect damages.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">6. Governing Law</h6>
-              <p className="text-sm text-gray-600">Governed by the laws of the Republic of the Philippines.</p>
+              <p className="text-sm text-gray-600 mb-4">
+                <strong>Last Updated:</strong> January 2026
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                1. Acceptance of Terms
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                By signing up, you agree to these Terms and our Privacy Policy.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                2. Eligibility
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                Limited to students and prospective students of CCDI Sorsogon.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                3. Account Responsibility
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                You are responsible for your account security.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                4. Service Use
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                Our career assessments are guidance tools — not binding advice.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                5. Limitation of Liability
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                We are not liable for indirect damages.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                6. Governing Law
+              </h6>
+              <p className="text-sm text-gray-600">
+                Governed by the laws of the Republic of the Philippines.
+              </p>
             </div>
             <div className="p-4 border-t border-gray-100 flex justify-end">
               <button
@@ -886,7 +1187,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
           >
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <h5 className="text-lg font-bold text-[#2B3176]">Privacy Policy</h5>
+                <h5 className="text-lg font-bold text-[#2B3176]">
+                  Privacy Policy
+                </h5>
                 <button
                   type="button"
                   onClick={() => setShowPrivacy(false)}
@@ -897,17 +1200,37 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               </div>
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <p className="text-sm text-gray-600 mb-4"><strong>Last Updated:</strong> January 2026</p>
-              <h6 className="font-semibold text-gray-800 mb-2">1. Information We Collect</h6>
-              <p className="text-sm text-gray-600 mb-4">Full name, email, password (hashed), and preferred course.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">2. How We Use Your Data</h6>
-              <p className="text-sm text-gray-600 mb-4">To create your account, verify email, and personalize guidance.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">3. Data Sharing</h6>
-              <p className="text-sm text-gray-600 mb-4">We do not sell your data.</p>
-              <h6 className="font-semibold text-gray-800 mb-2">4. Your Rights (RA 10173)</h6>
-              <p className="text-sm text-gray-600 mb-4">You may access, correct, or delete your data.</p>
+              <p className="text-sm text-gray-600 mb-4">
+                <strong>Last Updated:</strong> January 2026
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                1. Information We Collect
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                Full name, email, password (hashed), and preferred course.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                2. How We Use Your Data
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                To create your account, verify email, and personalize guidance.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                3. Data Sharing
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                We do not sell your data.
+              </p>
+              <h6 className="font-semibold text-gray-800 mb-2">
+                4. Your Rights (RA 10173)
+              </h6>
+              <p className="text-sm text-gray-600 mb-4">
+                You may access, correct, or delete your data.
+              </p>
               <h6 className="font-semibold text-gray-800 mb-2">5. Security</h6>
-              <p className="text-sm text-gray-600">Passwords are securely hashed. All data transmitted via HTTPS.</p>
+              <p className="text-sm text-gray-600">
+                Passwords are securely hashed. All data transmitted via HTTPS.
+              </p>
             </div>
             <div className="p-4 border-t border-gray-100 flex justify-end">
               <button

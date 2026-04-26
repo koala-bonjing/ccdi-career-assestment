@@ -8,6 +8,8 @@ export interface FormData {
   password: string;
   preferredCourse: string;
   agreeToTerms: boolean;
+  address: string
+  school: string
 }
 
 export interface Message {

@@ -12,6 +12,8 @@ export interface User {
   email: string;
   fullName: string;
   preferredCourse?: string;
+  address?: string;
+  school?: string;
 }
 
 interface AuthContextType {

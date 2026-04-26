@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { LoginFormProps, FormData, Message } from "./types/login";
 import { useNavigate } from "react-router-dom";
+import LOGO from "../../../assets/logoCCDI.png"
 
 const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToSignup,
@@ -145,8 +146,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#EC2326] to-[#A41D31] rounded-xl blur-md opacity-60"></div>
-                    <Cpu size={36} className="relative text-white" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#f7e4e4] to-[#b6b0b0] rounded-full blur-md opacity-50"></div>
+                    <img src={LOGO} alt="CCDI Logo" className="relative w-22 h-20 rounded-full" />
                   </div>
                   <div>
                     <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-full mb-1">
@@ -156,7 +157,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                       </span>
                     </div>
                     <h1 className="text-2xl font-bold tracking-tight">
-                      CCDI Career Assessment Test
+                      CCDI Automated Career Assessment Test
                     </h1>
                   </div>
                 </div>

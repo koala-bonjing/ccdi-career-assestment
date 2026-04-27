@@ -411,12 +411,14 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               </button>
 
               <div
-                style={{
-                  maxHeight: isReviewExpanded ? "500px" : "0",
-                  overflow: "hidden",
-                  transition: "max-height 0.3s ease-in-out",
-                  opacity: isReviewExpanded ? 1 : 0,
-                }}
+               style={{
+                      maxHeight: isReviewExpanded ? "300px" : "0",
+                      overflowY: isReviewExpanded ? "auto" : "hidden",
+                      overflowX: "hidden",
+                      transition: "max-height 0.3s ease-in-out",
+                      opacity: isReviewExpanded ? 1 : 0,
+                      WebkitOverflowScrolling: "touch",
+                    }}
               >
                 <div
                   className="p-3 rounded-bottom-3"

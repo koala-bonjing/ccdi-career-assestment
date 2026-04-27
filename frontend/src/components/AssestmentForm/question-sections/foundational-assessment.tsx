@@ -236,6 +236,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
   };
 
   const progressPercent = calculateProgress();
+  const isPreviousDisabled = activeGroup === 0 && activeQuestionIndex === 0;
 
   return (
     <Card
@@ -257,8 +258,8 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
       />
 
       <Card.Body className="p-3 p-md-5">
-        {/* Progress Section */}
-        <div className="mb-4">
+        {/* Progress Section — hidden on mobile, visible on md+ */}
+        <div className="mb-4 d-none d-md-block">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <span className="text-muted small">
               {sectionCompleted ? (
@@ -572,44 +573,52 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                   );
                 })}
               </Row>
+
               {/* 🟢 Persistent Prev/Next Navigation */}
               <div className="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                 <Button
                   variant="outline-secondary"
                   onClick={handlePrevious}
-                  disabled={activeGroup === 0 && activeQuestionIndex === 0}
-                  className="d-flex align-items-center gap-2"
+                  disabled={isPreviousDisabled}
+                  className="d-flex align-items-center gap-1 gap-md-2 nav-btn-prev"
                   style={{
-                    padding: "10px 20px",
+                    padding: "7px 12px",
                     borderRadius: "10px",
                     fontWeight: "600",
                     borderColor: "#D1D5DB",
                     color: "#6B7280",
+                    fontSize: "0.85rem",
+                    opacity: isPreviousDisabled ? 0.5 : 1,
+                    // Prevent any color override on mobile tap/focus
+                    backgroundColor: "transparent",
                   }}
                 >
-                  <ChevronLeft size={18} />
-                  Previous
+                  <ChevronLeft size={16} />
+                  <span>Previous</span>
                 </Button>
 
                 <Button
                   onClick={handleNext}
-                  className="d-flex align-items-center gap-2"
+                  className="d-flex align-items-center gap-1 gap-md-2"
                   style={{
                     background: `linear-gradient(135deg, ${currentGroup.color}, ${currentGroup.color}dd)`,
                     border: "none",
                     color: "white",
-                    padding: "10px 20px",
+                    padding: "7px 12px",
                     borderRadius: "10px",
                     fontWeight: "600",
+                    fontSize: "0.85rem",
                     boxShadow: `0 4px 12px ${currentGroup.color}40`,
                   }}
                 >
-                  {isLastQuestionInGroup
-                    ? isLastGroup
-                      ? "Complete Section ✓"
-                      : "Next Category →"
-                    : "Next Question →"}
-                  <ChevronRight size={18} />
+                  <span>
+                    {isLastQuestionInGroup
+                      ? isLastGroup
+                        ? "Complete ✓"
+                        : "Next Category →"
+                      : "Next →"}
+                  </span>
+                  <ChevronRight size={16} />
                 </Button>
               </div>
 
@@ -682,12 +691,15 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                     )}
                   </button>
 
+                  {/* FIX: Scrollable accordion on mobile */}
                   <div
                     style={{
-                      maxHeight: isReviewExpanded ? "600px" : "0",
-                      overflow: "hidden",
+                      maxHeight: isReviewExpanded ? "300px" : "0",
+                      overflowY: isReviewExpanded ? "auto" : "hidden",
+                      overflowX: "hidden",
                       transition: "max-height 0.3s ease-in-out",
                       opacity: isReviewExpanded ? 1 : 0,
+                      WebkitOverflowScrolling: "touch",
                     }}
                   >
                     <div
@@ -708,7 +720,7 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                         return (
                           <div
                             key={qId}
-                            className="d-flex justify-content-between align-items-center py-2 px-3 rounded-2 mb-1"
+                            className="py-2 px-3 rounded-2 mb-2"
                             style={{
                               cursor: "pointer",
                               transition: "all 0.15s ease",
@@ -717,12 +729,10 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                                 : "transparent",
                               border: isCurrent
                                 ? `1px solid ${currentGroup.color}40`
-                                : "1px solid transparent",
+                                : "1px solid #f0f0f0",
                             }}
                             onClick={() => {
                               setActiveQuestionIndex(idx);
-                              setShowGroupReview(false);
-                              setIsReviewExpanded(false);
                             }}
                             onMouseEnter={(e) => {
                               if (!isCurrent) {
@@ -732,77 +742,63 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
                             }}
                             onMouseLeave={(e) => {
                               if (!isCurrent) {
-                                e.currentTarget.style.background =
-                                  "transparent";
-                                e.currentTarget.style.borderColor =
-                                  "transparent";
+                                e.currentTarget.style.background = "transparent";
+                                e.currentTarget.style.borderColor = "#f0f0f0";
                               }
                             }}
                           >
-                            <div
-                              className="d-flex align-items-center gap-2"
-                              style={{ maxWidth: "65%" }}
-                            >
+                            {/* Question row */}
+                            <div className="d-flex align-items-start gap-2">
                               <span
-                                className="small fw-bold"
                                 style={{
-                                  color: isCurrent
-                                    ? currentGroup.color
-                                    : "#9CA3AF",
-                                  minWidth: "20px",
+                                  fontSize: "0.8rem",
+                                  fontWeight: "700",
+                                  color: isCurrent ? currentGroup.color : "#9CA3AF",
+                                  minWidth: "22px",
+                                  paddingTop: "1px",
+                                  flexShrink: 0,
                                 }}
                               >
-                                {idx + 1}.
+                                {idx + 1}.)
                               </span>
                               <span
-                                className="small"
                                 style={{
+                                  fontSize: "0.82rem",
                                   color: isAnswered ? "#374151" : "#9CA3AF",
-                                  fontWeight: isCurrent ? "600" : "400",
-                                  textAlign: "left",
+                                  fontWeight: isCurrent ? "600" : "500",
                                   lineHeight: "1.4",
                                 }}
                               >
                                 {q.questionText}
                               </span>
                             </div>
-                            <div className="d-flex align-items-center gap-2">
+                            {/* Answer row — indented to align under question text */}
+                            <div
+                              style={{
+                                paddingLeft: "30px",
+                                marginTop: "4px",
+                              }}
+                            >
                               {isAnswered ? (
                                 <span
-                                  className="badge px-2 py-1"
                                   style={{
-                                    backgroundColor: `${currentGroup.color}15`,
-                                    color: currentGroup.color,
+                                    fontSize: "0.8rem",
                                     fontWeight: "600",
-                                    fontSize: "0.75rem",
-                                    borderRadius: "6px",
+                                    color: currentGroup.color,
                                   }}
                                 >
                                   {selectedAnswer}
                                 </span>
                               ) : (
                                 <span
-                                  className="badge px-2 py-1"
                                   style={{
-                                    backgroundColor: "#f3f4f6",
-                                    color: "#9CA3AF",
-                                    fontWeight: "500",
-                                    fontSize: "0.75rem",
-                                    borderRadius: "6px",
+                                    fontSize: "0.8rem",
+                                    color: "#D1D5DB",
+                                    fontStyle: "italic",
                                   }}
                                 >
-                                  —
+                                  Not answered
                                 </span>
-                              )}
-                              {isCurrent && (
-                                <span
-                                  style={{
-                                    width: "6px",
-                                    height: "6px",
-                                    borderRadius: "50%",
-                                    backgroundColor: currentGroup.color,
-                                  }}
-                                />
                               )}
                             </div>
                           </div>
@@ -856,6 +852,31 @@ const FoundationalAssessmentSection: React.FC<AssessmentSectionProps> = ({
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fadeIn 0.25s ease-out; }
+
+        /* Fix Previous button: stays gray on mobile tap/focus, no color bleed */
+        .nav-btn-prev:focus,
+        .nav-btn-prev:active,
+        .nav-btn-prev:hover {
+          background-color: transparent !important;
+          color: #6B7280 !important;
+          border-color: #D1D5DB !important;
+          box-shadow: none !important;
+        }
+        .nav-btn-prev:disabled {
+          background-color: transparent !important;
+          color: #6B7280 !important;
+          border-color: #D1D5DB !important;
+          opacity: 0.5 !important;
+        }
+
+        /* Mobile: compact buttons */
+        @media (max-width: 767px) {
+          .nav-btn-prev,
+          .nav-btn-prev + button {
+            font-size: 0.8rem !important;
+            padding: 6px 10px !important;
+          }
+        }
       `}</style>
     </Card>
   );

@@ -651,10 +651,12 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
 
               <div
                 style={{
-                  maxHeight: isReviewExpanded ? "500px" : "0",
-                  overflow: "hidden",
+                  maxHeight: isReviewExpanded ? "300px" : "0",
+                  overflowY: isReviewExpanded ? "auto" : "hidden",
+                  overflowX: "hidden",
                   transition: "max-height 0.3s ease-in-out",
                   opacity: isReviewExpanded ? 1 : 0,
+                  WebkitOverflowScrolling: "touch",
                 }}
               >
                 <div
@@ -667,8 +669,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                 >
                   {currentGroup.questions.map((q, idx) => {
                     const ans = formData.learningWorkStyle[q.questionText];
-                    const isAnswered =
-                      typeof ans === "boolean";
+                    const isAnswered = typeof ans === "boolean";
                     const isCurrentQuestion = idx === quizIndex;
 
                     return (
@@ -702,7 +703,10 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                           }
                         }}
                       >
-                        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "70%" }}>
+                        <div
+                          className="d-flex align-items-center gap-2"
+                          style={{ maxWidth: "70%" }}
+                        >
                           <span
                             className="small fw-bold"
                             style={{

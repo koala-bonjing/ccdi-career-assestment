@@ -145,12 +145,12 @@ const SECTIONS = [
     bg: "rgba(217,119,6,0.06)",
     border: "rgba(217,119,6,0.25)",
     title: "Section 3 — Technical Interests",
-    desc: "No right or wrong answers. Check all the areas you're genuinely interested in learning — even if you have zero experience. Interest is what matters here.",
+    desc: "No right or wrong answers. Pick all the areas you're genuinely interested in learning — even if you have zero experience. Interest is what matters here.",
     subsections: [
       {
         name: "Programming & Development",
         count: "Coding & software",
-        types: ["Checkbox / Multiple select"],
+        types: ["Yes / No"],
         detail:
           "Web development, programming languages, databases, app building — things you'd like to create.",
         examples: [
@@ -162,7 +162,7 @@ const SECTIONS = [
       {
         name: "Hardware & Electronics",
         count: "Physical tech",
-        types: ["Checkbox / Multiple select"],
+        types: ["Yes / No"],
         detail:
           "Computer hardware, circuits, Arduino, Raspberry Pi, soldering — hands‑on electronics.",
         examples: [
@@ -174,7 +174,7 @@ const SECTIONS = [
       {
         name: "Creative & Design Tools",
         count: "Digital media",
-        types: ["Checkbox / Multiple select"],
+        types: ["Yes / No"],
         detail:
           "Graphic design, photo editing, video production, animation — creative software.",
         examples: [
@@ -186,7 +186,7 @@ const SECTIONS = [
       {
         name: "Networking & IT Support",
         count: "Networks & systems",
-        types: ["Checkbox / Multiple select"],
+        types: ["Yes / No"],
         detail:
           "Setting up networks, troubleshooting computers, cybersecurity basics — keeping tech running.",
         examples: [
@@ -287,12 +287,12 @@ const SECTIONS = [
     bg: "rgba(124,58,237,0.06)",
     border: "rgba(124,58,237,0.25)",
     title: "Section 5 — Your Learning & Commitments",
-    desc: "No right or wrong answers. Select at least one option from each category below. These are about your real situation — how you prefer to learn, what you can commit to time‑wise, your resources, and your career expectations.",
+    desc: "No right or wrong answers. Pick the options that best describe your situation. These are about your real situation — how you prefer to learn, what you can commit to time‑wise, your resources, and your career expectations.",
     subsections: [
       {
         name: "Learning & Program Commitment",
         count: "How you learn & what duration fits you",
-        types: ["Checkbox / Multiple select", "Select at least 1"],
+        types: ["Yes / No"],
         detail:
           "Your preference for hands‑on projects vs. theory, ability to commit to 2‑year or 4‑year programs, self‑study habits, and lab readiness.",
         examples: [
@@ -304,7 +304,7 @@ const SECTIONS = [
       {
         name: "Work Style Preferences",
         count: "How you work best",
-        types: ["Checkbox / Multiple select", "Select at least 1"],
+        types: ["Yes / No"],
         detail:
           "Openness to unpaid internships, part‑time work during studies, physical demands, and transportation needs.",
         examples: [
@@ -316,7 +316,7 @@ const SECTIONS = [
       {
         name: "Financial & Time Resources",
         count: "What you can invest",
-        types: ["Checkbox / Multiple select", "Select at least 1"],
+        types: ["Yes / No"],
         detail:
           "Readiness to spend on tools, lab fees, certifications, textbooks, and having a capable computer.",
         examples: [
@@ -328,7 +328,7 @@ const SECTIONS = [
       {
         name: "Career Goals & Logistics",
         count: "Your long‑term plan",
-        types: ["Checkbox / Multiple select", "Select at least 1"],
+        types: ["Yes / No"],
         detail:
           "Understanding of program outcomes — management potential, licensure, creative careers, entry‑level work, or pathway to a higher degree.",
         examples: [

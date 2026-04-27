@@ -625,10 +625,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
             {/* Right Side - Signup Form */}
             <div className="flex-1 flex items-center justify-center p-6 lg:p-8">
               <div className="w-full max-w-md">
-                {/* Logo for mobile */}
-                <div className="lg:hidden flex justify-center mb-6">
-                  <img src={LOGO_Alt} alt="CCDI Logo" className="h-14 w-auto" />
-                </div>
+      
 
                 {/* Form header */}
                 <div className="text-center mb-6">
@@ -952,6 +949,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                             ))}
                           </div>
                         )}
+                      <div></div>
                         {showMuniDropdown &&
                           muniQuery &&
                           filteredMunis.length === 0 && (

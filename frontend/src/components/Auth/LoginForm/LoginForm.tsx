@@ -147,7 +147,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 <div className="flex items-center gap-3 mb-3">
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-[#f7e4e4] to-[#b6b0b0] rounded-full blur-md opacity-50"></div>
-                    <img src={LOGO} alt="CCDI Logo" className="relative w-22 h-20 rounded-full" />
+                    <Cpu size={48} className="relative text-white" />
                   </div>
                   <div>
                     <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-full mb-1">
@@ -239,7 +239,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                     {showForgotPassword ? (
                       <KeyRound size={22} className="text-white" />
                     ) : (
-                      <Cpu size={22} className="text-white" />
+                      <img src={LOGO} alt="CCDI Logo" className="relative w-20 h-20 rounded-full" />
                     )}
                   </div>
                   <h2 className="text-xl font-bold text-white mb-1 leading-snug">
@@ -362,8 +362,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
                         {/* Full Name Field - compact */}
                         <div className="space-y-1">
                           <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                            <User size={14} className="text-[#2B3176]" />
-                            Name
+                            
+                           Full Name
                           </label>
                           <div
                             className={`relative rounded-lg transition-all duration-200 ${
@@ -393,7 +393,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
                         {/* Email Field - compact */}
                         <div className="space-y-1">
                           <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                            <Mail size={14} className="text-[#2B3176]" />
                             Email Address
                           </label>
                           <div
@@ -425,7 +424,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
                         <div className="space-y-1">
                           <div className="flex items-center justify-between">
                             <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                              <Lock size={14} className="text-[#2B3176]" />
                               Password
                             </label>
                             <button

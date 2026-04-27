@@ -9,6 +9,12 @@ import {
   Wallet,
   Target,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
   type LucideIcon,
 } from "lucide-react";
 import SectionHeader from "../section-header";
@@ -70,10 +76,12 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   totalSections,
 }) => {
   const [activeGroup, setActiveGroup] = useState(0);
-  const [quizIndex, setQuizIndex] = useState(0); // Question index within current group
+  const [quizIndex, setQuizIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [transitionDirection, setTransitionDirection] = useState<"left" | "right" | null>(null);
   const [showCategoryIntro, setShowCategoryIntro] = useState(true);
+  const [showGroupReview, setShowGroupReview] = useState(false);
+  const [isReviewExpanded, setIsReviewExpanded] = useState(false);
+  const [showValidationError, setShowValidationError] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -82,19 +90,17 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Show category intro when switching groups
   useEffect(() => {
     setShowCategoryIntro(true);
     setQuizIndex(0);
-    const timer = setTimeout(() => {
-      setShowCategoryIntro(false);
-    }, 2000); // Show intro for 2 seconds
+    setShowGroupReview(false);
+    setIsReviewExpanded(false);
+    const timer = setTimeout(() => setShowCategoryIntro(false), 2000);
     return () => clearTimeout(timer);
   }, [activeGroup]);
 
   const questionGroups: QuestionGroup[] = useMemo(() => {
     const groupsMap = new Map<string, Question[]>();
-
     questions.forEach((question) => {
       const subCat = question.subCategory || "Uncategorized";
       if (!groupsMap.has(subCat)) groupsMap.set(subCat, []);
@@ -124,7 +130,15 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   const totalQuestionsInGroup = currentGroup?.questions.length || 0;
   const totalGroups = questionGroups.length;
 
-  // Calculate progress
+  // ✅ Accurate global question counter
+  const globalQuestionNumber = useMemo(() => {
+    let count = 0;
+    for (let i = 0; i < activeGroup; i++) {
+      count += questionGroups[i].questions.length;
+    }
+    return count + quizIndex + 1;
+  }, [activeGroup, quizIndex, questionGroups]);
+
   const calculateProgress = () => {
     const answered = questions.filter(
       (q) => typeof formData.learningWorkStyle[q.questionText] === "boolean",
@@ -132,12 +146,11 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     return Math.round((answered / questions.length) * 100);
   };
 
-  // Count Yes in current group
-  const yesCountInGroup = currentGroup?.questions.filter(
-    (q) => formData.learningWorkStyle[q.questionText] === true,
-  ).length || 0;
+  const yesCountInGroup =
+    currentGroup?.questions.filter(
+      (q) => formData.learningWorkStyle[q.questionText] === true,
+    ).length || 0;
 
-  // Check if current group is complete
   const isGroupComplete = (group: QuestionGroup) => {
     return group.questions.some(
       (q) => formData.learningWorkStyle[q.questionText] === true,
@@ -146,35 +159,72 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
 
   const isSectionComplete = questionGroups.every(isGroupComplete);
 
+  const isGroupFullyAnswered =
+    currentGroup?.questions.every(
+      (q) => typeof formData.learningWorkStyle[q.questionText] === "boolean",
+    ) || false;
+
+  useEffect(() => {
+    if (isGroupFullyAnswered && !showGroupReview) {
+      setShowGroupReview(true);
+    }
+  }, [isGroupFullyAnswered, showGroupReview]);
+
+  // ── QUESTION-ONLY NAVIGATION ────────────────────────────────────────────
   const handleAnswer = (value: boolean) => {
     if (!currentQuestion) return;
-
     onChange(
       "learningWorkStyle",
       currentQuestion.questionText,
       value,
       currentQuestion.program,
     );
+    setShowValidationError(false);
 
-    // Auto-advance to next question
-    setTimeout(() => {
-      if (quizIndex < totalQuestionsInGroup - 1) {
-        setTransitionDirection("right");
+    // Auto-advance only within current group
+    if (quizIndex < totalQuestionsInGroup - 1) {
+      setTimeout(() => {
         setQuizIndex((i) => i + 1);
-      } else if (activeGroup < totalGroups - 1) {
-        // Move to next group
-        setActiveGroup((g) => g + 1);
-      }
-    }, 300);
+      }, 300);
+    }
   };
 
+  const handleNext = () => {
+    if (
+      typeof formData.learningWorkStyle[currentQuestion?.questionText] !==
+      "boolean"
+    ) {
+      setShowValidationError(true);
+      setTimeout(() => setShowValidationError(false), 2500);
+      return;
+    }
 
+    if (quizIndex < totalQuestionsInGroup - 1) {
+      setQuizIndex((i) => i + 1);
+    }
+    // Does NOT change groups or sections. Footer handles that.
+  };
 
- 
+  const handlePrevious = () => {
+    if (quizIndex > 0) {
+      setQuizIndex((i) => i - 1);
+    }
+    // Does NOT change groups or sections.
+  };
+
+  const toggleReviewAccordion = () => {
+    setIsReviewExpanded(!isReviewExpanded);
+  };
 
   const currentAnswer = currentQuestion
     ? formData.learningWorkStyle[currentQuestion.questionText]
     : undefined;
+
+  // Calculate unanswered count for review
+  const unansweredInGroup =
+    currentGroup?.questions.filter(
+      (q) => typeof formData.learningWorkStyle[q.questionText] !== "boolean",
+    ).length || 0;
 
   if (questionGroups.length === 0) {
     return (
@@ -203,13 +253,10 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
       />
 
       <Card.Body className="p-3 p-md-5">
-        {/* Category Intro Animation */}
         {showCategoryIntro && (
           <div
             className="text-center mb-4"
-            style={{
-              animation: "fadeInScale 0.6s ease-out",
-            }}
+            style={{ animation: "fadeInScale 0.6s ease-out" }}
           >
             <div
               className="d-inline-flex align-items-center gap-3 px-4 py-3 rounded-4"
@@ -250,19 +297,15 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           </div>
         )}
 
-        {/* Progress bar */}
         <div className="mb-4">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <span className="text-muted small">
-              Question{" "}
-              <strong>
-                {activeGroup * totalQuestionsInGroup + quizIndex + 1}
-              </strong>{" "}
-              of {questions.length}
+              Question <strong>{globalQuestionNumber}</strong> of{" "}
+              {questions.length}
             </span>
             <div className="d-flex gap-3">
               <span className="small fw-bold" style={{ color: "#EC2326" }}>
-                {yesCountInGroup} Yes in this category
+                {yesCountInGroup} Yes{" "}
               </span>
               <span className="small fw-bold" style={{ color: "#1C6CB3" }}>
                 {activeGroup + 1}/{totalGroups} Categories
@@ -289,7 +332,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           </div>
         </div>
 
-        {/* Category Navigation Tabs */}
         <Row className="mb-4 g-2">
           {questionGroups.map((group, idx) => {
             const IconComponent = group.icon;
@@ -299,17 +341,14 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
             return (
               <Col key={idx} xs={6} lg={Math.floor(12 / questionGroups.length)}>
                 <button
-                  onClick={() => setActiveGroup(idx)}
+                  onClick={() => {
+                    setActiveGroup(idx);
+                    setShowGroupReview(false);
+                  }}
                   style={{
                     width: "100%",
                     padding: isMobile ? "8px 4px" : "12px 8px",
-                    border: `2px solid ${
-                      isActive
-                        ? group.color
-                        : isComplete
-                          ? `${group.color}60`
-                          : "#e0e0e0"
-                    }`,
+                    border: `2px solid ${isActive ? group.color : isComplete ? `${group.color}60` : "#e0e0e0"}`,
                     borderRadius: "12px",
                     background: isActive ? `${group.color}10` : "white",
                     cursor: "pointer",
@@ -356,22 +395,19 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           })}
         </Row>
 
-        {/* Question Card */}
         <div
           className="text-center mx-auto"
           style={{ maxWidth: "650px", minHeight: "300px" }}
         >
-          {/* Question bubble */}
           <div
+            key={`${activeGroup}-${quizIndex}`}
             className="mb-4 p-4 rounded-4"
             style={{
               background: `linear-gradient(135deg, ${currentGroup.color}08, #ffffff)`,
               border: `1.5px solid ${currentGroup.color}30`,
-              animation: transitionDirection
-                ? `slide${transitionDirection === "right" ? "InRight" : "InLeft"} 0.3s ease-out`
-                : "none",
+              overflow: "hidden",
+              transition: "all 0.15s ease",
             }}
-            onAnimationEnd={() => setTransitionDirection(null)}
           >
             <div
               className="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
@@ -403,7 +439,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
             — Does this apply to you?
           </p>
 
-          {/* Yes / No buttons */}
           <div className="d-flex gap-3 justify-content-center flex-wrap mb-4">
             <button
               onClick={() => handleAnswer(false)}
@@ -431,8 +466,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                 gap: "8px",
               }}
             >
-              <XCircle size={18} />
-              No
+              <XCircle size={18} /> No
             </button>
 
             <button
@@ -443,7 +477,8 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                 fontWeight: "600",
                 fontSize: "0.95rem",
                 padding: "12px 28px",
-                background: currentAnswer === true ? currentGroup.color : "white",
+                background:
+                  currentAnswer === true ? currentGroup.color : "white",
                 color: currentAnswer === true ? "white" : "#374151",
                 border:
                   currentAnswer === true
@@ -461,17 +496,286 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                 gap: "8px",
               }}
             >
-              <CheckCircle2 size={18} />
-              Yes
+              <CheckCircle2 size={18} /> Yes
+            </button>
+          </div>
+          {/* 🔘 Question-Only Navigation */}
+          <div className="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+            <button
+              onClick={handlePrevious}
+              disabled={quizIndex === 0}
+              className="d-flex align-items-center gap-2 px-3 py-2 rounded-3"
+              style={{
+                background: "white",
+                border: "1.5px solid #D1D5DB",
+                color: quizIndex === 0 ? "#9CA3AF" : "#374151",
+                fontWeight: "600",
+                fontSize: "0.9rem",
+                cursor: quizIndex === 0 ? "not-allowed" : "pointer",
+                transition: "all 0.2s ease",
+                opacity: quizIndex === 0 ? 0.6 : 1,
+              }}
+            >
+              <ChevronLeft size={18} /> Previous
+            </button>
+
+            <span className="text-muted small">
+              {quizIndex + 1} / {totalQuestionsInGroup}
+            </span>
+
+            <button
+              onClick={handleNext}
+              disabled={
+                quizIndex === totalQuestionsInGroup - 1 ||
+                typeof currentAnswer !== "boolean"
+              }
+              className="d-flex align-items-center gap-2 px-4 py-2 rounded-3"
+              style={{
+                background:
+                  quizIndex < totalQuestionsInGroup - 1 &&
+                  typeof currentAnswer === "boolean"
+                    ? `linear-gradient(135deg, ${currentGroup.color}, ${currentGroup.color}dd)`
+                    : "#E5E7EB",
+                border: "none",
+                color:
+                  quizIndex < totalQuestionsInGroup - 1 &&
+                  typeof currentAnswer === "boolean"
+                    ? "white"
+                    : "#9CA3AF",
+                fontWeight: "600",
+                fontSize: "0.9rem",
+                cursor:
+                  quizIndex < totalQuestionsInGroup - 1 &&
+                  typeof currentAnswer === "boolean"
+                    ? "pointer"
+                    : "not-allowed",
+                boxShadow:
+                  quizIndex < totalQuestionsInGroup - 1 &&
+                  typeof currentAnswer === "boolean"
+                    ? `0 4px 12px ${currentGroup.color}40`
+                    : "none",
+                transition: "all 0.2s ease",
+              }}
+            >
+              Next <ChevronRight size={18} />
             </button>
           </div>
 
-         
+          {/* 🔒 Validation Feedback */}
+          {showValidationError && (
+            <div
+              className="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 mb-3 animate-fade-in"
+              style={{
+                background: "rgba(239, 68, 68, 0.08)",
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+              }}
+            >
+              <AlertCircle size={16} style={{ color: "#EF4444" }} />
+              <span
+                style={{
+                  color: "#B91C1C",
+                  fontSize: "0.85rem",
+                  fontWeight: "500",
+                }}
+              >
+                Please select Yes or No before continuing.
+              </span>
+            </div>
+          )}
+
+          {/* 📋 Dropdown/Accordion Review Panel */}
+          {showGroupReview && (
+            <div className="mt-3 mb-3 animate-fade-in">
+              <button
+                onClick={toggleReviewAccordion}
+                className="w-100 d-flex align-items-center justify-content-between p-3 rounded-3"
+                style={{
+                  background: isReviewExpanded
+                    ? `${currentGroup.color}08`
+                    : "#f8f9fa",
+                  border: `1.5px solid ${
+                    isReviewExpanded ? currentGroup.color : "#e5e7eb"
+                  }40`,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <div className="d-flex align-items-center gap-2">
+                  <Eye size={18} style={{ color: currentGroup.color }} />
+                  <div className="text-start">
+                    <span
+                      className="fw-bold"
+                      style={{
+                        color: currentGroup.color,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      Review: {currentGroup.category}
+                    </span>
+                    <div className="d-flex gap-2 mt-1">
+                      <span
+                        className="small"
+                        style={{ color: "#6b7280", fontSize: "0.75rem" }}
+                      >
+                        {totalQuestionsInGroup - unansweredInGroup}/
+                        {totalQuestionsInGroup} answered
+                      </span>
+                      {unansweredInGroup > 0 && (
+                        <span
+                          className="small"
+                          style={{ color: "#EF4444", fontSize: "0.75rem" }}
+                        >
+                          • {unansweredInGroup} unanswered
+                        </span>
+                      )}
+                      {unansweredInGroup === 0 && (
+                        <span
+                          className="small"
+                          style={{ color: "#22c55e", fontSize: "0.75rem" }}
+                        >
+                          • Complete
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {isReviewExpanded ? (
+                  <ChevronUp size={20} style={{ color: currentGroup.color }} />
+                ) : (
+                  <ChevronDown
+                    size={20}
+                    style={{ color: currentGroup.color }}
+                  />
+                )}
+              </button>
+
+              <div
+                style={{
+                  maxHeight: isReviewExpanded ? "500px" : "0",
+                  overflow: "hidden",
+                  transition: "max-height 0.3s ease-in-out",
+                  opacity: isReviewExpanded ? 1 : 0,
+                }}
+              >
+                <div
+                  className="p-3 rounded-bottom-3"
+                  style={{
+                    background: "#fafbfc",
+                    border: "1px solid #e5e7eb",
+                    borderTop: "none",
+                  }}
+                >
+                  {currentGroup.questions.map((q, idx) => {
+                    const ans = formData.learningWorkStyle[q.questionText];
+                    const isAnswered =
+                      typeof ans === "boolean";
+                    const isCurrentQuestion = idx === quizIndex;
+
+                    return (
+                      <div
+                        key={q.questionText}
+                        className="d-flex justify-content-between align-items-center py-2 px-3 rounded-2 mb-1"
+                        style={{
+                          border: isCurrentQuestion
+                            ? `1px solid ${currentGroup.color}40`
+                            : "1px solid transparent",
+                          background: isCurrentQuestion
+                            ? `${currentGroup.color}08`
+                            : "transparent",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                        onClick={() => {
+                          setQuizIndex(idx);
+                          if (isReviewExpanded) {
+                            setIsReviewExpanded(false);
+                          }
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isCurrentQuestion) {
+                            e.currentTarget.style.background = "#f3f4f6";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isCurrentQuestion) {
+                            e.currentTarget.style.background = "transparent";
+                          }
+                        }}
+                      >
+                        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "70%" }}>
+                          <span
+                            className="small fw-bold"
+                            style={{
+                              color: isCurrentQuestion
+                                ? currentGroup.color
+                                : "#9CA3AF",
+                              minWidth: "20px",
+                            }}
+                          >
+                            {idx + 1}.
+                          </span>
+                          <span
+                            className="small"
+                            style={{
+                              color: isAnswered ? "#374151" : "#9CA3AF",
+                              fontWeight: isCurrentQuestion ? "600" : "400",
+                              textAlign: "left",
+                              lineHeight: "1.4",
+                            }}
+                          >
+                            {q.questionText}
+                          </span>
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                          {isAnswered ? (
+                            <span
+                              className="badge px-2 py-1"
+                              style={{
+                                backgroundColor:
+                                  ans === true ? "#22c55e15" : "#1C6CB315",
+                                color: ans === true ? "#16a34a" : "#1C6CB3",
+                                fontWeight: "600",
+                                fontSize: "0.75rem",
+                                borderRadius: "6px",
+                              }}
+                            >
+                              {ans === true ? "Yes" : "No"}
+                            </span>
+                          ) : (
+                            <span
+                              className="badge px-2 py-1"
+                              style={{
+                                backgroundColor: "#f3f4f6",
+                                color: "#9CA3AF",
+                                fontWeight: "500",
+                                fontSize: "0.75rem",
+                                borderRadius: "6px",
+                              }}
+                            >
+                              —
+                            </span>
+                          )}
+                          {isCurrentQuestion && (
+                            <span
+                              style={{
+                                width: "6px",
+                                height: "6px",
+                                borderRadius: "50%",
+                                backgroundColor: currentGroup.color,
+                              }}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Card.Body>
 
-
-      {/* Assessment Action Footer - only shows when complete */}
       {isSectionComplete && (
         <AssessmentActionFooter
           currentSection={currentSection}
@@ -488,33 +792,24 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           }
         />
       )}
+
+      <style>{`
+        @keyframes fadeInScale {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.04); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.25s ease-out; }
+      `}</style>
     </Card>
   );
 };
-
-// Add these keyframe animations to your CSS
-const style = document.createElement("style");
-style.textContent = `
-  @keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  
-  @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(30px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-30px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-`;
-document.head.appendChild(style);
 
 export default LearningStyleSection;

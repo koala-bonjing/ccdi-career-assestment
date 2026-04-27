@@ -18,6 +18,7 @@ import {
   Brain,
   Target,
   Star,
+  Cpu,
 } from "lucide-react";
 
 import type {
@@ -541,12 +542,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
               <div className="mb-8">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#EC2326] to-[#A41D31] rounded-xl blur-md opacity-60"></div>
-                    <img
-                      src={LOGO_Alt}
-                      alt="CCDI Logo"
-                      className="relative h-12 w-auto"
-                    />
+                    <div className="inline-flex items-center justify-center p-2 bg-white/10 backdrop-blur-sm rounded-xl mb-3">
+                      <Cpu size={32} className="text-white" />
+                    </div>
                   </div>
                   <div>
                     <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full mb-2">
@@ -634,6 +632,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
 
                 {/* Form header */}
                 <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center p-2 bg-white/10 backdrop-blur-sm rounded-xl mb-3">
+                    <img
+                      src={LOGO_Alt}
+                      alt="CCDI Logo"
+                      className="relative w-20 h-20 rounded-full"
+                    />
+                  </div>
                   <h2 className="text-2xl font-bold text-[#2B3176] mb-2">
                     Create Your Account
                   </h2>
@@ -663,7 +668,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* Full Name */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      <User size={14} className="text-[#2B3176]" />
                       Full Name
                     </label>
                     <div
@@ -702,7 +706,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* Email */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      <Mail size={14} className="text-[#2B3176]" />
                       Email Address
                     </label>
                     <div
@@ -738,7 +741,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* Password */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      <Lock size={14} className="text-[#2B3176]" />
                       Password
                     </label>
                     <div
@@ -790,7 +792,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* Confirm Password */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      <Lock size={14} className="text-[#2B3176]" />
                       Confirm Password
                     </label>
                     <div
@@ -845,7 +846,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* Preferred Course */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      <Book size={14} className="text-[#2B3176]" />
                       Preferred Course
                     </label>
                     <div className="relative">
@@ -877,7 +877,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* Address - Province */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      <MapPin size={14} className="text-[#2B3176]" />
                       Province
                     </label>
                     <div className="relative">
@@ -911,7 +910,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {selectedProvince && (
                     <div className="space-y-1" ref={muniRef}>
                       <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                        <MapPin size={14} className="text-[#2B3176]" />
                         Municipality/City
                       </label>
                       <div className="relative">
@@ -970,7 +968,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSwitchToLogin }) => {
                   {/* School */}
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      <GraduationCap size={14} className="text-[#2B3176]" />
                       School
                     </label>
                     <div className="relative">

@@ -20,7 +20,12 @@ interface AssessmentInstructionsModalProps {
   onHide: () => void;
 }
 
-// ─── per-section data (scoring removed) ───────────────────────────────────────
+// ─── Responsive font helper ───────────────────────────────────────────────────
+// Returns a CSS clamp() string: min at ~320px, max at ~768px+
+// const rf = (minPx: number, maxPx: number) =>
+//   `clamp(${minPx}px, ${minPx}px + ${(maxPx - minPx) * 0.5}vw, ${maxPx}px)`;
+
+// ─── per-section data ─────────────────────────────────────────────────────────
 
 const SECTIONS = [
   {
@@ -133,13 +138,13 @@ const SECTIONS = [
   },
   {
     key: "technical",
-    label: "Technical Interests", // ✅ changed from "Technical Skills"
+    label: "Tech Interests",
     questions: 24,
     icon: Code2,
     color: "#d97706",
     bg: "rgba(217,119,6,0.06)",
     border: "rgba(217,119,6,0.25)",
-    title: "Section 3 — Technical Interests", // ✅ changed
+    title: "Section 3 — Technical Interests",
     desc: "No right or wrong answers. Check all the areas you're genuinely interested in learning — even if you have zero experience. Interest is what matters here.",
     subsections: [
       {
@@ -275,7 +280,7 @@ const SECTIONS = [
   },
   {
     key: "learning",
-    label: "Your Learning & Commitments",
+    label: "Learning & Commitments",
     questions: 36,
     icon: Layers,
     color: "#7c3aed",
@@ -337,6 +342,65 @@ const SECTIONS = [
   },
 ];
 
+// ─── Responsive styles injected once ─────────────────────────────────────────
+
+const RESPONSIVE_CSS = `
+  .aim-modal-body { font-size: 13px; }
+
+  /* Fluid font scale tokens */
+  .aim-fs-10 { font-size: clamp(9px,  9px + 0.3vw, 10px); }
+  .aim-fs-11 { font-size: clamp(10px, 10px + 0.4vw, 11px); }
+  .aim-fs-12 { font-size: clamp(11px, 11px + 0.4vw, 12px); }
+  .aim-fs-13 { font-size: clamp(11.5px, 11.5px + 0.5vw, 13px); }
+  .aim-fs-14 { font-size: clamp(12px, 12px + 0.6vw, 14px); }
+  .aim-fs-16 { font-size: clamp(13px, 13px + 0.8vw, 16px); }
+
+  /* Header */
+  .aim-header-title { font-size: clamp(13px, 13px + 1vw, 16px) !important; font-weight: 700; }
+  .aim-header-sub   { font-size: clamp(10px, 10px + 0.5vw, 12px) !important; }
+
+  /* Stats grid — wrap to 2×2 on very narrow screens */
+  @media (max-width: 400px) {
+    .aim-stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; row-gap: 10px !important; }
+  }
+
+  /* Tabs — allow text to wrap more gracefully */
+  .aim-tab-label { font-size: clamp(9px, 9px + 0.4vw, 10px) !important; }
+  .aim-tab-count { font-size: clamp(9px, 9px + 0.3vw, 10px) !important; }
+
+  /* SubItem badge */
+  .aim-badge { font-size: clamp(9.5px, 9.5px + 0.3vw, 11px) !important; }
+
+  /* Section panel */
+  .aim-panel-title { font-size: clamp(12px, 12px + 0.6vw, 14px) !important; }
+  .aim-panel-desc  { font-size: clamp(11px, 11px + 0.4vw, 12.5px) !important; }
+
+  /* Program list + results list */
+  .aim-list-item { font-size: clamp(10.5px, 10.5px + 0.4vw, 12px) !important; }
+
+  /* Tip bar */
+  .aim-tip-text { font-size: clamp(11px, 11px + 0.4vw, 12px) !important; }
+
+  /* Notice bar */
+  .aim-notice { font-size: clamp(11.5px, 11.5px + 0.5vw, 13px) !important; }
+
+  /* Privacy footer */
+  .aim-privacy { font-size: clamp(10px, 10px + 0.4vw, 11.5px) !important; }
+
+  /* CTA button */
+  .aim-cta { font-size: clamp(13px, 13px + 0.5vw, 16px) !important; }
+
+  /* Sub-item expand area */
+  .aim-subitem-name   { font-size: clamp(11.5px, 11.5px + 0.4vw, 13px) !important; }
+  .aim-subitem-detail { font-size: clamp(11px, 11px + 0.3vw, 12.5px) !important; }
+  .aim-subitem-ex     { font-size: clamp(10.5px, 10.5px + 0.3vw, 12px) !important; }
+  .aim-subitem-label  { font-size: clamp(10px, 10px + 0.2vw, 11px) !important; }
+`;
+
+function InjectStyles() {
+  return <style>{RESPONSIVE_CSS}</style>;
+}
+
 // ─── sub-item component ───────────────────────────────────────────────────────
 
 const SubItem: React.FC<{
@@ -375,8 +439,8 @@ const SubItem: React.FC<{
         }}
       >
         <span
+          className="aim-badge"
           style={{
-            fontSize: 11,
             fontWeight: 600,
             padding: "3px 8px",
             borderRadius: 12,
@@ -391,8 +455,8 @@ const SubItem: React.FC<{
           {count}
         </span>
         <span
+          className="aim-subitem-name"
           style={{
-            fontSize: 13,
             color: "#18181b",
             flex: 1,
             lineHeight: 1.4,
@@ -425,8 +489,8 @@ const SubItem: React.FC<{
             {types.map((t) => (
               <span
                 key={t}
+                className="aim-badge"
                 style={{
-                  fontSize: 11,
                   padding: "3px 8px",
                   borderRadius: 12,
                   background: "#e4e4e7",
@@ -440,18 +504,19 @@ const SubItem: React.FC<{
             ))}
           </div>
           <p
+            className="aim-subitem-detail"
             style={{
-              fontSize: 12.5,
               color: "#3f3f46",
               lineHeight: 1.5,
               margin: "0 0 10px",
+              fontWeight: 450,
             }}
           >
             {detail}
           </p>
           <p
+            className="aim-subitem-label"
             style={{
-              fontSize: 11,
               fontWeight: 600,
               color: "#52525b",
               textTransform: "uppercase",
@@ -465,8 +530,8 @@ const SubItem: React.FC<{
             {examples.map((ex) => (
               <li
                 key={ex}
+                className="aim-subitem-ex"
                 style={{
-                  fontSize: 12,
                   color: "#18181b",
                   lineHeight: 1.5,
                   marginBottom: 4,
@@ -500,6 +565,8 @@ export const AssessmentInstructionsModal: React.FC<
       size="lg"
       className="modern-modal"
     >
+      <InjectStyles />
+
       {/* ── header ── */}
       <Modal.Header
         className="border-0 pb-0"
@@ -508,14 +575,14 @@ export const AssessmentInstructionsModal: React.FC<
         style={{
           background: "#2B3176",
           borderRadius: "12px 12px 0 0",
-          padding: "1.2rem 1.5rem",
+          padding: "1rem 1.25rem",
         }}
       >
         <Modal.Title className="w-100 d-flex align-items-center gap-3">
           <div
             style={{
-              width: 38,
-              height: 38,
+              width: 36,
+              height: 36,
               borderRadius: "50%",
               background: "rgba(255,255,255,0.15)",
               display: "flex",
@@ -524,18 +591,15 @@ export const AssessmentInstructionsModal: React.FC<
               flexShrink: 0,
             }}
           >
-            <Brain size={20} color="#fff" />
+            <Brain size={18} color="#fff" />
           </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>
+            <div className="aim-header-title" style={{ color: "#fff" }}>
               Assessment Instructions
             </div>
             <div
-              style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,0.75)",
-                marginTop: 2,
-              }}
+              className="aim-header-sub"
+              style={{ color: "rgba(255,255,255,0.75)", marginTop: 2 }}
             >
               5 sections · 148 items · 20–25 minutes
             </div>
@@ -544,8 +608,9 @@ export const AssessmentInstructionsModal: React.FC<
       </Modal.Header>
 
       <Modal.Body
+        className="aim-modal-body"
         style={{
-          padding: "1.2rem 1.5rem",
+          padding: "1rem 1.25rem",
           display: "flex",
           flexDirection: "column",
           gap: 14,
@@ -553,12 +618,12 @@ export const AssessmentInstructionsModal: React.FC<
       >
         {/* notice */}
         <div
+          className="aim-notice"
           style={{
             background: "#e0f2fe",
             border: "1px solid #7dd3fc",
             borderRadius: 10,
-            padding: "12px 16px",
-            fontSize: 13,
+            padding: "11px 14px",
             color: "#0369a1",
             lineHeight: 1.5,
             fontWeight: 450,
@@ -575,6 +640,7 @@ export const AssessmentInstructionsModal: React.FC<
 
         {/* Quick Stats */}
         <div
+          className="aim-stats-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, minmax(0,1fr))",
@@ -582,30 +648,10 @@ export const AssessmentInstructionsModal: React.FC<
           }}
         >
           {[
-            {
-              icon: Clock,
-              label: "Duration",
-              value: "20–25 mins",
-              color: "#2B3176",
-            },
-            {
-              icon: CheckCircle,
-              label: "Sections",
-              value: "5 Parts",
-              color: "#1a7a3c",
-            },
-            {
-              icon: EyeOff,
-              label: "Privacy",
-              value: "Confidential",
-              color: "#0e7490",
-            },
-            {
-              icon: BarChart3,
-              label: "Result",
-              value: "AI-Powered",
-              color: "#d97706",
-            },
+            { icon: Clock,        label: "Duration",  value: "20–25 mins",   color: "#2B3176" },
+            { icon: CheckCircle,  label: "Sections",  value: "5 Parts",      color: "#1a7a3c" },
+            { icon: EyeOff,       label: "Privacy",   value: "Confidential", color: "#0e7490" },
+            { icon: BarChart3,    label: "Result",    value: "AI-Powered",   color: "#d97706" },
           ].map((item, i) => (
             <div
               key={i}
@@ -616,17 +662,11 @@ export const AssessmentInstructionsModal: React.FC<
                 textAlign: "center",
               }}
             >
-              <item.icon
-                size={22}
-                color={item.color}
-                style={{ marginBottom: 4 }}
-              />
-              <small
-                style={{ color: "#52525b", fontSize: 11, fontWeight: 500 }}
-              >
+              <item.icon size={20} color={item.color} style={{ marginBottom: 4 }} />
+              <small className="aim-fs-11" style={{ color: "#52525b", fontWeight: 500 }}>
                 {item.label}
               </small>
-              <strong style={{ fontSize: 13, color: "#18181b" }}>
+              <strong className="aim-fs-13" style={{ color: "#18181b" }}>
                 {item.value}
               </strong>
             </div>
@@ -652,20 +692,20 @@ export const AssessmentInstructionsModal: React.FC<
                 style={{
                   border: active ? `2px solid ${s.color}` : "1px solid #d4d4d8",
                   borderRadius: 10,
-                  padding: "10px 4px",
+                  padding: "9px 4px",
                   cursor: "pointer",
                   background: active ? s.bg : "#f4f4f5",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 4,
+                  gap: 3,
                   transition: "all 0.15s",
                 }}
               >
-                <SIcon size={16} color={active ? s.color : "#52525b"} />
+                <SIcon size={15} color={active ? s.color : "#52525b"} />
                 <span
+                  className="aim-tab-label"
                   style={{
-                    fontSize: 10,
                     fontWeight: 600,
                     color: active ? s.color : "#3f3f46",
                     textAlign: "center",
@@ -675,8 +715,8 @@ export const AssessmentInstructionsModal: React.FC<
                   {s.label}
                 </span>
                 <span
+                  className="aim-tab-count"
                   style={{
-                    fontSize: 10,
                     color: active ? s.color : "#71717a",
                     fontWeight: 500,
                   }}
@@ -693,7 +733,7 @@ export const AssessmentInstructionsModal: React.FC<
           style={{
             border: `1.5px solid ${sec.border}`,
             borderRadius: 12,
-            padding: "14px 16px",
+            padding: "12px 14px",
             background: sec.bg,
             display: "flex",
             alignItems: "flex-start",
@@ -702,8 +742,8 @@ export const AssessmentInstructionsModal: React.FC<
         >
           <div
             style={{
-              width: 36,
-              height: 36,
+              width: 34,
+              height: 34,
               borderRadius: 10,
               flexShrink: 0,
               background: `${sec.color}25`,
@@ -712,15 +752,15 @@ export const AssessmentInstructionsModal: React.FC<
               justifyContent: "center",
             }}
           >
-            <Icon size={18} color={sec.color} />
+            <Icon size={17} color={sec.color} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#18181b" }}>
+            <div className="aim-panel-title" style={{ fontWeight: 700, color: "#18181b" }}>
               {sec.title}
             </div>
             <div
+              className="aim-panel-desc"
               style={{
-                fontSize: 12.5,
                 color: "#3f3f46",
                 marginTop: 4,
                 lineHeight: 1.5,
@@ -735,8 +775,8 @@ export const AssessmentInstructionsModal: React.FC<
         {/* sub-items */}
         <div>
           <p
+            className="aim-fs-11"
             style={{
-              fontSize: 11,
               fontWeight: 700,
               color: "#52525b",
               textTransform: "uppercase",
@@ -751,15 +791,13 @@ export const AssessmentInstructionsModal: React.FC<
           ))}
         </div>
 
-        {/* tip row - full width now since scoring is removed */}
+        {/* tip row */}
         <div
           style={{
             borderRadius: 10,
-            padding: "12px 14px",
+            padding: "11px 13px",
             border: "1px solid #d4d4d8",
             background: "#f4f4f5",
-            fontSize: 12,
-            color: "#3f3f46",
             lineHeight: 1.5,
             display: "flex",
             gap: 8,
@@ -767,7 +805,9 @@ export const AssessmentInstructionsModal: React.FC<
           }}
         >
           <span style={{ flexShrink: 0, marginTop: 1 }}>💡</span>
-          <span style={{ fontWeight: 450 }}>{sec.tip}</span>
+          <span className="aim-tip-text" style={{ fontWeight: 450, color: "#3f3f46" }}>
+            {sec.tip}
+          </span>
         </div>
 
         {/* Program Options Summary */}
@@ -776,16 +816,12 @@ export const AssessmentInstructionsModal: React.FC<
             background: "#f4f4f5",
             borderRadius: 10,
             border: "1px solid #d4d4d8",
-            padding: "14px 16px",
+            padding: "12px 14px",
           }}
         >
           <p
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#18181b",
-              marginBottom: 8,
-            }}
+            className="aim-fs-12"
+            style={{ fontWeight: 700, color: "#18181b", marginBottom: 8 }}
           >
             📋 Programs We'll Recommend From:
           </p>
@@ -808,7 +844,8 @@ export const AssessmentInstructionsModal: React.FC<
             ].map((item) => (
               <span
                 key={item}
-                style={{ fontSize: 12, color: "#3f3f46", fontWeight: 450 }}
+                className="aim-list-item"
+                style={{ color: "#3f3f46", fontWeight: 450 }}
               >
                 <strong style={{ color: "#18181b" }}>
                   {item.split(" - ")[0]}
@@ -825,16 +862,12 @@ export const AssessmentInstructionsModal: React.FC<
             background: "#f4f4f5",
             borderRadius: 10,
             border: "1px solid #d4d4d8",
-            padding: "14px 16px",
+            padding: "12px 14px",
           }}
         >
           <p
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#18181b",
-              marginBottom: 8,
-            }}
+            className="aim-fs-12"
+            style={{ fontWeight: 700, color: "#18181b", marginBottom: 8 }}
           >
             📊 After you finish all 5 sections you'll instantly receive:
           </p>
@@ -855,8 +888,8 @@ export const AssessmentInstructionsModal: React.FC<
             ].map((item) => (
               <div
                 key={item}
+                className="aim-list-item"
                 style={{
-                  fontSize: 12,
                   color: "#3f3f46",
                   display: "flex",
                   gap: 6,
@@ -864,9 +897,7 @@ export const AssessmentInstructionsModal: React.FC<
                   fontWeight: 450,
                 }}
               >
-                <span
-                  style={{ color: "#2B3176", flexShrink: 0, fontWeight: 700 }}
-                >
+                <span style={{ color: "#2B3176", flexShrink: 0, fontWeight: 700 }}>
                   •
                 </span>
                 {item}
@@ -881,69 +912,38 @@ export const AssessmentInstructionsModal: React.FC<
             background: "#fef3c7",
             borderRadius: 10,
             border: "1px solid #fcd34d",
-            padding: "14px 16px",
+            padding: "12px 14px",
           }}
         >
           <p
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#92400e",
-              marginBottom: 8,
-            }}
+            className="aim-fs-12"
+            style={{ fontWeight: 700, color: "#92400e", marginBottom: 8 }}
           >
             💡 Tips for Best Results
           </p>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
-            <li
-              style={{
-                fontSize: 12,
-                color: "#78350f",
-                lineHeight: 1.5,
-                marginBottom: 4,
-                fontWeight: 450,
-              }}
-            >
-              <strong style={{ color: "#92400e" }}>Be honest</strong> — Answer
-              truthfully for accurate recommendations.
-            </li>
-            <li
-              style={{
-                fontSize: 12,
-                color: "#78350f",
-                lineHeight: 1.5,
-                marginBottom: 4,
-                fontWeight: 450,
-              }}
-            >
-              <strong style={{ color: "#92400e" }}>
-                Don't stress about "wrong" answers
-              </strong>{" "}
-              — The goal is to find the right program for YOU.
-            </li>
-            <li
-              style={{
-                fontSize: 12,
-                color: "#78350f",
-                lineHeight: 1.5,
-                marginBottom: 4,
-                fontWeight: 450,
-              }}
-            >
-              For the <strong>Foundational Assessment</strong>, don't guess
-              wildly. If you don't know, select the closest option.
-            </li>
-            <li
-              style={{
-                fontSize: 12,
-                color: "#78350f",
-                lineHeight: 1.5,
-                fontWeight: 450,
-              }}
-            >
-              You can navigate between questions and edit answers before final
-              submission.
-            </li>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            {[
+              { bold: "Be honest", rest: " — Answer truthfully for accurate recommendations." },
+              { bold: "Don't stress about \"wrong\" answers", rest: " — The goal is to find the right program for YOU." },
+              { bold: null, rest: "For the Foundational Assessment, don't guess wildly. If you don't know, select the closest option." },
+              { bold: null, rest: "You can navigate between questions and edit answers before final submission." },
+            ].map((line, i) => (
+              <li
+                key={i}
+                className="aim-tip-text"
+                style={{
+                  color: "#78350f",
+                  lineHeight: 1.5,
+                  marginBottom: i < 3 ? 4 : 0,
+                  fontWeight: 450,
+                }}
+              >
+                {line.bold && (
+                  <strong style={{ color: "#92400e" }}>{line.bold}</strong>
+                )}
+                {line.rest}
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -961,8 +961,11 @@ export const AssessmentInstructionsModal: React.FC<
             gap: 8,
           }}
         >
-          <EyeOff size={14} color="#52525b" />
-          <small style={{ color: "#3f3f46", fontSize: 11.5, fontWeight: 450 }}>
+          <EyeOff size={13} color="#52525b" />
+          <small
+            className="aim-privacy"
+            style={{ color: "#3f3f46", fontWeight: 450 }}
+          >
             Your responses are private and used only to generate your
             personalized program recommendation.
           </small>
@@ -976,11 +979,10 @@ export const AssessmentInstructionsModal: React.FC<
             localStorage.setItem("hasSeenAssessmentInstructions", "true");
             onHide();
           }}
-          className="px-5 py-2"
+          className="aim-cta px-5 py-2"
           style={{
             background: "linear-gradient(135deg, #1C6CB3 0%, #2B3176 100%)",
             border: "none",
-            fontSize: "1rem",
             fontWeight: 600,
             borderRadius: 8,
           }}

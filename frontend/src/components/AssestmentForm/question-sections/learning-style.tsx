@@ -654,13 +654,13 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   maxHeight: isReviewExpanded ? "300px" : "0",
                   overflowY: isReviewExpanded ? "auto" : "hidden",
                   overflowX: "hidden",
-                  transition: "max-height 0.3s ease-in-out",
+                  transition: "max-height 1.3s ease-in-out",
                   opacity: isReviewExpanded ? 1 : 0,
                   WebkitOverflowScrolling: "touch",
                 }}
               >
                 <div
-                  className="p-3 rounded-bottom-3"
+                  className="p-3 rounded-bottom-3"  
                   style={{
                     background: "#fafbfc",
                     border: "1px solid #e5e7eb",
@@ -688,9 +688,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                         }}
                         onClick={() => {
                           setQuizIndex(idx);
-                          if (isReviewExpanded) {
-                            setIsReviewExpanded(false);
-                          }
                         }}
                         onMouseEnter={(e) => {
                           if (!isCurrentQuestion) {

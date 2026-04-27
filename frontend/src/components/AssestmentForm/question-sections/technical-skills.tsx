@@ -41,21 +41,15 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
   totalSections,
 }) => {
   const [quizIndex, setQuizIndex] = useState<number>(0);
-  const [sectionCompleted, setSectionCompleted] = useState<boolean>(() => {
-    // Check if all questions were already answered when returning to this section
-    return questions.every((q) => typeof formData.technicalSkills[q.questionText] === "boolean");
-  });
   const [isReviewExpanded, setIsReviewExpanded] = useState(false);
 
-  const [answers, setAnswers] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    questions.forEach((q) => {
-      const existing = formData.technicalSkills[q.questionText];
-      if (typeof existing === "boolean") {
-        initial[q.questionText] = existing;
-      }
-    });
-    return initial;
+  // Always derive answers from formData as source of truth
+  const answers: Record<string, boolean> = {};
+  questions.forEach((q) => {
+    const existing = formData.technicalSkills[q.questionText];
+    if (typeof existing === "boolean") {
+      answers[q.questionText] = existing;
+    }
   });
 
   const currentQuestion = questions[quizIndex];
@@ -63,37 +57,23 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
   const answeredCount = Object.keys(answers).length;
   const yesCount = Object.values(answers).filter(Boolean).length;
 
-  // Calculate progress percentage
-  const calculateProgress = () => {
-    return Math.round((answeredCount / totalQuestions) * 100);
-  };
-
-  // Check if all questions are answered
-  const allQuestionsAnswered = answeredCount === totalQuestions;
+  // Derived — never out of sync
+  const sectionCompleted = answeredCount === totalQuestions;
+  const progressPercent = Math.round((answeredCount / totalQuestions) * 100);
+  const currentAnswer = answers[currentQuestion?.questionText];
+  const isLastQuestion = quizIndex === totalQuestions - 1;
+  const isFirstQuestion = quizIndex === 0;
 
   // ── Answer handler ──────────────────────────────────────────────────────
   const handleAnswer = (value: boolean) => {
     const q = currentQuestion;
+    // Always persist both Yes AND No so answeredCount reaches totalQuestions
+    onChange("technicalSkills", q.questionText, value, q.program);
 
-    const updatedAnswers = { ...answers, [q.questionText]: value };
-    setAnswers(updatedAnswers);
-
-    if (value) {
-      onChange("technicalSkills", q.questionText, true, q.program);
-    } else {
-      if (formData.technicalSkills[q.questionText] === true) {
-        onChange("technicalSkills", q.questionText, false, q.program);
-      }
-    }
-
-    // Check if this was the last question
-    const newAnsweredCount = Object.keys(updatedAnswers).length;
-    if (newAnsweredCount === totalQuestions) {
-      setSectionCompleted(true);
-    }
-
-    // Auto-advance to next question only if section isn't completed
-    if (!sectionCompleted && quizIndex < totalQuestions - 1) {
+    // Auto-advance if this question was previously unanswered and not last
+    const isNewAnswer = answers[q.questionText] === undefined;
+    const willBeCompleted = answeredCount + (isNewAnswer ? 1 : 0) === totalQuestions;
+    if (!willBeCompleted && quizIndex < totalQuestions - 1) {
       setTimeout(() => {
         setQuizIndex((i) => i + 1);
       }, 300);
@@ -114,24 +94,12 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
   };
 
   const toggleReviewAccordion = () => {
-    setIsReviewExpanded(!isReviewExpanded);
+    setIsReviewExpanded((prev) => !prev);
   };
 
   const handleSectionNext = () => {
-    if (allQuestionsAnswered) {
-      onNext();
-    }
+    if (sectionCompleted) onNext();
   };
-
-  // ── Progress ────────────────────────────────────────────────────────────
-  const progressPercent = sectionCompleted 
-    ? 100 
-    : calculateProgress();
-
-  // ── QUIZ SCREEN ────────────────────────────────────────────────────────
-  const currentAnswer = answers[currentQuestion?.questionText];
-  const isLastQuestion = quizIndex === totalQuestions - 1;
-  const isFirstQuestion = quizIndex === 0;
 
   return (
     <Card
@@ -168,8 +136,8 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               className="h-100 rounded-pill"
               style={{
                 width: `${progressPercent}%`,
-                background: sectionCompleted 
-                  ? "linear-gradient(135deg, #22c55e, #16a34a)" // Green when complete
+                background: sectionCompleted
+                  ? "linear-gradient(135deg, #22c55e, #16a34a)"
                   : "linear-gradient(135deg, #A41D31, #EC2326)",
                 transition: "width 0.4s ease",
                 boxShadow: sectionCompleted
@@ -180,10 +148,10 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           </div>
         </div>
 
-        {/* Completion message when all answered */}
+        {/* Completion badge */}
         {sectionCompleted && (
           <div className="text-center mb-4">
-            <div 
+            <div
               className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill"
               style={{
                 background: "rgba(34, 197, 94, 0.1)",
@@ -252,15 +220,9 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 padding: "12px 28px",
                 background: currentAnswer === false ? "#1C6CB3" : "white",
                 color: currentAnswer === false ? "white" : "#374151",
-                border:
-                  currentAnswer === false
-                    ? "2px solid #1C6CB3"
-                    : "2px solid #D1D5DB",
+                border: currentAnswer === false ? "2px solid #1C6CB3" : "2px solid #D1D5DB",
                 transition: "all 0.2s ease",
-                boxShadow:
-                  currentAnswer === false
-                    ? "0 4px 16px rgba(28, 108, 179, 0.35)"
-                    : "none",
+                boxShadow: currentAnswer === false ? "0 4px 16px rgba(28, 108, 179, 0.35)" : "none",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -269,8 +231,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               }}
               className="hover-lift"
             >
-              <XCircle size={18} />
-              No
+              <XCircle size={18} /> No
             </button>
 
             <button
@@ -283,15 +244,9 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 padding: "12px 28px",
                 background: currentAnswer === true ? "#EC2326" : "white",
                 color: currentAnswer === true ? "white" : "#374151",
-                border:
-                  currentAnswer === true
-                    ? "2px solid #EC2326"
-                    : "2px solid #D1D5DB",
+                border: currentAnswer === true ? "2px solid #EC2326" : "2px solid #D1D5DB",
                 transition: "all 0.2s ease",
-                boxShadow:
-                  currentAnswer === true
-                    ? "0 4px 16px rgba(236, 35, 38, 0.35)"
-                    : "none",
+                boxShadow: currentAnswer === true ? "0 4px 16px rgba(236, 35, 38, 0.35)" : "none",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -300,12 +255,11 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               }}
               className="hover-lift"
             >
-              <CheckCircle2 size={18} />
-              Yes
+              <CheckCircle2 size={18} /> Yes
             </button>
           </div>
 
-          {/* ── Question Navigation (Prev/Next) ────────────────────────── */}
+          {/* ── Question Navigation ─────────────────────────────────────── */}
           <div className="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
             <button
               onClick={handlePrevious}
@@ -331,24 +285,20 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
 
             <button
               onClick={handleNext}
-              disabled={isLastQuestion || !currentAnswer}
+              disabled={isLastQuestion}
               className="d-flex align-items-center gap-2 px-4 py-2 rounded-3"
               style={{
-                background:
-                  !isLastQuestion
-                    ? "linear-gradient(135deg, #EC2326, #A41D31)"
-                    : "#E5E7EB",
+                background: !isLastQuestion
+                  ? "linear-gradient(135deg, #EC2326, #A41D31)"
+                  : "#E5E7EB",
                 border: "none",
-                color:
-                  !isLastQuestion ? "white" : "#9CA3AF",
+                color: !isLastQuestion ? "white" : "#9CA3AF",
                 fontWeight: "600",
                 fontSize: "0.9rem",
-                cursor:
-                  !isLastQuestion ? "pointer" : "not-allowed",
-                boxShadow:
-                  !isLastQuestion
-                    ? "0 4px 12px rgba(236, 35, 38, 0.35)"
-                    : "none",
+                cursor: !isLastQuestion ? "pointer" : "not-allowed",
+                boxShadow: !isLastQuestion
+                  ? "0 4px 12px rgba(236, 35, 38, 0.35)"
+                  : "none",
                 transition: "all 0.2s ease",
               }}
             >
@@ -363,12 +313,8 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 onClick={toggleReviewAccordion}
                 className="w-100 d-flex align-items-center justify-content-between p-3 rounded-3"
                 style={{
-                  background: isReviewExpanded
-                    ? "rgba(164, 29, 49, 0.05)"
-                    : "#f8f9fa",
-                  border: `1.5px solid ${
-                    isReviewExpanded ? "rgba(164, 29, 49, 0.3)" : "#e5e7eb"
-                  }`,
+                  background: isReviewExpanded ? "rgba(164, 29, 49, 0.05)" : "#f8f9fa",
+                  border: `1.5px solid ${isReviewExpanded ? "rgba(164, 29, 49, 0.3)" : "#e5e7eb"}`,
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
@@ -376,27 +322,15 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                 <div className="d-flex align-items-center gap-2">
                   <Eye size={18} style={{ color: "#A41D31" }} />
                   <div className="text-start">
-                    <span
-                      className="fw-bold"
-                      style={{
-                        color: "#A41D31",
-                        fontSize: "0.9rem",
-                      }}
-                    >
+                    <span className="fw-bold" style={{ color: "#A41D31", fontSize: "0.9rem" }}>
                       Review Your Answers
                     </span>
                     <div className="d-flex gap-2 mt-1">
-                      <span
-                        className="small"
-                        style={{ color: "#6b7280", fontSize: "0.75rem" }}
-                      >
+                      <span className="small" style={{ color: "#6b7280", fontSize: "0.75rem" }}>
                         {answeredCount}/{totalQuestions} answered
                       </span>
                       {yesCount > 0 && (
-                        <span
-                          className="small"
-                          style={{ color: "#EC2326", fontSize: "0.75rem" }}
-                        >
+                        <span className="small" style={{ color: "#EC2326", fontSize: "0.75rem" }}>
                           • {yesCount} interested
                         </span>
                       )}
@@ -411,14 +345,14 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               </button>
 
               <div
-               style={{
-                      maxHeight: isReviewExpanded ? "300px" : "0",
-                      overflowY: isReviewExpanded ? "auto" : "hidden",
-                      overflowX: "hidden",
-                      transition: "max-height 0.3s ease-in-out",
-                      opacity: isReviewExpanded ? 1 : 0,
-                      WebkitOverflowScrolling: "touch",
-                    }}
+                style={{
+                  maxHeight: isReviewExpanded ? "300px" : "0",
+                  overflowY: isReviewExpanded ? "auto" : "hidden",
+                  overflowX: "hidden",
+                  transition: "max-height 0.3s ease-in-out",
+                  opacity: isReviewExpanded ? 1 : 0,
+                  WebkitOverflowScrolling: "touch",
+                }}
               >
                 <div
                   className="p-3 rounded-bottom-3"
@@ -436,21 +370,16 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                     return (
                       <div
                         key={q._id || q.questionText}
-                        className="d-flex justify-content-between align-items-center py-2 px-3 rounded-2 mb-1"
+                        className="py-2 px-3 rounded-2 mb-2"
                         style={{
                           cursor: "pointer",
                           transition: "all 0.15s ease",
-                          background: isCurrent
-                            ? "rgba(164, 29, 49, 0.05)"
-                            : "transparent",
+                          background: isCurrent ? "rgba(164, 29, 49, 0.05)" : "transparent",
                           border: isCurrent
                             ? "1px solid rgba(164, 29, 49, 0.3)"
-                            : "1px solid transparent",
+                            : "1px solid #f0f0f0",
                         }}
-                        onClick={() => {
-                          setQuizIndex(idx);
-                          setIsReviewExpanded(false);
-                        }}
+                        onClick={() => setQuizIndex(idx)}
                         onMouseEnter={(e) => {
                           if (!isCurrent) {
                             e.currentTarget.style.background = "rgba(164, 29, 49, 0.03)";
@@ -460,70 +389,58 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
                         onMouseLeave={(e) => {
                           if (!isCurrent) {
                             e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.borderColor = "transparent";
+                            e.currentTarget.style.borderColor = "#f0f0f0";
                           }
                         }}
                       >
-                        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "65%" }}>
+                        {/* Question row */}
+                        <div className="d-flex align-items-start gap-2">
                           <span
-                            className="small fw-bold"
                             style={{
+                              fontSize: "0.8rem",
+                              fontWeight: "700",
                               color: isCurrent ? "#A41D31" : "#9CA3AF",
-                              minWidth: "20px",
+                              minWidth: "22px",
+                              paddingTop: "1px",
+                              flexShrink: 0,
                             }}
                           >
-                            {idx + 1}.
+                            {idx + 1}.)
                           </span>
                           <span
-                            className="small"
                             style={{
+                              fontSize: "0.82rem",
                               color: isAnswered ? "#374151" : "#9CA3AF",
-                              fontWeight: isCurrent ? "600" : "400",
-                              textAlign: "left",
+                              fontWeight: isCurrent ? "600" : "500",
                               lineHeight: "1.4",
+                              textAlign: "left",
                             }}
                           >
                             {q.questionText}
                           </span>
                         </div>
-                        <div className="d-flex align-items-center gap-2">
+                        {/* Answer row */}
+                        <div style={{ paddingLeft: "30px", marginTop: "4px" }}>
                           {isAnswered ? (
                             <span
-                              className="badge px-2 py-1"
                               style={{
-                                backgroundColor:
-                                  ans === true ? "#EC232615" : "#1C6CB315",
-                                color: ans === true ? "#EC2326" : "#1C6CB3",
+                                fontSize: "0.8rem",
                                 fontWeight: "600",
-                                fontSize: "0.75rem",
-                                borderRadius: "6px",
+                                color: ans === true ? "#EC2326" : "#1C6CB3",
                               }}
                             >
                               {ans === true ? "Yes" : "No"}
                             </span>
                           ) : (
                             <span
-                              className="badge px-2 py-1"
                               style={{
-                                backgroundColor: "#f3f4f6",
-                                color: "#9CA3AF",
-                                fontWeight: "500",
-                                fontSize: "0.75rem",
-                                borderRadius: "6px",
+                                fontSize: "0.8rem",
+                                color: "#D1D5DB",
+                                fontStyle: "italic",
                               }}
                             >
-                              —
+                              Not answered
                             </span>
-                          )}
-                          {isCurrent && (
-                            <span
-                              style={{
-                                width: "6px",
-                                height: "6px",
-                                borderRadius: "50%",
-                                backgroundColor: "#A41D31",
-                              }}
-                            />
                           )}
                         </div>
                       </div>
@@ -535,7 +452,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           )}
         </div>
 
-        {/* Tip - only show when not completed */}
+        {/* Tip */}
         {!sectionCompleted && (
           <div
             className="mt-5 p-3 rounded-3 text-center"
@@ -544,10 +461,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
               border: "1px solid rgba(28, 108, 179, 0.15)",
             }}
           >
-            <p
-              className="small mb-0"
-              style={{ fontSize: "0.82rem", color: "#2B3176" }}
-            >
+            <p className="small mb-0" style={{ fontSize: "0.82rem", color: "#2B3176" }}>
               💡 <strong>Tip:</strong> Answer based on genuine interest — even if
               you've never tried it before.
             </p>
@@ -555,7 +469,6 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
         )}
       </Card.Body>
 
-      {/* Assessment Action Footer - shows permanently once all questions are answered */}
       {sectionCompleted && (
         <AssessmentActionFooter
           currentSection={currentSection}
@@ -564,7 +477,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           onNext={handleSectionNext}
           onReset={onReset}
           isLastSection={currentSection === totalSections - 1}
-          isComplete={calculateProgress() === 100}
+          isComplete={sectionCompleted}
           nextLabel="Career Interests →"
         />
       )}
@@ -575,9 +488,7 @@ const TechnicalSkillsSection: React.FC<TechnicalSkillsSectionProps> = ({
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fadeIn 0.25s ease-out; }
-        .hover-lift:hover {
-          transform: translateY(-2px);
-        }
+        .hover-lift:hover { transform: translateY(-2px); }
       `}</style>
     </Card>
   );

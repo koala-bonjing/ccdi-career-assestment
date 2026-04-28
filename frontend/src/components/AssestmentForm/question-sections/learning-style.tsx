@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import {
   CheckCircle2,
@@ -82,6 +82,9 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   const [showGroupReview, setShowGroupReview] = useState(false);
   const [isReviewExpanded, setIsReviewExpanded] = useState(false);
   const [showValidationError, setShowValidationError] = useState(false);
+  const autoAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -93,9 +96,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   useEffect(() => {
     setShowCategoryIntro(true);
     setQuizIndex(0);
-    setShowGroupReview(false);
-    setIsReviewExpanded(false);
-    const timer = setTimeout(() => setShowCategoryIntro(false), 2000);
+    const timer = setTimeout(() => setShowCategoryIntro(false), 1500);
     return () => clearTimeout(timer);
   }, [activeGroup]);
 
@@ -130,7 +131,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   const totalQuestionsInGroup = currentGroup?.questions.length || 0;
   const totalGroups = questionGroups.length;
 
-  // ✅ Accurate global question counter
   const globalQuestionNumber = useMemo(() => {
     let count = 0;
     for (let i = 0; i < activeGroup; i++) {
@@ -152,8 +152,8 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     ).length || 0;
 
   const isGroupComplete = (group: QuestionGroup) => {
-    return group.questions.some(
-      (q) => formData.learningWorkStyle[q.questionText] === true,
+    return group.questions.every(
+      (q) => typeof formData.learningWorkStyle[q.questionText] === "boolean",
     );
   };
 
@@ -167,10 +167,25 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
   useEffect(() => {
     if (isGroupFullyAnswered && !showGroupReview) {
       setShowGroupReview(true);
-    }
-  }, [isGroupFullyAnswered, showGroupReview]);
 
-  // ── QUESTION-ONLY NAVIGATION ────────────────────────────────────────────
+      if (autoAdvanceTimeoutRef.current) {
+        clearTimeout(autoAdvanceTimeoutRef.current);
+      }
+
+      if (activeGroup < totalGroups - 1) {
+        autoAdvanceTimeoutRef.current = setTimeout(() => {
+          setActiveGroup((prev) => prev + 1);
+        }, 2000);
+      }
+    }
+
+    return () => {
+      if (autoAdvanceTimeoutRef.current) {
+        clearTimeout(autoAdvanceTimeoutRef.current);
+      }
+    };
+  }, [isGroupFullyAnswered, activeGroup, totalGroups]);
+
   const handleAnswer = (value: boolean) => {
     if (!currentQuestion) return;
     onChange(
@@ -181,11 +196,10 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     );
     setShowValidationError(false);
 
-    // Auto-advance only within current group
     if (quizIndex < totalQuestionsInGroup - 1) {
       setTimeout(() => {
         setQuizIndex((i) => i + 1);
-      }, 300);
+      }, 200);
     }
   };
 
@@ -202,17 +216,16 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     if (quizIndex < totalQuestionsInGroup - 1) {
       setQuizIndex((i) => i + 1);
     }
-    // Does NOT change groups or sections. Footer handles that.
   };
 
   const handlePrevious = () => {
     if (quizIndex > 0) {
       setQuizIndex((i) => i - 1);
     }
-    // Does NOT change groups or sections.
   };
 
-  const toggleReviewAccordion = () => {
+  const toggleReviewAccordion = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
     setIsReviewExpanded(!isReviewExpanded);
   };
 
@@ -220,7 +233,6 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
     ? formData.learningWorkStyle[currentQuestion.questionText]
     : undefined;
 
-  // Calculate unanswered count for review
   const unansweredInGroup =
     currentGroup?.questions.filter(
       (q) => typeof formData.learningWorkStyle[q.questionText] !== "boolean",
@@ -256,7 +268,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
         {showCategoryIntro && (
           <div
             className="text-center mb-4"
-            style={{ animation: "fadeInScale 0.6s ease-out" }}
+            style={{ animation: "fadeInScale 0.4s ease-out" }}
           >
             <div
               className="d-inline-flex align-items-center gap-3 px-4 py-3 rounded-4"
@@ -323,7 +335,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                 background: isSectionComplete
                   ? "#1C6CB3"
                   : "linear-gradient(135deg, #2B3176, #1C6CB3)",
-                transition: "width 0.4s ease",
+                transition: "width 0.3s ease",
                 boxShadow: isSectionComplete
                   ? "0 0 8px rgba(28, 108, 179, 0.3)"
                   : "none",
@@ -344,6 +356,9 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   onClick={() => {
                     setActiveGroup(idx);
                     setShowGroupReview(false);
+                    if (autoAdvanceTimeoutRef.current) {
+                      clearTimeout(autoAdvanceTimeoutRef.current);
+                    }
                   }}
                   style={{
                     width: "100%",
@@ -352,7 +367,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                     borderRadius: "12px",
                     background: isActive ? `${group.color}10` : "white",
                     cursor: "pointer",
-                    transition: "all 0.3s ease",
+                    transition: "all 0.2s ease",
                     position: "relative",
                   }}
                   aria-pressed={isActive}
@@ -406,7 +421,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
               background: `linear-gradient(135deg, ${currentGroup.color}08, #ffffff)`,
               border: `1.5px solid ${currentGroup.color}30`,
               overflow: "hidden",
-              transition: "all 0.15s ease",
+              transition: "all 0.1s ease",
             }}
           >
             <div
@@ -454,7 +469,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   currentAnswer === false
                     ? "2px solid #1C6CB3"
                     : "2px solid #D1D5DB",
-                transition: "all 0.2s ease",
+                transition: "all 0.15s ease",
                 boxShadow:
                   currentAnswer === false
                     ? "0 4px 16px rgba(28, 108, 179, 0.35)"
@@ -484,7 +499,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   currentAnswer === true
                     ? `2px solid ${currentGroup.color}`
                     : "2px solid #D1D5DB",
-                transition: "all 0.2s ease",
+                transition: "all 0.15s ease",
                 boxShadow:
                   currentAnswer === true
                     ? `0 4px 16px ${currentGroup.color}40`
@@ -499,7 +514,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
               <CheckCircle2 size={18} /> Yes
             </button>
           </div>
-          {/* 🔘 Question-Only Navigation */}
+
           <div className="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
             <button
               onClick={handlePrevious}
@@ -512,7 +527,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                 fontWeight: "600",
                 fontSize: "0.9rem",
                 cursor: quizIndex === 0 ? "not-allowed" : "pointer",
-                transition: "all 0.2s ease",
+                transition: "all 0.15s ease",
                 opacity: quizIndex === 0 ? 0.6 : 1,
               }}
             >
@@ -554,14 +569,13 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   typeof currentAnswer === "boolean"
                     ? `0 4px 12px ${currentGroup.color}40`
                     : "none",
-                transition: "all 0.2s ease",
+                transition: "all 0.15s ease",
               }}
             >
               Next <ChevronRight size={18} />
             </button>
           </div>
 
-          {/* 🔒 Validation Feedback */}
           {showValidationError && (
             <div
               className="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 mb-3 animate-fade-in"
@@ -583,7 +597,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
             </div>
           )}
 
-          {/* 📋 Dropdown/Accordion Review Panel */}
+          {/* Accordion Review Panel - Fixed */}
           {showGroupReview && (
             <div className="mt-3 mb-3 animate-fade-in">
               <button
@@ -597,7 +611,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                     isReviewExpanded ? currentGroup.color : "#e5e7eb"
                   }40`,
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.15s ease",
                 }}
               >
                 <div className="d-flex align-items-center gap-2">
@@ -654,13 +668,11 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                   maxHeight: isReviewExpanded ? "300px" : "0",
                   overflowY: isReviewExpanded ? "auto" : "hidden",
                   overflowX: "hidden",
-                  transition: "max-height 1.3s ease-in-out",
-                  opacity: isReviewExpanded ? 1 : 0,
-                  WebkitOverflowScrolling: "touch",
+                  transition: "max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
               >
                 <div
-                  className="p-3 rounded-bottom-3"  
+                  className="p-3 rounded-bottom-3"
                   style={{
                     background: "#fafbfc",
                     border: "1px solid #e5e7eb",
@@ -684,7 +696,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                             ? `${currentGroup.color}08`
                             : "transparent",
                           cursor: "pointer",
-                          transition: "all 0.15s ease",
+                          transition: "all 0.1s ease",
                         }}
                         onClick={() => {
                           setQuizIndex(idx);
@@ -770,6 +782,13 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
                       </div>
                     );
                   })}
+                  {unansweredInGroup === 0 && activeGroup < totalGroups - 1 && (
+                    <div className="text-center mt-2 pt-2 border-top">
+                      <span className="small text-muted">
+                        ✨ Automatically moving to next category in 2 seconds...
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -807,7 +826,7 @@ const LearningStyleSection: React.FC<AssessmentSectionProps> = ({
           from { opacity: 0; transform: translateY(-6px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in { animation: fadeIn 0.25s ease-out; }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out; }
       `}</style>
     </Card>
   );

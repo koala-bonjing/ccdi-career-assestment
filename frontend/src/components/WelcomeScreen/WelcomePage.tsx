@@ -19,6 +19,7 @@ import { CarouselSection } from "./sections/carousel-section";
 import { useAssessmentState } from "../../hooks/useAssessmentState";
 import { AssessmentCompletedModal } from "../ui/modals/assessment-completed-modal";
 import type { AssessmentAnswers } from "../../types";
+import { WelcomeInfoSection } from "./sections/welcome-info-section";
 
 type Props = {
   onStartNew?: () => void;
@@ -100,7 +101,13 @@ export default function WelcomeScreenComponent({
         hasCompleted,
       });
     }
-  }, [loading, isAuthenticated, hasProgress, hasCompleted, hasShownContinueModal]);
+  }, [
+    loading,
+    isAuthenticated,
+    hasProgress,
+    hasCompleted,
+    hasShownContinueModal,
+  ]);
 
   if (!isAuthenticated) {
     return (
@@ -165,9 +172,9 @@ export default function WelcomeScreenComponent({
 
   return (
     <div className="welcome-assessment-container">
-      <ToastContainer 
-        position="top-center" 
-        className={isMobile ? "p-2 w-100" : "p-3"} 
+      <ToastContainer
+        position="top-center"
+        className={isMobile ? "p-2 w-100" : "p-3"}
         style={isMobile ? { maxWidth: "100%" } : {}}
       >
         <ProgressToast
@@ -190,13 +197,14 @@ export default function WelcomeScreenComponent({
         onStartNew={startNewAssessment}
       />
 
-      <div className={`welcome-main-content ${isMobile ? "px-2 pb-4" : "pb-5"}`}>
+      <div
+        className={`welcome-main-content ${isMobile ? "px-2 pb-4" : "pb-5"}`}
+      >
         <div className="d-flex justify-content-center">
           <div className={isMobile ? "w-100" : "container-lg"}>
-            
             <HeaderSection hasCompleted={hasCompleted} />
-            
-            <div 
+
+            <div
               className={`modern-welcome-card ${isMobile ? "p-3 mt-3" : "p-5 mt-4"}`}
             >
               <UserSection
@@ -207,6 +215,7 @@ export default function WelcomeScreenComponent({
 
               <>
                 <FeaturesSection />
+                <WelcomeInfoSection />
                 <CtaSection
                   hasProgress={hasProgress}
                   onStart={handleStartAssessment}

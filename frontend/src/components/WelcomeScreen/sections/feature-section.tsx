@@ -27,7 +27,7 @@ export const FeaturesSection = () => (
           <div className="feature-icon-wrapper bg-warning"><Timer size={24} /></div>
           <h5 className="fw-bold text-dark mb-2">Quick & Easy</h5>
           <p className="text-muted mb-0 small">
-            Complete in just 10–15 minutes
+            Complete in just 15-22 minutes
           </p>
         </div>
       </Col>

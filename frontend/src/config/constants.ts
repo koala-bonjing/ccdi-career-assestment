@@ -7,7 +7,7 @@ const categoryTitles: Record<string, string> = {
   academicAptitude: "Academic Aptitude",
   technicalSkills: "Technical Interests",
   careerInterest: "Career Interest",
-  learningWorkStyle: "Learning & Work Style",
+  learningWorkStyle: "Learning & Commitments",
 };
 const sectionBgColors: Record<string, string> = {
   academicAptitude: "bg-blue-500",
